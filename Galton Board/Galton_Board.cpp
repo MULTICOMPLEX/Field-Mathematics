@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 100000000;
+	std::uint64_t N_Trials = 1000000000;
 
 	U N_cycles = 8; //== Threads  
 
@@ -284,9 +284,22 @@ int main(int argc, char** argv)
 			auto entropy = to_string_with_precision(ShannonEntropy(Y_buf), 8);
 			str += entropy;
 			plot.text(text_x_offset, -28, str, "black", 11);
-
-			std::cout << " ShannonEntropy " << entropy << std::endl;
+			std::cout << " ShannonEntropy all Cycles " << entropy << std::endl << std::endl;
 			count_duplicates(Y_buf);
+
+			std::cout << std::endl << std::endl;
+			std::vector<R> se;
+			for (auto k = 0ull; k < N_cycles; k++) {
+				se.clear();
+				for (auto i = 0ull; i < Board_SIZE; i++) {
+					se.push_back(Y_buf[k * Board_SIZE + i]);
+				}
+				entropy = to_string_with_precision(ShannonEntropy(se), 8);
+				std::cout << " ShannonEntropy Cycle[" << k + 1 << "]  " << entropy;
+				std::cout << std::endl;
+				count_duplicates(se);
+				std::cout << std::endl;
+			}
 
 			X.clear();
 

@@ -742,7 +742,7 @@ double round_to(double value, double precision)
 }
 
 template <typename T>
-long double ShannonEntropy(std::vector<T>& data) {
+long double ShannonEntropy(const std::vector<T>& data) {
 	long double entropy = 0;
 	auto elements = data.size();
 	std::map<T, std::size_t> frequencies;
@@ -842,15 +842,12 @@ void count_duplicates(const std::vector<T>& nums)
 		}
 	}
 
-	std::cout << std::endl;
-
 	for (const auto& i : duplicate) {
 		duplicate2[i.second + 1] ++;
 		std::cout << std::setprecision(8) << std::setw(12) << i.first << " appears " << i.second + 1
 			<< " times" << std::endl;
 	}
 
-	std::cout << std::endl;
 	for (const auto& i : duplicate2) {
 		std::cout << std::right << " " << i.first << " appears " << i.second
 			<< " times" << std::endl;

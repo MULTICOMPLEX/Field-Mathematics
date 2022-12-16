@@ -88,6 +88,30 @@ ShannonEntropy 10.99609375
   0.50976825 appears 2 times
   0.78148539 appears 2 times
   0.98133256 appears 3 times
+  
+  //mxws <uint64_t>RNG;
+   ShannonEntropy all Cycles 10.99511719
+ -0.91434168 appears 2 times
+ -0.88833361 appears 2 times
+ -0.45649433 appears 2 times
+  0.83976607 appears 2 times
+  0.99223152 appears 2 times
+ 2 appears 5 times
+
+
+ ShannonEntropy Cycle[1]  8.00000000
+ ShannonEntropy Cycle[2]  8.00000000
+ ShannonEntropy Cycle[3]  8.00000000
+ ShannonEntropy Cycle[4]  8.00000000
+
+ ShannonEntropy Cycle[5]  7.99218750
+  0.83976607 appears 2 times
+ 2 appears 1 times
+
+ ShannonEntropy Cycle[6]  8.00000000
+ ShannonEntropy Cycle[7]  8.00000000
+ ShannonEntropy Cycle[8]  8.00000000
+ 
 
 Board_SIZE = 683
 N_cycles = 3

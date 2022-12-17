@@ -886,8 +886,8 @@ template<typename T>
 void cout_ShannonEntropy(std::vector<T>& Y_buf, auto Board_SIZE, auto N_cycles) {
 
 	auto v = get_duplicate_indices(Y_buf);
-	if (!v.empty()) {
-		std::cout << std::endl << "  ShannonEntropy  Index   Cycle" << std::endl << std::endl;
+	if (!v.empty()) {                            
+		std::cout << std::endl << "     Value        Index   Cycle" << std::endl << std::endl;
 		for (auto i = 0; i < v.size(); i++) {
 			std::cout << std::setprecision(8) << std::setw(14) <<
 				std::right << v[i].first << " :: [" << std::modulus()(v[i].second, Board_SIZE) << "]" <<

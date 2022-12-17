@@ -875,7 +875,7 @@ void count_duplicates(const std::vector<T>& nums)
 	}
 	for (const auto& i : duplicate) {
 		duplicate2[i.second + 1] ++;
-		std::cout << std::setprecision(8) << std::setw(13) << i.first << " :: " << i.second + 1 << std::endl;
+		std::cout << std::setprecision(8) << std::setw(14) << i.first << " :: " << i.second + 1 << std::endl;
 	}
 	for (const auto& i : duplicate2) {
 		std::cout << std::setw(18) << std::right << i.first << " :: " << i.second << std::endl;
@@ -887,9 +887,9 @@ void cout_ShannonEntropy(std::vector<T>& Y_buf, auto Board_SIZE, auto N_cycles) 
 
 	auto v = get_duplicate_indices(Y_buf);
 	if (!v.empty()) {
-		std::cout << std::endl << "  ShannonEntropy Index   Cycle" << std::endl << std::endl;
+		std::cout << std::endl << "  ShannonEntropy  Index   Cycle" << std::endl << std::endl;
 		for (auto i = 0; i < v.size(); i++) {
-			std::cout << std::setprecision(8) << std::setw(13) <<
+			std::cout << std::setprecision(8) << std::setw(14) <<
 				std::right << v[i].first << " :: [" << std::modulus()(v[i].second, Board_SIZE) << "]" <<
 				" :: [" << v[i].second / Board_SIZE + 1 << "]" << std::endl;
 			if (i < v.size())

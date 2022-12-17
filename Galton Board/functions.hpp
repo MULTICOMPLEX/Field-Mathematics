@@ -878,7 +878,7 @@ void count_duplicates(const std::vector<T>& nums)
 		std::cout << std::setprecision(8) << std::setw(14) << i.first << " :: " << i.second + 1 << std::endl;
 	}
 	for (const auto& i : duplicate2) {
-		std::cout << std::setw(18) << std::right << i.first << " :: " << i.second << std::endl;
+		std::cout << std::setw(19) << std::right << i.first << " :: " << i.second << std::endl;
 	}
 }
 

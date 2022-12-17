@@ -14,10 +14,11 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 600000000;
+	std::uint64_t N_Trials = 10000000000;
 
-	U N_cycles = 8; //== Threads  
+	U N_cycles = 10; //== Threads  
 
+	//Initial number of bins
 	U N_Bins = 2048;
 	//speedup
 	B speedup = true;
@@ -102,7 +103,8 @@ int main(int argc, char** argv)
 			N_cycles += 1;
 	}
 
-	//std::cout << std::endl << " Sinusoid size  " << Board_SIZE * N_cycles << std::endl;
+	N_Bins = Board_SIZE * N_cycles;
+	std::cout << " Bins           " << N_Bins << std::endl;
 
 	std::tuple<R, U> tuple;
 
@@ -285,6 +287,7 @@ int main(int argc, char** argv)
 			str += entropy;
 			plot.text(text_x_offset, -28, str, "black", 11);
 			
+			std::cout << " Max Entropy log2(" << N_Bins << ") = " << std::log2(N_Bins) << std::endl;
 			std::cout << " ShannonEntropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;
 			count_duplicates(Y_buf);
 

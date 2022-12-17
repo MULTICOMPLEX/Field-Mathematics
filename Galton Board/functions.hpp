@@ -8,6 +8,7 @@
 #include "matplotlib.hpp"
 #include "number_theory.hpp"
 #include <map>
+#include <unordered_set>
 
 
 plot_matplotlib plot;
@@ -742,6 +743,14 @@ double round_to(double value, double precision)
 }
 
 template <typename T>
+std::size_t getIndex(const std::vector<T>& v, const T K)
+{
+	auto it = std::find(v.begin(), v.end(), K);
+	auto index = std::distance(v.begin(), it);
+	return index;
+}
+
+template <typename T>
 long double ShannonEntropy(const std::vector<T>& data) {
 	long double entropy = 0;
 	auto elements = data.size();
@@ -827,6 +836,29 @@ void PlotBoardsizeRandomNumberRange(T N_Bins)
 
 }
 
+template<typename T>
+std::vector<std::pair<T,std::size_t>> get_duplicate_indices(const std::vector<T>& vec) {
+	auto first = vec.begin();
+	auto last = vec.end();
+	std::unordered_set<std::size_t> rtn;
+	std::unordered_map<T, std::size_t> dup;
+	for (std::size_t i = 0; first != last; ++i, ++first) {
+		auto iter_pair = dup.insert(std::make_pair(*first, i));
+		if (!iter_pair.second) {
+			rtn.insert(iter_pair.first->second);
+			rtn.insert(i);
+		}
+	}
+	std::vector<std::pair<T, std::size_t>> v;
+	
+	for (const auto& i : rtn)
+		v.push_back(std::make_pair(vec[i], i));
+
+	std::ranges::sort(v);
+	
+	return v;
+}
+
 template <typename T>
 void count_duplicates(const std::vector<T>& nums)
 {
@@ -841,16 +873,42 @@ void count_duplicates(const std::vector<T>& nums)
 			duplicate[*beg]++;
 		}
 	}
-
 	for (const auto& i : duplicate) {
 		duplicate2[i.second + 1] ++;
-		std::cout << std::setprecision(8) << std::setw(12) << i.first << " appears " << i.second + 1
-			<< " times" << std::endl;
+		std::cout << std::setprecision(8) << std::setw(13) << i.first << " :: " << i.second + 1 << std::endl;
 	}
-
 	for (const auto& i : duplicate2) {
-		std::cout << std::right << " " << i.first << " appears " << i.second
-			<< " times" << std::endl;
+		std::cout << std::setw(18) << std::right << i.first << " :: " << i.second << std::endl;
+	}
+}
+
+template<typename T>
+void cout_ShannonEntropy(std::vector<T>& Y_buf, auto Board_SIZE, auto N_cycles) {
+
+	auto v = get_duplicate_indices(Y_buf);
+	if (!v.empty()) {
+		std::cout << std::endl << "  ShannonEntropy Index   Cycle" << std::endl << std::endl;
+		for (auto i = 0; i < v.size(); i++) {
+			std::cout << std::setprecision(8) << std::setw(13) <<
+				std::right << v[i].first << " :: [" << std::modulus()(v[i].second, Board_SIZE) << "]" <<
+				" :: [" << v[i].second / Board_SIZE + 1 << "]" << std::endl;
+			if (i < v.size())
+				if (v[i + 1ull].first != v[i].first) std::cout << std::endl;
+		}
+	}
+	std::cout << std::endl;
+
+	std::vector<T> se;
+	for (auto k = 0ull; k < N_cycles; k++) {
+		se.clear();
+		for (auto i = 0ull; i < Board_SIZE; i++) {
+			se.push_back(Y_buf[k * Board_SIZE + i]);
+		}
+		auto entropy = to_string_with_precision(ShannonEntropy(se), 8);
+		std::cout << " ShannonEntropy Cycle[" << k + 1 << "]  " << entropy;
+		std::cout << std::endl;
+		count_duplicates(se);
+		std::cout << std::endl;
 	}
 }
 

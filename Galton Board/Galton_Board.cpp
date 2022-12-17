@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
 	U N_Bins = 2048;
 	//speedup
-	B speedup = true; 
+	B speedup = true;
 	//Sinusoidal distribution or Normal distribution
 	B probability_wave = true;
 	//DC distribution
@@ -36,14 +36,14 @@ int main(int argc, char** argv)
 	const B Hanning_window = false;
 
 	//Plot Fourier transform with probability wave twiddle factors
-	B doDFTr = false; 
+	B doDFTr = false;
 
 	//Enable Sliding FFT
 	const B Sliding_FFT = false;
 
 	//Write twiddle factors to disk
 	B W_DFTCoeff = false;
-	if((N_Bins != 2048) || (N_cycles != 1))
+	if ((N_Bins != 2048) || (N_cycles != 1))
 		W_DFTCoeff = false;
 
 	/***************SETTINGS*****************/
@@ -179,10 +179,10 @@ int main(int argc, char** argv)
 		for (auto& i : galton_arr.front())
 			std::ranges::transform(i, std::back_inserter(Y),
 				[](auto& c) {return double(c); });
-		
+
 		std::cout << " Avarage        " << avarage_vector(Y) / N_cycles << std::endl;
 		std::cout << " AC Amplitude   " << ac_amplite_vector(Y) / N_cycles << std::endl;
-		
+
 		Y_buf = Y;
 
 		if (doDFTr) {
@@ -197,7 +197,7 @@ int main(int argc, char** argv)
 			normalize_vector(Y, 1., -1.);
 			null_offset_vector(Y);
 		}
-		
+
 		if (Hanning_window)
 			Hann_function(Y);
 
@@ -254,7 +254,7 @@ int main(int argc, char** argv)
 			str += std::to_string(rms);
 			str += "    RNG range= ";
 
-			auto text_x_offset = N_Bins/10; //210
+			auto text_x_offset = N_Bins / 10; //210
 
 			auto rng_range = std::get<R>(tuple);
 			str += to_string_with_precision(rng_range, 3);
@@ -264,13 +264,13 @@ int main(int argc, char** argv)
 			else if (Board_SIZE < Board_size) str = "Grown to ";
 			else str = "Size stayed the same= ";
 			plot.text(text_x_offset, -13, str + std::to_string(Board_size), "purple", 11);
-			
+
 			str = "Factor= "; plot.text(text_x_offset, -18, str, "orange", 11);
-			if (Board_SIZE > Board_size) 
+			if (Board_SIZE > Board_size)
 				str += to_string_with_precision(R(Board_SIZE) / Board_size, 3);
 			else if (Board_SIZE < Board_size)
 				str += to_string_with_precision(Board_size / R(Board_SIZE), 3);
-			else 
+			else
 				str += to_string_with_precision(R(Board_SIZE), 3);
 			plot.text(text_x_offset, -18, str, "orange", 11);
 
@@ -284,23 +284,12 @@ int main(int argc, char** argv)
 			auto entropy = to_string_with_precision(ShannonEntropy(Y_buf), 8);
 			str += entropy;
 			plot.text(text_x_offset, -28, str, "black", 11);
-			std::cout << " ShannonEntropy all Cycles " << entropy << std::endl << std::endl;
+			
+			std::cout << " ShannonEntropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;
 			count_duplicates(Y_buf);
 
-			std::cout << std::endl << std::endl;
-			std::vector<R> se;
-			for (auto k = 0ull; k < N_cycles; k++) {
-				se.clear();
-				for (auto i = 0ull; i < Board_SIZE; i++) {
-					se.push_back(Y_buf[k * Board_SIZE + i]);
-				}
-				entropy = to_string_with_precision(ShannonEntropy(se), 8);
-				std::cout << " ShannonEntropy Cycle[" << k + 1 << "]  " << entropy;
-				std::cout << std::endl;
-				count_duplicates(se);
-				std::cout << std::endl;
-			}
-
+			cout_ShannonEntropy(Y_buf, Board_SIZE, N_cycles);
+			
 			X.clear();
 
 			for (auto i = 0.; i < Y_buf.size() / 2.; i += 0.5)
@@ -324,10 +313,10 @@ int main(int argc, char** argv)
 			str += nameForNumber(N_Trials);
 			str += " x ";
 			str += std::to_string(N_cycles);
-			
+
 			plot.plot_somedata(X, Y_buf, "", str, "blue");
-			
-			if(W_DFTCoeff)
+
+			if (W_DFTCoeff)
 				Write_DFTCoeff(Y_buf);
 
 			if (doDFTr) {
@@ -356,7 +345,7 @@ int main(int argc, char** argv)
 				x += 1. / (Y_buf.size() - 1) * 2 * std::numbers::pi;
 				X.push_back(x);
 			}
-		
+
 			plot.PyRun_Simple("fig = plt.figure()");
 			plot.PyRun_Simple("ax = fig.add_subplot(projection = 'polar')");
 
@@ -394,7 +383,7 @@ int main(int argc, char** argv)
 			}
 		}
 	}
-	
+
 	return 0;
 }
- 
+

@@ -24,6 +24,10 @@ int main(int argc, char** argv)
 	B speedup = true;
 	//Sinusoidal distribution or Normal distribution
 	B probability_wave = true;
+	//Entropy analysis
+	B Entropy = true;
+	//DFT Entropy analysis
+	B DFTEntropy = false;
 	//DC distribution
 	B DC = false;
 	//Enable Fourier transform
@@ -37,7 +41,7 @@ int main(int argc, char** argv)
 	const B Hanning_window = false;
 
 	//Plot Fourier transform with probability wave twiddle factors
-	B doDFTr = false;
+	B doDFTr = true;
 
 	//Enable Sliding FFT
 	const B Sliding_FFT = false;
@@ -290,9 +294,11 @@ int main(int argc, char** argv)
 			std::cout << " Max Entropy log2(" << N_Bins << ") = " <<
 				to_string_with_precision(std::log2(N_Bins), 8) << std::endl;
 			std::cout << " ShannonEntropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;
-			count_duplicates(Y_buf);
-
-			cout_ShannonEntropy(Y_buf, Board_SIZE, N_cycles);
+			
+			if (Entropy) {
+				count_duplicates(Y_buf);
+				cout_ShannonEntropy(Y_buf, Board_SIZE, N_cycles);
+			}
 
 			X.clear();
 
@@ -324,10 +330,15 @@ int main(int argc, char** argv)
 				Write_DFTCoeff(Y_buf);
 
 			if (doDFTr) {
-				plot_doDFTr(Y_buf, true);
-
-				//std::cout << std::endl << "DFT Shannon Entropy " << std::setprecision(10) << ShannonEntropy(Y_buf);
-				//count_duplicates(Y_buf);
+				auto Y = plot_doDFTr(Y_buf, true);
+				if (DFTEntropy) {
+					auto entropy = to_string_with_precision(ShannonEntropy(Y), 8);
+					std::cout << " Max Entropy DFT log2(" << N_Bins << ") = " <<
+						to_string_with_precision(std::log2(N_Bins), 8) << std::endl;
+					std::cout << " ShannonEntropy DFT Cycles[1.." << N_cycles << "] " << entropy << std::endl;
+					count_duplicates(Y);
+					cout_ShannonEntropy(Y, Board_SIZE, N_cycles);
+				}
 			}
 
 			plot.set_title(utf8_encode(title));

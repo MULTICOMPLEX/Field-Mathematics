@@ -333,14 +333,17 @@ std::vector<DFT_Coeff> doDFTr(const std::vector<T> function, bool inverse, bool 
 }
 
 template <typename T>
-void plot_doDFTr(const std::vector<T>& v, bool distribution_twiddlefactors)
+std::vector<T> plot_doDFTr(const std::vector<T>& v, bool distribution_twiddlefactors)
 {
 	auto ds = v;
-	std::vector<T> X, Y;
+	std::vector<T> X, Y, k2;
 
 	Read_DFTCoeff(ds);
 
 	auto k = doDFTr(v, false, false, ds, distribution_twiddlefactors);
+
+	for (auto i = 0; i < k.size(); i++) 
+		k2.push_back( sqrt(k[i].real * k[i].real + k[i].imag * k[i].imag) / (k.size() / 2.));
 
 	for (auto i = 0; i < k.size() / 2; i++) {
 		Y.push_back(20 * std::log10(sqrt(k[i].real * k[i].real + k[i].imag * k[i].imag) / (k.size() / 2.) + .001));
@@ -350,6 +353,8 @@ void plot_doDFTr(const std::vector<T>& v, bool distribution_twiddlefactors)
 	str += nameForNumber(50000000000ull);
 	str += " Trials";
 	plot.plot_somedata(X, Y, "", str, "green");
+
+	return k2;
 }
 
 

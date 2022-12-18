@@ -14,10 +14,12 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 100000000;
+	std::uint64_t N_Trials = 250000000;
 
-	U N_cycles = 8; //== Threads  
-
+	//Wave cycles or threads  
+	U N_cycles = 8; 
+	//Number of integrations
+	U N_Integrations = 4;
 	//Initial number of bins
 	U N_Bins = 2048;
 	//speedup
@@ -88,6 +90,8 @@ int main(int argc, char** argv)
 	std::cout << " " << N_Hthreads << " concurrent cycles (threads) are supported."
 		<< std::endl << std::endl;
 
+	N_Trials *= N_Integrations;
+
 	if (probability_wave) {
 		std::cout << " Trials         " << nameForNumber(N_Trials) << " (" << N_Trials << ")"
 			<< " x " << N_cycles << std::endl;
@@ -114,18 +118,15 @@ int main(int argc, char** argv)
 
 	std::vector < std::future <decltype(tuple)>> vecOfThreads;
 
-	//std::vector<std::vector<std::uint64_t>> galton_arr(N_cycles, std::vector<std::uint64_t>(Board_SIZE));
-
 	std::vector<std::vector<std::vector<std::uint64_t>>>
-		galton_arr(4, std::vector<std::vector<std::uint64_t>>(N_cycles, std::vector<std::uint64_t>(Board_SIZE, 0ull)));
+		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>(N_cycles, std::vector<std::uint64_t>(Board_SIZE, 0ull)));
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	const U integrations = 1;
-	for (U i = 0; i < integrations; i++) {
+	for (U i = 0; i < N_Integrations; i++) {
 		for (U k = 0; k < N_cycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton<R>(N_Trials, Board_SIZE, N_cycles, galton_arr[i][k], probability_wave, speedup); }));
+			return Galton<R>(N_Trials / N_Integrations, Board_SIZE, N_cycles, galton_arr[i][k], probability_wave, speedup); }));
 	}
 
 	for (auto& th : vecOfThreads)
@@ -153,10 +154,25 @@ int main(int argc, char** argv)
 
 	if (!probability_wave) {
 
-		for (auto i = 0; auto & k : std::span(galton_arr[0].front())) {
+		for (auto i = 0; auto & k : std::span(galton_arr.front().front()))
 			X.push_back(i++);
-			Y.push_back(R(k));
+			
+		Y_buf.resize(galton_arr.front().front().size()* galton_arr.front().size());
+
+		for (auto k = 0ull; k < N_Integrations; k++) {
+
+			Y.clear();
+			for (const auto& i : galton_arr[k])
+				std::ranges::transform(i, std::back_inserter(Y), [](auto& c) {return double(c); });
+
+			for (auto i = 0; i < Y.size(); i++)
+				Y_buf[i] += Y[i];
 		}
+
+		for (auto& i : Y_buf)
+			i /= R(N_Integrations);
+		
+		Y = Y_buf;
 
 		plot.plot_somedata(X, Y, "", "Binomial-Normal Distribution", "blue");
 
@@ -182,22 +198,29 @@ int main(int argc, char** argv)
 
 	else {
 
-		for (auto& i : galton_arr.front())
-			std::ranges::transform(i, std::back_inserter(Y),
-				[](auto& c) {return double(c); });
+		Y_buf.resize(galton_arr.front().front().size() * galton_arr.front().size());
 
-		std::cout << " Avarage        " << avarage_vector(Y) / N_cycles << std::endl;
-		std::cout << " AC Amplitude   " << ac_amplite_vector(Y) / N_cycles << std::endl;
+		for (auto k = 0ull; k < N_Integrations; k++) {
+			
+			Y.clear();
+			for (const auto& i : galton_arr[k])
+				std::ranges::transform(i, std::back_inserter(Y), [](auto& c) {return double(c); });
 
-		Y_buf = Y;
-
-		if (doDFTr) {
-			if (Y.size() > 2048ull) {
-				Y.clear();
-				for (auto x = 0; x < 2048; x++)
-					Y.push_back(Y_buf[x]);
-			}
+			for (auto i = 0; i < Y.size(); i++)
+				Y_buf[i] += Y[i];
 		}
+
+		for (auto& i : Y_buf)
+			i /= R(N_Integrations);
+
+		std::cout << " Avarage        " << avarage_vector(Y_buf) / N_cycles << std::endl;
+		std::cout << " AC Amplitude   " << ac_amplite_vector(Y_buf) / N_cycles << std::endl;
+
+		Y = Y_buf;
+
+		if (doDFTr) 
+			if (Y.size() > 2048ull)
+				Y.resize(2048);
 
 		if (!DC) {
 			normalize_vector(Y, 1., -1.);

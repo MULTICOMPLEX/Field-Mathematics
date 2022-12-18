@@ -14,12 +14,12 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 250000000;
+	std::uint64_t N_Trials = 1000000000;
 
 	//Wave cycles or threads  
 	U N_cycles = 8; 
 	//Number of integrations
-	U N_Integrations = 4;
+	U N_Integrations = 1;
 	//Initial number of bins
 	U N_Bins = 2048;
 	//speedup
@@ -119,16 +119,16 @@ int main(int argc, char** argv)
 	std::vector < std::future <decltype(tuple)>> vecOfThreads;
 
 	std::vector<std::vector<std::vector<std::uint64_t>>>
-		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>(N_cycles, std::vector<std::uint64_t>(Board_SIZE, 0ull)));
+		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
+			(N_cycles, std::vector<std::uint64_t>(Board_SIZE, 0ull)));
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	for (U i = 0; i < N_Integrations; i++) {
+	for (U i = 0; i < N_Integrations; i++) 
 		for (U k = 0; k < N_cycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
 			return Galton<R>(N_Trials / N_Integrations, Board_SIZE, N_cycles, galton_arr[i][k], probability_wave, speedup); }));
-	}
-
+	
 	for (auto& th : vecOfThreads)
 		tuple = th.get();
 

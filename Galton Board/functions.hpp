@@ -904,7 +904,10 @@ void cout_ShannonEntropy(std::vector<T>& Y_buf, auto Board_SIZE, auto N_cycles) 
 				if (v[i + 1ull].first != s) std::cout << std::endl;
 		}
 	}
-	std::cout << "  " << sum << " Sum " << std::endl << std::endl;
+	if (!v.empty())
+		std::cout << "    " << sum << "  Sum ";
+
+	std::cout << std::endl << std::endl;
 
 	std::vector<T> se;
 	for (auto k = 0ull; k < N_cycles; k++) {

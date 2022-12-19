@@ -60,14 +60,14 @@ std::tuple<R, I> Galton(
 	const I& Board_SIZE,
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
-	B probability_wave, B speedup)
+	B probability_wave)
 {
 	mxws <uint32_t>RNG;
 
 	std::tuple<R, I> tuple;
 
 	if (probability_wave)
-		tuple = RNG.Probability_Wave<R>(Board_SIZE, galton_arr, trials, speedup);
+		tuple = RNG.Probability_Wave<R>(Board_SIZE, galton_arr, trials);
 
 	else {
 		Galton_Classic(trials, Board_SIZE, galton_arr);

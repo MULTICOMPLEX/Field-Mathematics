@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 1000000000;
+	std::uint64_t N_Trials = 100000000;
 
 	//Wave cycles or threads  
 	U N_cycles = 8; 
@@ -22,8 +22,6 @@ int main(int argc, char** argv)
 	U N_Integrations = 1;
 	//Initial number of bins
 	U N_Bins = 2048;
-	//speedup
-	B speedup = true;
 	//Sinusoidal distribution or Normal distribution
 	B probability_wave = true;
 	//Entropy analysis
@@ -127,7 +125,7 @@ int main(int argc, char** argv)
 	for (U i = 0; i < N_Integrations; i++) 
 		for (U k = 0; k < N_cycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton<R>(N_Trials / N_Integrations, Board_SIZE, N_cycles, galton_arr[i][k], probability_wave, speedup); }));
+			return Galton<R>(N_Trials / N_Integrations, Board_SIZE, N_cycles, galton_arr[i][k], probability_wave); }));
 	
 	for (auto& th : vecOfThreads)
 		tuple = th.get();

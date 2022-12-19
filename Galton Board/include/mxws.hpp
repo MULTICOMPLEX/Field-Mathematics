@@ -401,26 +401,19 @@ public:
 		return std::numbers::sqrt2 * erf_inv(2 * p - 1);
 	}
 
-	template <typename R, typename I, typename L, typename B>
+	template <typename R, typename I, typename L>
 		requires
 	std::same_as<R, double>&&
 		std::integral<I>&&
-		std::same_as<L, std::uint64_t>&& std::same_as<B, bool>
+		std::same_as<L, std::uint64_t>
 		std::tuple<R, I> Probability_Wave(const I& Board_SIZE,
-			std::vector<L>& cycle, const L& TRIALS, B speedup) {
+			std::vector<L>& cycle, const L& TRIALS) {
 
 		I Board_size;
 		I rn_range;
 
-		if (speedup) {
-			Board_size = I(round(std::log(Board_SIZE * 6) * std::sqrt(std::numbers::pi)));
-			rn_range = I(round(Board_SIZE / std::sqrt(log2(Board_SIZE))));
-		}
-
-		else {
-			Board_size = Board_SIZE;
-			rn_range = I(round(std::sqrt(Board_size) + std::log(Board_size / 4)));
-		}
+		Board_size = I(round(std::log(Board_SIZE * 6) * std::sqrt(std::numbers::pi)));
+		rn_range = I(round(Board_SIZE / std::sqrt(log2(Board_SIZE))));
 
 		L random_walk = {};
 

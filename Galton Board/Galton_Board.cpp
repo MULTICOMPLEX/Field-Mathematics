@@ -284,7 +284,7 @@ int main(int argc, char** argv)
 			auto text_x_offset = N_Bins / 10; //210
 
 			auto rng_range = std::get<R>(tuple);
-			str += to_string_with_precision(rng_range, 3);
+			str += to_string_with_precision(rng_range, 0);
 			plot.text(text_x_offset, -23, str, "green", 11);
 
 			if (Board_SIZE > Board_size) str = "Shrunken to ";

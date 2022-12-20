@@ -435,6 +435,9 @@ public:
 	{
 		typedef double T;
 
+		//const I Board_size = Board_SIZE;
+		//const T rn_range = std::sqrt(Board_size) + std::log(Board_size / 4));
+
 		const I board_size = I(round(log(board_SIZE * 6) * sqrt(std::numbers::pi)));
 		const T rn_range = board_SIZE / sqrt(log2(board_SIZE));
 

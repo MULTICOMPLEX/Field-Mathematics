@@ -423,6 +423,7 @@ public:
 				random_walk += rng();
 
 			cycle[std::modulus()(random_walk * rn_range >> 32, Board_SIZE)]++;
+			
 		}
 
 		return std::make_tuple(rn_range, Board_size);

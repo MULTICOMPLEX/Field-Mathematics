@@ -393,6 +393,7 @@ int main(int argc, char** argv)
 			plot.set_title(utf8_encode(title));
 
 			plot.show();
+
 		}
 
 		else {

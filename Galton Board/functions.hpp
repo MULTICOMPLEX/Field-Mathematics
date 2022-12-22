@@ -928,3 +928,21 @@ auto arcsin(const T& x)
 {	//-i log(sqrt(1 - x ^ 2) + i x)
 	return (- MX0(0, 1) * log(MX0(sqrt(1. - x * x), 0.5))).real;
 }
+
+
+void wavepacket()
+{
+	std::vector<double> Y_imag, Y_real, X;
+	double t = 2, m = 4, a = 0.25, h = 3, l = 3, x = 0;
+	MX0 common(1, 2 * h * a * t / m);
+	double normal = 2 * a / pow(std::numbers::pi, 0.25);
+	while (x < 10) {
+		MX0 toptop(-a * pow(x, 2), l * x - h * pow(l, 2) * t / 2 / m);
+		MX0 topok = toptop / common;
+		MX0 value = normal * pow(MX0(std::numbers::e), topok) / pow(common, 0.5);
+		X.push_back(x); Y_real.push_back(value.real); Y_imag.push_back(value.imag); x += 0.01;
+	}
+	plot.plot_somedata(X, Y_real, "", "Wave packet real", "red");
+	plot.plot_somedata(X, Y_imag, "", "Wave packet imag", "blue");
+	plot.show();
+}

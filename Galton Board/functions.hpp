@@ -13,13 +13,13 @@
 
 plot_matplotlib plot;
 
-auto Galton_Classic = []<typename L, typename T>
+auto Galton_Classic = []<typename L, typename T, typename K>
 	requires std::same_as<L, uint64_t>&&
 std::integral<T>
 (
 	const L& balls,
 	const T& Board_SIZE,
-	std::vector<L>& galton_arr)
+	std::vector<K>& galton_arr)
 {
 	const bool RandomWWalk = false;
 

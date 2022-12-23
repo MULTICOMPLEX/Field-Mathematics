@@ -256,9 +256,11 @@ int main(int argc, char** argv)
 				doDFT(Y, cx);
 			}
 
+			//wavepacket(Y, N_Trials, N_cycles);
+
 			X.clear();
 			Y.clear();
-
+		
 			for (auto i = 0.; auto & d : std::span(cx).subspan(0, cx.size() / 2))
 			{
 				X.push_back(i);

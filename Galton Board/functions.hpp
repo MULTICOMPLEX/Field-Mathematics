@@ -27,7 +27,7 @@ std::integral<T>
 	double random_walk = 0;
 	T k;
 
-	const double mean = Board_SIZE / 2, stddev = 1;
+	const double mean = Board_SIZE / 2., stddev = 1;
 
 	cxx::ziggurat_normal_distribution<double> normalz(mean, (Board_SIZE / 12) * stddev);
 
@@ -930,19 +930,37 @@ auto arcsin(const T& x)
 }
 
 
-void wavepacket()
+template <typename T>
+std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_cycles)
 {
-	std::vector<double> Y_imag, Y_real, X;
-	double t = 2, m = 4, a = 0.25, h = 3, l = 3, x = 0;
-	MX0 common(1, 2 * h * a * t / m);
-	double normal = 2 * a / pow(std::numbers::pi, 0.25);
-	while (x < 10) {
-		MX0 toptop(-a * pow(x, 2), l * x - h * pow(l, 2) * t / 2 / m);
-		MX0 topok = toptop / common;
-		MX0 value = normal * pow(MX0(std::numbers::e), topok) / pow(common, 0.5);
-		X.push_back(x); Y_real.push_back(value.real); Y_imag.push_back(value.imag); x += 0.01;
+	auto Y = v;
+	auto Y_buf = Y;
+	auto X = Y;
+	auto Y_buf2 = Y;
+
+	int x = 0;
+	X.clear();
+	while (x < Y.size()) {
+
+		X.push_back(x); x++;
 	}
-	plot.plot_somedata(X, Y_real, "", "Wave packet real", "red");
-	plot.plot_somedata(X, Y_imag, "", "Wave packet imag", "blue");
+	Y.resize(X.size());
+	Galton_Classic(N_Trials, Y.size(), Y);
+	normalize_vector(Y, 0., 1.);
+
+	plot.plot_somedata(X, Y, "", "Gaussian", "green");
+
+	for (auto i = 0; i < Y.size(); i++)
+		Y_buf[i] *= -Y[i];
+
+	plot.plot_somedata(X, Y_buf, "", "Wave packet real", "red");
+	std::ranges::rotate(Y_buf2, Y_buf2.begin() + Y_buf2.size() / (4ull * N_cycles));
+
+	for (auto i = 0; i < Y.size(); i++)
+		Y_buf2[i] *= -Y[i];
+
+	plot.plot_somedata(X, Y_buf2, "", "Wave packet imag", "blue");
+
 	plot.show();
+	return Y_buf2;
 }

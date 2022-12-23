@@ -13,38 +13,39 @@
 
 plot_matplotlib plot;
 
-auto Galton_Classic = []<typename L, typename T, typename K>
-	requires std::same_as<L, uint64_t>&&
-std::integral<T>
+auto Galton_Classic = []<typename L, typename K>
+	requires std::same_as<L, uint64_t>
 (
 	const L& balls,
-	const T& Board_SIZE,
-	std::vector<K>& galton_arr)
+	std::vector<K>& galton_arr,
+	double stddev,
+	double mean,
+	bool RandomWWalk)
 {
-	const bool RandomWWalk = false;
 
 	mxws <uint32_t>RNG;
 	double random_walk = 0;
-	T k;
 
-	const double mean = Board_SIZE / 2., stddev = 1;
+	const auto Board_SIZE = galton_arr.size();
+
+	uint32_t k;
 
 	cxx::ziggurat_normal_distribution<double> normalz(mean, (Board_SIZE / 12) * stddev);
 
 	for (L i = 0; i < balls; i++, random_walk = 0) {
 
 		if (RandomWWalk) {
-			for (T j = 0; j < Board_SIZE; j++)
+			for (auto j = 0; j < Board_SIZE; j++)
 				random_walk += RNG(1.);
 
-			k = T((random_walk - mean) / sqrt(12. / Board_SIZE) * stddev + mean);
+			k = uint32_t((random_walk - mean) / sqrt(12. / Board_SIZE) * stddev + mean);
 			//The 1D board
 			if (k < Board_SIZE) galton_arr[k]++;
 		}
 
 		else {
 
-			k = T(normalz(RNG));
+			k = uint32_t(normalz(RNG));
 
 			//The 1D board
 			if (k < Board_SIZE) galton_arr[k]++;
@@ -70,7 +71,7 @@ std::tuple<R, I> Galton(
 		tuple = RNG.Probability_Wave<R>(Board_SIZE, galton_arr, trials);
 
 	else {
-		Galton_Classic(trials, Board_SIZE, galton_arr);
+		Galton_Classic(trials, galton_arr, 1.0, Board_SIZE / 2.0, false); 
 		tuple = std::make_tuple(0., Board_SIZE);
 	}
 
@@ -931,7 +932,7 @@ auto arcsin(const T& x)
 
 
 template <typename T>
-std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_cycles)
+std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_cycles, bool RandomWWalk)
 {
 	auto Y = v;
 	auto Y_buf = Y;
@@ -945,7 +946,8 @@ std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_
 		X.push_back(x); x++;
 	}
 	Y.resize(X.size());
-	Galton_Classic(N_Trials, Y.size(), Y);
+
+	Galton_Classic(N_Trials, Y, 1.0, Y.size() / 2., RandomWWalk);
 	normalize_vector(Y, 0., 1.);
 
 	plot.plot_somedata(X, Y, "", "Gaussian", "green");

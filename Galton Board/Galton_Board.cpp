@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 100000000;
+	std::uint64_t N_Trials = 1000000000;
 
 	//Wave cycles or threads  
 	U N_cycles = 8; 
@@ -256,7 +256,7 @@ int main(int argc, char** argv)
 				doDFT(Y, cx);
 			}
 
-			//wavepacket(Y, N_Trials, N_cycles);
+			wavepacket(Y, N_Trials, N_cycles, false);
 
 			X.clear();
 			Y.clear();

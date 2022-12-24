@@ -23,7 +23,7 @@ def complex_plot(x,y,prob=True,**kwargs):
         return a,b
 
 def wave_packet(pos=0,mom=0,sigma=0.2):
-    return norm(np.exp(-1j*mom*x)*np.exp(-np.square(x-pos)/sigma/sigma,dtype=complex))
+    return norm(np.exp(1j*mom*x)*np.exp(-np.square(x-pos)/sigma/sigma,dtype=complex))
     
 def d_dxdx(phi,x=x):
     dphi_dxdx = -2*phi
@@ -68,10 +68,13 @@ def simulate(phi_sim,
             simulation_steps.append(np.copy(phi_sim))
     return simulation_steps
     
-sim_free = simulate(wave_packet(),steps=20000,save_every=1000)
+#sim_free = simulate(wave_packet(),steps=20000,save_every=1000)
 
-box_potential = np.where((x>-2)&(x<2),0,1)
-sim_box_mom = simulate(wave_packet(mom=10),V=box_potential,steps=100000,save_every=500)
+#box_potential = np.where((x>-2)&(x<2),0,1)
+#sim_box_mom = simulate(wave_packet(mom=10),V=box_potential,steps=100000,save_every=500)
+
+#barrier_weak_potential = np.where((x>1.4)&(x<1.6),3.5e-2,0)
+#sim_barrier_mom = simulate(wave_packet(mom=10),V=barrier_weak_potential,steps=50000,save_every=500)
 
 def box_init():
     plt.gcf().axes[0].axvspan(2, 3, alpha=0.2, color='red')
@@ -99,8 +102,19 @@ def animate(simulation_steps,init_func=None):
     return anim
     
 #j = animate(sim_free)
+#j = animate(sim_box_mom, box_init)
 
-j = animate(sim_box_mom, box_init)
 
+barrier_weak_potential = np.where((x>1.4)&(x<1.6),3.5e-2,0)
+sim_barrier_mom = simulate(wave_packet(mom=30), V=barrier_weak_potential,steps=50000,save_every=500)
+
+def barrier_init():
+    plt.gcf().axes[0].axvspan(1.4, 1.6, alpha=0.2, color='orange')
+    plt.xlim(-2,4)
+    plt.ylim(-3,3)
+    
+j = animate(sim_barrier_mom,barrier_init)
+
+#complex_plot(x, wave_packet(pos=0,mom=40,sigma=0.2),prob=True)
 
 plt.show()

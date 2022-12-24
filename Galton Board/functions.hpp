@@ -71,7 +71,7 @@ std::tuple<R, I> Galton(
 		tuple = RNG.Probability_Wave<R>(Board_SIZE, galton_arr, trials);
 
 	else {
-		Galton_Classic(trials, galton_arr, 1.0, Board_SIZE / 2.0, false); 
+		Galton_Classic(trials, galton_arr, 1.0, Board_SIZE / 2.0, false);
 		tuple = std::make_tuple(0., Board_SIZE);
 	}
 
@@ -343,8 +343,8 @@ std::vector<T> plot_doDFTr(const std::vector<T>& v, bool distribution_twiddlefac
 
 	auto k = doDFTr(v, false, false, ds, distribution_twiddlefactors);
 
-	for (auto i = 0; i < k.size(); i++) 
-		k2.push_back( sqrt(k[i].real * k[i].real + k[i].imag * k[i].imag) / (k.size() / 2.));
+	for (auto i = 0; i < k.size(); i++)
+		k2.push_back(sqrt(k[i].real * k[i].real + k[i].imag * k[i].imag) / (k.size() / 2.));
 
 	for (auto i = 0; i < k.size() / 2; i++) {
 		Y.push_back(20 * std::log10(sqrt(k[i].real * k[i].real + k[i].imag * k[i].imag) / (k.size() / 2.) + .001));
@@ -402,7 +402,7 @@ public:
 		const MX0 j(0, 1);
 		auto N = DFT_Length;
 
-	// Compute the twiddle factors, and zero the x 
+		// Compute the twiddle factors, and zero the x 
 		for (auto k = 0; k < DFT_Length; k++) {
 			T factor = 2 * std::numbers::pi * k / N;
 			twiddle[k] = exp(j * factor);
@@ -427,7 +427,7 @@ public:
 		// Update the DFT
 		const T r = damping_factor;
 		const T r_to_N = pow(r, (T)DFT_Length);
-		for (auto k = 0; k < DFT_Length; k++) 
+		for (auto k = 0; k < DFT_Length; k++)
 			S[k] = twiddle[k] * (r * S[k] - r_to_N * old_x + new_x);
 
 		if (Hanning_window) {
@@ -843,7 +843,7 @@ void PlotBoardsizeRandomNumberRange(T N_Bins)
 }
 
 template<typename T>
-std::vector<std::pair<T,std::size_t>> get_duplicate_indices(const std::vector<T>& vec) {
+std::vector<std::pair<T, std::size_t>> get_duplicate_indices(const std::vector<T>& vec) {
 	auto first = vec.begin();
 	auto last = vec.end();
 	std::unordered_set<std::size_t> rtn;
@@ -856,12 +856,12 @@ std::vector<std::pair<T,std::size_t>> get_duplicate_indices(const std::vector<T>
 		}
 	}
 	std::vector<std::pair<T, std::size_t>> v;
-	
+
 	for (const auto& i : rtn)
 		v.push_back(std::make_pair(vec[i], i));
 
 	std::ranges::sort(v);
-	
+
 	return v;
 }
 
@@ -893,7 +893,7 @@ void cout_ShannonEntropy(std::vector<T>& Y_buf, auto Board_SIZE, auto N_cycles) 
 
 	auto v = get_duplicate_indices(Y_buf);
 	T sum = 0;
-	if (!v.empty()) {                            
+	if (!v.empty()) {
 		std::cout << std::endl << "     Value        Index   Cycle" << std::endl << std::endl;
 		for (auto i = 0; i < v.size(); i++) {
 			auto s = v[i].first;
@@ -927,7 +927,7 @@ void cout_ShannonEntropy(std::vector<T>& Y_buf, auto Board_SIZE, auto N_cycles) 
 template <typename T>
 auto arcsin(const T& x)
 {	//-i log(sqrt(1 - x ^ 2) + i x)
-	return (- MX0(0, 1) * log(MX0(sqrt(1. - x * x), 0.5))).real;
+	return (-MX0(0, 1) * log(MX0(sqrt(1. - x * x), 0.5))).real;
 }
 
 
@@ -965,4 +965,51 @@ std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_
 
 	plot.show();
 	return Y_buf2;
+}
+
+std::vector<MX0> norm(std::vector<MX0> phi, double deltax) {
+
+	MX0 norm = {};
+	for (auto& i : phi)
+		norm += pow(abs(i), 2) * deltax;
+
+	for (auto& i : phi)
+		i /= sqrt(norm);
+
+	return phi;
+}
+
+std::vector<MX0> wave_packet(double pos = 0, double mom = 0, double sigma = 0.2) {
+
+	std::vector<double> X;
+	double x = -10;
+	while (x <= 10) {
+		X.push_back(x); x += 20. / 5000;
+	}
+	auto deltax = X[1] - X[0];
+	MX0 j(0, 1);
+	std::vector<MX0> Y(X.size());
+	
+	for (auto k = 0; auto & i : Y) {
+		i = exp(j * mom * X[k]) * exp(-pow(X[k] - pos, 2) / pow(sigma, 2)); k++;
+	}
+
+	auto y = norm(Y, deltax);
+	std::vector<double> Yr, Yi, P;
+
+	for (auto& i : y) {
+		Yr.push_back(i.real);
+		Yi.push_back(i.imag);
+		P.push_back(abs(i));
+	}
+
+	plot.PyRun_Simple("plt.xlim(-2, 2)");
+
+	plot.plot_somedata(X, Yr, "", "real", "blue", 1.5);
+	plot.plot_somedata(X, Yi, "", "imag", "red", 1.5);
+	plot.plot_somedata(X, P, "", "Gaussian", "green", 1.5);
+
+	plot.show();
+
+	return y;
 }

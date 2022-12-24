@@ -256,7 +256,8 @@ int main(int argc, char** argv)
 				doDFT(Y, cx);
 			}
 
-			wavepacket(Y, N_Trials, N_cycles, false);
+			//wavepacket(Y, N_Trials, N_cycles, false);
+			//wave_packet(0, 40, 0.2);
 
 			X.clear();
 			Y.clear();

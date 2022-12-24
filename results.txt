@@ -1,4 +1,8 @@
 
+The Galton Board:
+limit theorems and recurrence,
+N. Chernov and D. Dolgopyat
+
 Shannon Entropy:
 
 probability_wave = true

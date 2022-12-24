@@ -989,7 +989,7 @@ std::vector<MX0> wave_packet(double pos = 0, double mom = 0, double sigma = 0.2)
 	auto deltax = X[1] - X[0];
 	MX0 j(0, 1);
 	std::vector<MX0> Y(X.size());
-	
+
 	for (auto k = 0; auto & i : Y) {
 		i = exp(j * mom * X[k]) * exp(-pow(X[k] - pos, 2) / pow(sigma, 2)); k++;
 	}
@@ -1012,4 +1012,62 @@ std::vector<MX0> wave_packet(double pos = 0, double mom = 0, double sigma = 0.2)
 	plot.show();
 
 	return y;
+}
+
+template <typename T>
+std::vector<T> d_dxdx(std::vector<T> phi, double deltax) {
+	std::vector<T> dphi_dxdx(phi.size());
+
+	for (auto i = 0; i < phi.size(); i++)
+		dphi_dxdx[i] = -2 * phi[i];
+
+	for (auto i = 1; i < dphi_dxdx.size(); i++)
+		dphi_dxdx[i - 1ull] += phi[i];
+
+	for (auto i = 1; i < dphi_dxdx.size(); i++)
+		dphi_dxdx[i] += phi[i - 1ull];
+
+	for (auto& i : dphi_dxdx)
+		i /= deltax;
+
+	return dphi_dxdx;
+}
+
+template <typename T>
+std::vector<MX0> d_dt(const std::vector<T>& phi, double h = 1, double m = 100, double V = 0, double deltax = 1) {
+
+	std::vector<MX0> v(phi.size());
+	MX0 j(0, 1);
+	auto k = d_dxdx(phi, deltax);
+
+	for (auto i = 0; i < phi.size(); i++)
+		v[i] = j * h / 2 / m * k[i] - j * V * phi[i] / h;
+
+	return v;
+}
+
+std::vector<MX0> rk4(const std::vector<MX0>& phi, double dt) {
+
+	auto k1 = d_dt(phi);
+	std::vector<MX0> v(phi.size());
+
+	for (auto i = 0; i < phi.size(); i++)
+		v[i] = phi[i] + dt / 2 * k1[i];
+
+	auto k2 = d_dt(v);
+
+	for (auto i = 0; i < phi.size(); i++)
+		v[i] = phi[i] + dt / 2 * k2[i];
+
+	auto k3 = d_dt(v);
+
+	for (auto i = 0; i < phi.size(); i++)
+		v[i] = phi[i] + dt * k3[i];
+
+	auto k4 = d_dt(v);
+
+	for (auto i = 0; i < phi.size(); i++)
+		v[i] = phi[i] + dt / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+
+	return v;
 }

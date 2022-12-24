@@ -6,6 +6,15 @@
 int main(int argc, char** argv)
 {
 
+	{
+		std::vector<MX0> phi = { 1, 3, 6, 22, 8, 3, 4, 55, 6, 77 };
+		auto deltax = phi[1] - phi[0];
+		auto k = rk4(phi, 0.1);
+		for (auto& i : k)
+			std::cout << i << " ";
+		std::cout << std::endl;
+	}
+
 	std::setlocale(LC_ALL, "en_US.utf8");
 
 	typedef unsigned U;

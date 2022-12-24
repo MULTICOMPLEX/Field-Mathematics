@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+from matplotlib.animation import PillowWriter
 
 x = np.linspace(-10,10,5000)
 deltax = x[1]-x[0]
@@ -101,9 +102,8 @@ def animate(simulation_steps,init_func=None):
    
     return anim
     
-#j = animate(sim_free)
-#j = animate(sim_box_mom, box_init)
-
+#anim = animate(sim_free)
+#anim = animate(sim_box_mom, box_init)
 
 barrier_weak_potential = np.where((x>1.4)&(x<1.6),3.5e-2,0)
 sim_barrier_mom = simulate(wave_packet(mom=30), V=barrier_weak_potential,steps=50000,save_every=500)
@@ -113,7 +113,10 @@ def barrier_init():
     plt.xlim(-2,4)
     plt.ylim(-3,3)
     
-j = animate(sim_barrier_mom,barrier_init)
+anim = animate(sim_barrier_mom,barrier_init)
+
+writer = PillowWriter(fps=30)
+anim.save("sine_example.gif", writer=writer)
 
 #complex_plot(x, wave_packet(pos=0,mom=40,sigma=0.2),prob=True)
 

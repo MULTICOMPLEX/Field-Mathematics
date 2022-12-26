@@ -980,7 +980,8 @@ public:
 	MX0 J = { 0,1 };
 	size_t save_every = 500;
 	size_t steps = 50000;
-	
+	mxws<uint32_t> rng;
+
 	virtual ~Quantum() = default;
 
 	Quantum()
@@ -996,12 +997,16 @@ public:
 
 		phi = wave_packet(0, 30, 0.2, false);
 		//phi = { 1, 3, 6, 22, 8, 3, 4, 55, 6, 77 };
+		
 		int t = 0;
 		for (auto i = 0; i < steps; i++) {
 			phi = rk4(phi, 0.1);
+
 			if ((i + 1ull) % save_every == 0) 
 				plotWave(phi, t++, true); 
 		}
+		
+
 	}
 
 	std::vector<MX0> norm(const std::vector<MX0>& phi) {
@@ -1066,9 +1071,9 @@ public:
 
 	std::vector<MX0> d_dt(const std::vector<MX0>& phi, double h = 1, double m = 100) {
 
-		std::vector<MX0> v(phi.size());
+		std::vector<MX0> v(phi.size()), k;
 		
-		auto k = d_dxdx(phi);
+		k = d_dxdx(phi);
 
 		for (auto i = 0; i < phi.size(); i++)
 			v[i] = J * h / 2 / m * k[i] - J * V[i] * phi[i] / h;
@@ -1076,9 +1081,55 @@ public:
 		return v;
 	}
 
-	std::vector<MX0> rk4(const std::vector<MX0>& phi, double dt) {
+	std::vector<MX0> euler(const std::vector<MX0>& phi, double dt) {
 
 		std::vector<MX0> v(phi.size());
+
+		auto k = d_dt(phi);
+
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt * k[i];
+
+		return v;
+	}
+
+	std::vector<MX0> midpoint_explicit(const std::vector<MX0>& phi, double dt) {
+
+		std::vector<MX0> v(phi.size());
+
+		auto k1 = d_dt(phi);
+
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt / 2 * k1[i];
+		
+		auto k2 = d_dt(v);
+
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt * k2[i];
+
+		return v;
+	}
+
+	std::vector<MX0> midpoint_implicit(const std::vector<MX0>& phi, double dt) {
+
+		std::vector<MX0> v(phi.size());
+
+		auto k1 = d_dt(phi);
+
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = 0.5 * (phi[i] + (phi[i] + dt * k1[i]));
+
+		auto k2 = d_dt(v);
+
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt * k2[i];
+
+		return v;
+	}
+
+	std::vector<MX0> rk4(const std::vector<MX0>& phi, double dt) {
+
+		std::vector<MX0> v(phi.size()), k;
 
 		auto k1 = d_dt(phi);
 

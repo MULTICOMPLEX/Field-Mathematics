@@ -967,107 +967,184 @@ std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_
 	return Y_buf2;
 }
 
-std::vector<MX0> norm(std::vector<MX0> phi, double deltax) {
+class Quantum
+{
 
-	MX0 norm = {};
-	for (auto& i : phi)
-		norm += pow(abs(i), 2) * deltax;
+private:
+	plot_matplotlib plot;
 
-	for (auto& i : phi)
-		i /= sqrt(norm);
+public:
+	std::vector<double> X, V;
+	std::vector<MX0> phi;
+	double deltax;
+	MX0 J = { 0,1 };
+	size_t save_every = 500;
+	size_t steps = 50000;
+	
+	virtual ~Quantum() = default;
 
-	return phi;
-}
+	Quantum()
+	{
+		X = linspace(-10, 10, 5000);
+		deltax = X[1] - X[0];
 
-std::vector<MX0> wave_packet(double pos = 0, double mom = 0, double sigma = 0.2) {
+		V = X;
+		for (auto k = 0; const auto & i : X) {
+			if ((i > 1.4) && (i < 1.6))V[k] = 3.5e-2;
+			else V[k] = 0; k++;
+		}
 
-	std::vector<double> X;
-	double x = -10;
-	while (x <= 10) {
-		X.push_back(x); x += 20. / 5000;
+		phi = wave_packet(0, 30, 0.2, false);
+		//phi = { 1, 3, 6, 22, 8, 3, 4, 55, 6, 77 };
+		int t = 0;
+		for (auto i = 0; i < steps; i++) {
+			phi = rk4(phi, 0.1);
+			if ((i + 1ull) % save_every == 0) 
+				plotWave(phi, t++, true); 
+		}
 	}
-	auto deltax = X[1] - X[0];
-	MX0 j(0, 1);
-	std::vector<MX0> Y(X.size());
 
-	for (auto k = 0; auto & i : Y) {
-		i = exp(j * mom * X[k]) * exp(-pow(X[k] - pos, 2) / pow(sigma, 2)); k++;
+	std::vector<MX0> norm(const std::vector<MX0>& phi) {
+
+		std::vector<MX0> v = phi;
+
+		MX0 norm = {};
+		for (auto& i : v)
+			norm += pow(abs(i), 2) * deltax;
+
+		for (auto& i : v)
+			i /= sqrt(norm);
+
+		return v;
 	}
 
-	auto y = norm(Y, deltax);
-	std::vector<double> Yr, Yi, P;
+	template<typename T>
+	std::vector<double> linspace(T start_in, T end_in, int num_in)
+	{
+		std::vector<double> linspaced;
 
-	for (auto& i : y) {
-		Yr.push_back(i.real);
-		Yi.push_back(i.imag);
-		P.push_back(abs(i));
+		double start = start_in;
+		double end = end_in;
+		double num = num_in;
+
+		if (num == 0) { return linspaced; }
+		if (num == 1)
+		{
+			linspaced.push_back(start);
+			return linspaced;
+		}
+
+		auto delta = (end - start) / (num - 1);
+
+		for (auto i = 0; i < num - 1; ++i)
+		{
+			linspaced.push_back(start + delta * i);
+		}
+		linspaced.push_back(end); // I want to ensure that start and end
+		// are exactly the same as the input
+		return linspaced;
 	}
 
-	plot.PyRun_Simple("plt.xlim(-2, 2)");
+	std::vector<MX0> d_dxdx(const std::vector<MX0>& phi) {
+		
+		std::vector<MX0> v(phi.size());
 
-	plot.plot_somedata(X, Yr, "", "real", "blue", 1.5);
-	plot.plot_somedata(X, Yi, "", "imag", "red", 1.5);
-	plot.plot_somedata(X, P, "", "Gaussian", "green", 1.5);
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = -2 * phi[i];
 
-	plot.show();
+		for (auto i = 1; i < v.size(); i++)
+			v[i - 1ull] += phi[i];
 
-	return y;
-}
+		for (auto i = 1; i < v.size(); i++)
+			v[i] += phi[i - 1ull];
 
-template <typename T>
-std::vector<T> d_dxdx(std::vector<T> phi, double deltax) {
-	std::vector<T> dphi_dxdx(phi.size());
+		for (auto& i : v)
+			i /= deltax;
 
-	for (auto i = 0; i < phi.size(); i++)
-		dphi_dxdx[i] = -2 * phi[i];
+		return v;
+	}
 
-	for (auto i = 1; i < dphi_dxdx.size(); i++)
-		dphi_dxdx[i - 1ull] += phi[i];
+	std::vector<MX0> d_dt(const std::vector<MX0>& phi, double h = 1, double m = 100) {
 
-	for (auto i = 1; i < dphi_dxdx.size(); i++)
-		dphi_dxdx[i] += phi[i - 1ull];
+		std::vector<MX0> v(phi.size());
+		
+		auto k = d_dxdx(phi);
 
-	for (auto& i : dphi_dxdx)
-		i /= deltax;
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = J * h / 2 / m * k[i] - J * V[i] * phi[i] / h;
 
-	return dphi_dxdx;
-}
+		return v;
+	}
 
-template <typename T>
-std::vector<MX0> d_dt(const std::vector<T>& phi, double h = 1, double m = 100, double V = 0, double deltax = 1) {
+	std::vector<MX0> rk4(const std::vector<MX0>& phi, double dt) {
 
-	std::vector<MX0> v(phi.size());
-	MX0 j(0, 1);
-	auto k = d_dxdx(phi, deltax);
+		std::vector<MX0> v(phi.size());
 
-	for (auto i = 0; i < phi.size(); i++)
-		v[i] = j * h / 2 / m * k[i] - j * V * phi[i] / h;
+		auto k1 = d_dt(phi);
 
-	return v;
-}
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt / 2 * k1[i];
 
-std::vector<MX0> rk4(const std::vector<MX0>& phi, double dt) {
+		auto k2 = d_dt(v);
 
-	auto k1 = d_dt(phi);
-	std::vector<MX0> v(phi.size());
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt / 2 * k2[i];
 
-	for (auto i = 0; i < phi.size(); i++)
-		v[i] = phi[i] + dt / 2 * k1[i];
+		auto k3 = d_dt(v);
 
-	auto k2 = d_dt(v);
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt * k3[i];
 
-	for (auto i = 0; i < phi.size(); i++)
-		v[i] = phi[i] + dt / 2 * k2[i];
+		auto k4 = d_dt(v);
 
-	auto k3 = d_dt(v);
+		for (auto i = 0; i < phi.size(); i++)
+			v[i] = phi[i] + dt / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
 
-	for (auto i = 0; i < phi.size(); i++)
-		v[i] = phi[i] + dt * k3[i];
+		return v;
+	}
 
-	auto k4 = d_dt(v);
+	std::vector<MX0> wave_packet(double pos = 0, double mom = 0, double sigma = 0.2, bool save = false) {
 
-	for (auto i = 0; i < phi.size(); i++)
-		v[i] = phi[i] + dt / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+		std::vector<MX0> v(X.size());
 
-	return v;
-}
+		for (auto k = 0; auto & i : v) {
+			i = exp(J * mom * X[k]) * exp(-pow(X[k] - pos, 2) / pow(sigma, 2)); k++;
+		}
+
+		v = norm(v);
+
+		plotWave(v, 0, save);
+
+		return v;
+	}
+
+	void plotWave(auto phi, int index, bool save) {
+		std::vector<double> kr(phi.size()), ki(phi.size()), P(phi.size());
+
+		for (auto i = 0; i < phi.size(); i++)
+		{
+			kr[i] = phi[i].real;
+			ki[i] = phi[i].imag;
+			P[i] = abs(phi[i]);
+		}
+
+		plot.PyRun_Simple("plt.axvspan(1.4, 1.6, alpha = 0.2, color = 'orange')");
+		plot.PyRun_Simple("plt.xlim(-2, 4)");
+		plot.PyRun_Simple("plt.ylim(-3, 3)");
+
+		plot.plot_somedata(X, kr, "", "Re", "C0", 1.5);
+		plot.plot_somedata(X, ki, "", "Im", "C1", 1.5);
+		plot.plot_somedata(X, P, "", "$\\sqrt{P}$", "C2", 1.5);
+
+		std::string str = "./img/";
+		str += std::to_string(index);
+		str += ".png";
+
+		if (save) {
+			plot.PyRun_Simple("plt.savefig('" + str + "')");
+			plot.PyRun_Simple("plt.close()");
+		}
+
+		else plot.show();
+	}
+};

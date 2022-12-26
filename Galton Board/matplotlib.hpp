@@ -77,15 +77,15 @@ public:
 
 	void plot_somedata(const auto& X, const auto& Y,
 		std::string properties = "k", std::string label = "Line 1", std::string color = "green",
-		double linewidth = 2, double markersize = 1, double alpha = 1);
+		double linewidth = 1.5, double markersize = 1, double alpha = 1);
 
 	void plot_polar(const auto& X, const auto& Y,
 		std::string properties = "k", std::string label = "Line 1", std::string color = "green",
-		double linewidth = 2, double markersize = 1, double alpha = 1);
+		double linewidth = 1.5, double markersize = 1, double alpha = 1);
 
 	void plot_somedata_step(const std::vector<double>& X, const std::vector<double>& Y,
 		std::string properties = "k", std::string label = "Line 1", std::string color = "green",
-		double linewidth = 2, double markersize = 1, double alpha = 1);
+		double linewidth = 1.5, double markersize = 1, double alpha = 1);
 
 	void plot_somedata_3D(const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z,
 		std::string properties = "k", std::string label = "Line 1", std::string color = "green", double alpha = 1);

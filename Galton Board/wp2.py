@@ -107,6 +107,7 @@ def animate(simulation_steps,init_func=None):
 
 barrier_weak_potential = np.where((x>1.4)&(x<1.6),3.5e-2,0)
 sim_barrier_mom = simulate(wave_packet(mom=30), V=barrier_weak_potential, steps=50000, save_every=500)
+#sim_free = simulate(wave_packet(mom=10),steps=200000, save_every=1000)
 
 def barrier_init():
     plt.gcf().axes[0].axvspan(1.4, 1.6, alpha=0.2, color='orange')
@@ -114,6 +115,7 @@ def barrier_init():
     plt.ylim(-3,3)
     
 anim = animate(sim_barrier_mom,barrier_init)
+#anim = animate(sim_free)
 
 writer = PillowWriter(fps=30)
 anim.save("sine_example.gif", writer=writer)

@@ -5,15 +5,7 @@
 
 int main(int argc, char** argv)
 {
-
-	{
-		std::vector<MX0> phi = { 1, 3, 6, 22, 8, 3, 4, 55, 6, 77 };
-		auto deltax = phi[1] - phi[0];
-		auto k = rk4(phi, 0.1);
-		for (auto& i : k)
-			std::cout << i << " ";
-		std::cout << std::endl;
-	}
+	Quantum qm;
 
 	std::setlocale(LC_ALL, "en_US.utf8");
 
@@ -26,7 +18,7 @@ int main(int argc, char** argv)
 	std::uint64_t N_Trials = 1000000000;
 
 	//Wave cycles or threads  
-	U N_cycles = 8; 
+	U N_cycles = 8;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -131,11 +123,11 @@ int main(int argc, char** argv)
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	for (U i = 0; i < N_Integrations; i++) 
+	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < N_cycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
 			return Galton<R>(N_Trials / N_Integrations, Board_SIZE, N_cycles, galton_arr[i][k], probability_wave); }));
-	
+
 	for (auto& th : vecOfThreads)
 		tuple = th.get();
 
@@ -163,8 +155,8 @@ int main(int argc, char** argv)
 
 		for (auto i = 0; auto & k : std::span(galton_arr.front().front()))
 			X.push_back(i++);
-			
-		Y_buf.resize(galton_arr.front().front().size()* galton_arr.front().size());
+
+		Y_buf.resize(galton_arr.front().front().size() * galton_arr.front().size());
 
 		for (auto k = 0ull; k < N_Integrations; k++) {
 
@@ -178,7 +170,7 @@ int main(int argc, char** argv)
 
 		for (auto& i : Y_buf)
 			i /= R(N_Integrations);
-		
+
 		Y = Y_buf;
 
 		plot.plot_somedata(X, Y, "", "Binomial-Normal Distribution", "blue");
@@ -208,7 +200,7 @@ int main(int argc, char** argv)
 		Y_buf.resize(galton_arr.front().front().size() * galton_arr.front().size());
 
 		for (auto k = 0ull; k < N_Integrations; k++) {
-			
+
 			Y.clear();
 			for (const auto& i : galton_arr[k])
 				std::ranges::transform(i, std::back_inserter(Y), [](auto& c) {return double(c); });
@@ -225,7 +217,7 @@ int main(int argc, char** argv)
 
 		Y = Y_buf;
 
-		if (doDFTr) 
+		if (doDFTr)
 			if (Y.size() > 2048ull)
 				Y.resize(2048);
 
@@ -270,7 +262,7 @@ int main(int argc, char** argv)
 
 			X.clear();
 			Y.clear();
-		
+
 			for (auto i = 0.; auto & d : std::span(cx).subspan(0, cx.size() / 2))
 			{
 				X.push_back(i);
@@ -327,7 +319,7 @@ int main(int argc, char** argv)
 			std::cout << " Max Entropy log2(" << N_Bins << ") = " <<
 				to_string_with_precision(std::log2(N_Bins), 8) << std::endl;
 			std::cout << " ShannonEntropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;
-			
+
 			if (Entropy) {
 				count_duplicates(Y_buf);
 				cout_ShannonEntropy(Y_buf, Board_SIZE, N_cycles);

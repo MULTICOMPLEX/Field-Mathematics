@@ -990,13 +990,13 @@ public:
 		deltax = X[1] - X[0];
 
 		V = X;
+
 		for (auto k = 0; const auto & i : X) {
-			if ((i > 1.4) && (i < 1.6))V[k] = 3.5e-2;
+			if (((i > 1.4) && (i < 1.6)) || ((i > 1.8) && (i < 2.0)))V[k] = 3.5e-2 * 3;
 			else V[k] = 0; k++;
 		}
 
-		phi = wave_packet(0, 30, 0.2, false);
-		//phi = { 1, 3, 6, 22, 8, 3, 4, 55, 6, 77 };
+		phi = wave_packet(0, 70, 0.2, false);
 		
 		int t = 0;
 		for (auto i = 0; i < steps; i++) {
@@ -1005,8 +1005,6 @@ public:
 			if ((i + 1ull) % save_every == 0) 
 				plotWave(phi, t++, true); 
 		}
-		
-
 	}
 
 	std::vector<MX0> norm(const std::vector<MX0>& phi) {
@@ -1180,8 +1178,9 @@ public:
 		}
 
 		plot.PyRun_Simple("plt.axvspan(1.4, 1.6, alpha = 0.2, color = 'orange')");
+		plot.PyRun_Simple("plt.axvspan(1.8, 2.0, alpha = 0.2, color = 'orange')");
 		plot.PyRun_Simple("plt.xlim(-2, 4)");
-		plot.PyRun_Simple("plt.ylim(-3, 3)");
+		plot.PyRun_Simple("plt.ylim(-2, 2)");
 
 		plot.plot_somedata(X, kr, "", "Re", "C0", 1.5);
 		plot.plot_somedata(X, ki, "", "Im", "C1", 1.5);

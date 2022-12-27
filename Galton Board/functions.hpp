@@ -1079,52 +1079,6 @@ public:
 		return v;
 	}
 
-	std::vector<MX0> euler(const std::vector<MX0>& phi, double dt) {
-
-		std::vector<MX0> v(phi.size());
-
-		auto k = d_dt(phi);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt * k[i];
-
-		return v;
-	}
-
-	std::vector<MX0> midpoint_explicit(const std::vector<MX0>& phi, double dt) {
-
-		std::vector<MX0> v(phi.size());
-
-		auto k1 = d_dt(phi);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt / 2 * k1[i];
-		
-		auto k2 = d_dt(v);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt * k2[i];
-
-		return v;
-	}
-
-	std::vector<MX0> midpoint_implicit(const std::vector<MX0>& phi, double dt) {
-
-		std::vector<MX0> v(phi.size());
-
-		auto k1 = d_dt(phi);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = 0.5 * (phi[i] + (phi[i] + dt * k1[i]));
-
-		auto k2 = d_dt(v);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt * k2[i];
-
-		return v;
-	}
-
 	std::vector<MX0> rk4(const std::vector<MX0>& phi, double dt) {
 
 		std::vector<MX0> v(phi.size()), k;

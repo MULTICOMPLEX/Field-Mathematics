@@ -6,7 +6,7 @@
 int main(int argc, char** argv)
 {
 	
-	Quantum qm;
+	//Quantum qm;
 
 	std::setlocale(LC_ALL, "en_US.utf8");
 
@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 1000000000;
+	std::uint64_t N_Trials = 100000000;
 
 	//Wave cycles or threads  
 	U N_cycles = 8;
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 		Board_SIZE = U(round(N_Bins / R(N_cycles)));
 	}
 
-	std::u8string title = u8" Probability Wave Ψ";
+	std::u8string title = u8" Probability Wave Φ";
 	if (!probability_wave) title = u8" Galton Board";
 	std::cout << title << std::endl << std::endl;
 

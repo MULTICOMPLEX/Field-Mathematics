@@ -1022,13 +1022,13 @@ public:
 	}
 
 	template<typename T>
-	std::vector<double> linspace(T start_in, T end_in, int num_in)
+	std::vector<double> linspace(T start_in, T end_in, size_t num_in)
 	{
 		std::vector<double> linspaced;
 
 		double start = start_in;
 		double end = end_in;
-		double num = num_in;
+		double num = double(num_in);
 
 		if (num == 0) { return linspaced; }
 		if (num == 1)

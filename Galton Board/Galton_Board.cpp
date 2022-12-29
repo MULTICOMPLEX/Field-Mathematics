@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv)
 {
-	
+
 	//Quantum qm;
 
 	std::setlocale(LC_ALL, "en_US.utf8");

@@ -1007,6 +1007,28 @@ public:
 		}
 	}
 
+	template<typename T>
+	std::vector<T> arange(T start, T stop, T step = 1) {
+		std::vector<T> values;
+		for (T value = start; value < stop; value += step)
+			values.push_back(value);
+		return values;
+	}
+
+	template<typename T>
+	std::vector<T> fftshift(const std::vector<T>& k) {
+		std::vector<T> v = k;
+		std::ranges::rotate(v, v.begin() + int(round(v.size() / 2.)));
+		return v;
+	}
+
+	template<typename T>
+	std::vector<T> ifftshift(const std::vector<T>& k) {
+		std::vector<T> v = k;
+		std::ranges::rotate(v, v.end() - int(round(v.size() / 2.)));
+		return v;
+	}
+
 	std::vector<MX0> norm(const std::vector<MX0>& phi) {
 
 		std::vector<MX0> v = phi;
@@ -1152,3 +1174,4 @@ public:
 		else plot.show();
 	}
 };
+

@@ -1213,6 +1213,8 @@ public:
 		std::cout << "store_steps " << store_steps << std::endl;
 		std::cout << "Nt_per_store_step " << Nt_per_store_step << std::endl;
 
+		auto begin = std::chrono::high_resolution_clock::now();
+
 		for (auto i = 0; i < store_steps - 1; i++) {
 			tmp = psi[i];
 			for (auto j = 0; j < Nt_per_store_step; j++) {
@@ -1223,6 +1225,11 @@ public:
 			}
 			psi[i + 1ull] = tmp;
 		}
+
+		auto end = std::chrono::high_resolution_clock::now();
+		std::cout << std::endl << " Took  "
+			<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
+			<< "[ms]" << std::endl << std::endl;
 
 		auto mp = amax(psi);
 		for (auto j = 0; j < psi.size(); j++)

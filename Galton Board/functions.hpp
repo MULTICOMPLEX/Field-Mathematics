@@ -1,4 +1,4 @@
-
+﻿
 #pragma once
 #include <future>
 #include <numbers>
@@ -9,6 +9,7 @@
 #include "number_theory.hpp"
 #include <map>
 #include <unordered_set>
+#include "constants.hpp"
 
 
 plot_matplotlib plot;
@@ -1031,6 +1032,47 @@ std::vector<T> fftfreq(int n, double d = 1.0) {
 	return results;
 }
 
+template <typename T>
+std::vector<T> init_fftfreq(int N, double dx, double hbar) {
+	std::vector<T> p2;
+	auto px = fftshift(fftfreq<double>(N, dx));
+	for (auto& i : px)
+		i *= hbar * 2.0 * std::numbers::pi;
+	for (auto& i : px)
+		p2.push_back(i * i);
+	return p2;
+}
+
+template <typename T>
+std::vector<MX0> initial_wavefunction(const std::vector<T>& x) {
+	//This wavefunction correspond to a gaussian wavepacket with a mean X momentum equal to p_x0
+	auto sigma = 0.7 * qc::Am;
+	auto v0 = 40 * qc::Am / qc::femtoseconds;
+	auto p_x0 = qc::m_e * v0;
+	std::vector<MX0> v;
+	MX0 j(0, 1);
+	for (const auto& i : x)
+		v.push_back(exp(-1 / (4 * pow(sigma, 2)) * (pow(i + 10, 2)) / sqrt(2 * std::numbers::pi * pow(sigma, 2))) *
+			exp(p_x0 * x * j));
+	return v;
+}
+
+template <typename T>
+std::vector<T> potential_barrier(const std::vector<T>& x) {
+	auto x0 = 4 * qc::Am;
+	auto x1 = 9 * qc::Am;
+	auto V0 = 2;
+	auto a = 1 * qc::Am;
+	std::vector<T> barrier(x.size());
+	for (auto k = 0; const auto & i : x) {
+			if (((i > (x0 - a / 2)) && (i < (x0 + a / 2))) || ((i > (x1 - a / 2)) && (i < (x1 + a / 2))))
+				barrier[k] = V0;
+			else barrier[k] = 0; 
+			k++;
+	}
+		return barrier;
+}
+
 class Quantum
 {
 
@@ -1038,13 +1080,22 @@ private:
 	plot_matplotlib plot;
 
 public:
-	std::vector<double> X, V;
-	std::vector<MX0> phi;
+	std::vector<double> X, V, x, p2;
+	std::vector<MX0> phi, Ur, Uk;
 	double deltax;
 	MX0 J = { 0,1 };
 	size_t save_every = 500;
 	size_t steps = 50000;
 	mxws<uint32_t> rng;
+
+	double extent = 50 * qc::Am;
+	int	N = 600;
+	double dx = extent / N;
+
+	double 	total_time = 0.5 * qc::femtoseconds;
+	double dt = total_time / 5000.;
+	int store_steps = 800;
+	double dt_store = total_time / store_steps;
 
 	virtual ~Quantum() = default;
 
@@ -1069,6 +1120,23 @@ public:
 			if ((i + 1ull) % save_every == 0) 
 				plotWave(phi, t++, true); 
 		}
+
+		/////
+		x = linspace(-extent / 2, extent / 2, N);
+		p2 = init_fftfreq<double>(N, dx, qc::hbar);
+
+		auto Nt = int(round(total_time / dt));
+		auto Nt_per_store_step = int(round(dt_store / dt));
+		//time / dt and dt_store / dt must be integers.Otherwise dt is rounded to match that the Nt_per_store_stepdivisions are integers
+		auto dt = dt_store / Nt_per_store_step;
+		auto m = 1.;
+		auto Vgrid = potential_barrier(x);
+		
+		for (const auto& i : Vgrid)
+			Ur.push_back(exp(-0.5 * J * (dt / qc::hbar) * i));
+
+		for (const auto& i : p2)
+			Uk.push_back(exp(-0.5 * J * (dt / (m * qc::hbar)) * i));
 	}
 
 

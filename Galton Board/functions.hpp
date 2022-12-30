@@ -1095,6 +1095,21 @@ std::vector<T> potential_barrier(const std::vector<T>& x, double x0, double x1) 
 	return barrier;
 }
 
+double amax(const std::vector<std::vector<MX0>>& a) {
+	std::vector<MX0> tmp;
+	std::vector<double> tmp2;
+	//create 1-dimensional array to find the max element
+	for (auto i = 0; i < a.size(); i++) {
+		tmp.insert(tmp.end(), a[i].begin(), a[i].end());
+	}
+
+	for (const auto& i : tmp)
+		tmp2.push_back(abs(i));
+
+	auto val = *max_element(tmp2.begin(), tmp2.end());
+	return val;
+}
+
 template <typename T>
 inline const std::vector<T> operator*
 (
@@ -1193,7 +1208,7 @@ public:
 		std::vector<MX0> c, tmp;
 
 		psi[0] = initial_wavefunction(x);
-		plotWave2(x, psi[0], t++, true);
+		//plotWave2(x, psi[0], t++, true);
 
 		std::cout << "store_steps " << store_steps << std::endl;
 		std::cout << "Nt_per_store_step " << Nt_per_store_step << std::endl;
@@ -1207,8 +1222,16 @@ public:
 
 			}
 			psi[i + 1ull] = tmp;
-			plotWave2(x, psi[i + 1ull], t++, true);
 		}
+
+		auto mp = amax(psi);
+		for (auto j = 0; j < psi.size(); j++)
+			for (auto k = 0; k < psi[j].size(); k++)
+				psi[j][k] /= mp;
+	
+
+		for (auto j = 0; j < psi.size(); j++)
+			plotWave2(x, psi[j], t++, true);
 
 	}
 

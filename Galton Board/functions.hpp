@@ -233,6 +233,29 @@ std::vector<T> FFT
 	return perm;
 }
 
+template <typename T>
+	requires std::same_as<T, MX0> ||
+std::same_as<T, std::complex<double>>
+std::vector<T> IFFT(std::vector<T> v)
+{
+	for (auto& i : v)
+		// conjugate the complex numbers
+		i = i.conj();
+
+	// forward fft
+	v = FFT(v);
+
+	for (auto& i : v)
+		// conjugate the complex numbers again
+		i = i.conj();
+
+	// scale the numbers
+	for (auto& i : v)
+		i /= double(v.size());
+
+	return v;
+}
+
 template <typename T, typename Y>
 void doDFT(std::vector<T>& in, std::vector<Y>& out)
 {
@@ -1043,6 +1066,7 @@ std::vector<T> init_fftfreq(int N, double dx, double hbar) {
 	return p2;
 }
 
+
 template <typename T>
 std::vector<MX0> initial_wavefunction(const std::vector<T>& x) {
 	//This wavefunction correspond to a gaussian wavepacket with a mean X momentum equal to p_x0
@@ -1053,24 +1077,37 @@ std::vector<MX0> initial_wavefunction(const std::vector<T>& x) {
 	MX0 j(0, 1);
 	for (const auto& i : x)
 		v.push_back(exp(-1 / (4 * pow(sigma, 2)) * (pow(i + 10, 2)) / sqrt(2 * std::numbers::pi * pow(sigma, 2))) *
-			exp(p_x0 * x * j));
+			exp(p_x0 * i * j));
 	return v;
 }
 
 template <typename T>
-std::vector<T> potential_barrier(const std::vector<T>& x) {
-	auto x0 = 4 * qc::Am;
-	auto x1 = 9 * qc::Am;
+std::vector<T> potential_barrier(const std::vector<T>& x, double x0, double x1) {
 	auto V0 = 2;
 	auto a = 1 * qc::Am;
 	std::vector<T> barrier(x.size());
 	for (auto k = 0; const auto & i : x) {
-			if (((i > (x0 - a / 2)) && (i < (x0 + a / 2))) || ((i > (x1 - a / 2)) && (i < (x1 + a / 2))))
-				barrier[k] = V0;
-			else barrier[k] = 0; 
-			k++;
+		if (((i > (x0 - a / 2)) && (i < (x0 + a / 2))) || ((i > (x1 - a / 2)) && (i < (x1 + a / 2))))
+			barrier[k] = V0;
+		else barrier[k] = 0;
+		k++;
 	}
-		return barrier;
+	return barrier;
+}
+
+template <typename T>
+inline const std::vector<T> operator*
+(
+	const std::vector<T>& a,
+	const std::vector<T>& b
+	)
+{
+	std::vector<T> v = a;
+
+	for (auto i = 0; i < a.size(); i++)
+		v[i] *= b[i];
+
+	return v;
 }
 
 class Quantum
@@ -1089,18 +1126,23 @@ public:
 	mxws<uint32_t> rng;
 
 	double extent = 50 * qc::Am;
-	int	N = 600;
-	double dx = extent / N;
-
+	int	N = 1024;
 	double 	total_time = 0.5 * qc::femtoseconds;
+	int store_steps = 100;
+
+	double dx = extent / N;
 	double dt = total_time / 5000.;
-	int store_steps = 800;
 	double dt_store = total_time / store_steps;
+
+
+	double x0 = 4 * qc::Am;
+	double x1 = 9 * qc::Am;
 
 	virtual ~Quantum() = default;
 
 	Quantum()
 	{
+		/*
 		X = linspace(-10, 10, 5000);
 		deltax = X[1] - X[0];
 
@@ -1112,14 +1154,15 @@ public:
 		}
 
 		phi = wave_packet(0, 70, 0.2, false);
-		
+
 		int t = 0;
 		for (auto i = 0; i < steps; i++) {
 			phi = rk4(phi, 0.1);
 
-			if ((i + 1ull) % save_every == 0) 
-				plotWave(phi, t++, true); 
+			if ((i + 1ull) % save_every == 0)
+				plotWave(phi, t++, true);
 		}
+		*/
 
 		/////
 		x = linspace(-extent / 2, extent / 2, N);
@@ -1130,15 +1173,44 @@ public:
 		//time / dt and dt_store / dt must be integers.Otherwise dt is rounded to match that the Nt_per_store_stepdivisions are integers
 		auto dt = dt_store / Nt_per_store_step;
 		auto m = 1.;
-		auto Vgrid = potential_barrier(x);
-		
+		auto Vgrid = potential_barrier(x, x0, x1);
+
 		for (const auto& i : Vgrid)
 			Ur.push_back(exp(-0.5 * J * (dt / qc::hbar) * i));
 
 		for (const auto& i : p2)
 			Uk.push_back(exp(-0.5 * J * (dt / (m * qc::hbar)) * i));
-	}
 
+		int t = 0;
+
+
+		// Initializing a single row
+		std::vector<MX0> row(N, 0);
+
+		// Initializing the 2-D vector
+		std::vector<std::vector<MX0>> psi(store_steps, row);
+
+		std::vector<MX0> c, tmp;
+
+		psi[0] = initial_wavefunction(x);
+		plotWave2(x, psi[0], t++, true);
+
+		std::cout << "store_steps " << store_steps << std::endl;
+		std::cout << "Nt_per_store_step " << Nt_per_store_step << std::endl;
+
+		for (auto i = 0; i < store_steps - 1; i++) {
+			tmp = psi[i];
+			for (auto j = 0; j < Nt_per_store_step; j++) {
+
+				c = fftshift(FFT(Ur * tmp));
+				tmp = Ur * IFFT(ifftshift(Uk * c));
+
+			}
+			psi[i + 1ull] = tmp;
+			plotWave2(x, psi[i + 1ull], t++, true);
+		}
+
+	}
 
 	std::vector<MX0> norm(const std::vector<MX0>& phi) {
 
@@ -1155,7 +1227,7 @@ public:
 	}
 
 	std::vector<MX0> d_dxdx(const std::vector<MX0>& phi) {
-		
+
 		std::vector<MX0> v(phi.size());
 
 		for (auto i = 0; i < phi.size(); i++)
@@ -1176,7 +1248,7 @@ public:
 	std::vector<MX0> d_dt(const std::vector<MX0>& phi, double h = 1, double m = 100) {
 
 		std::vector<MX0> v(phi.size()), k;
-		
+
 		k = d_dxdx(phi);
 
 		for (auto i = 0; i < phi.size(); i++)
@@ -1245,6 +1317,54 @@ public:
 		plot.plot_somedata(X, kr, "", "Re", "C0", 1.5);
 		plot.plot_somedata(X, ki, "", "Im", "C1", 1.5);
 		plot.plot_somedata(X, P, "", "$\\sqrt{P}$", "C2", 1.5);
+
+		std::string str = "./img/";
+		str += std::to_string(index);
+		str += ".png";
+
+		if (save) {
+			plot.PyRun_Simple("plt.savefig('" + str + "')");
+			plot.PyRun_Simple("plt.close()");
+		}
+
+		else plot.show();
+	}
+
+	template <typename T>
+		requires std::same_as<T, MX0> ||
+	std::same_as<T, std::complex<double>>
+		void plotWave2(std::vector<double> x, const std::vector<T> phi, int index, bool save) {
+		std::vector<double> kr(phi.size()), ki(phi.size()), P(phi.size());
+
+		for (auto i = 0; i < phi.size(); i++)
+		{
+			kr[i] = phi[i].real;
+			ki[i] = phi[i].imag;
+			P[i] = abs(phi[i]);
+		}
+
+		plot.PyRun_Simple("figsize = (16 / 9 * 5.804 * 0.9, 5.804)");
+
+		plot.PyRun_Simple("fig = plt.figure(figsize = figsize)");
+
+		auto a = std::to_string(x0 / qc::Am - 0.5);
+		a += ",";
+		a += std::to_string(x0 / qc::Am + 0.5);
+		auto b = std::to_string(x1 / qc::Am - 0.5);
+		b += ",";
+		b += std::to_string(x1 / qc::Am + 0.5);
+
+		plot.PyRun_Simple("plt.axvspan("+ a +", alpha = 0.2, color = 'orange')");
+		plot.PyRun_Simple("plt.axvspan("+ b + ", alpha = 0.2, color = 'orange')");
+
+		plot.PyRun_Simple("plt.ylim(-1, 1)");
+
+		for (auto& i : x)
+			i /= qc::Am;
+
+		plot.plot_somedata(x, kr, "", "Re", "C0", 1.5);
+		plot.plot_somedata(x, ki, "", "Im", "C1", 1.5);
+		plot.plot_somedata(x, P, "", "$\\sqrt{P}$", "C2", 1.5);
 
 		std::string str = "./img/";
 		str += std::to_string(index);

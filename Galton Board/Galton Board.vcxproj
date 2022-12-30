@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Galton_Board.cpp" />
+    <ClCompile Include="include\MULTICOMPLEX.cpp" />
     <ClCompile Include="wavcpp.cpp" />
   </ItemGroup>
   <ItemGroup>

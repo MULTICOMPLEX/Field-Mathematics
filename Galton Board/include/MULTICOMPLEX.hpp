@@ -365,6 +365,12 @@ multicomplex clear()
 	return *this = 0;
 }
 
+multicomplex conj()
+{
+	imag = -imag;
+	return *this;
+}
+
 // selection by position
 
 template <int x_order>
@@ -715,6 +721,12 @@ public:
 	multicomplex clear()
 	{
 		return *this = 0;
+	}
+
+	multicomplex conj()
+	{
+		imag = -imag;
+		return *this;
 	}
 
 	// selection by position

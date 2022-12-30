@@ -930,7 +930,6 @@ auto arcsin(const T& x)
 	return (-MX0(0, 1) * log(MX0(sqrt(1. - x * x), 0.5))).real;
 }
 
-
 template <typename T>
 std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_cycles, bool RandomWWalk)
 {
@@ -965,6 +964,71 @@ std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_
 
 	plot.show();
 	return Y_buf2;
+}
+
+template<typename T>
+std::vector<T> arange(T start, T stop, T step = 1) {
+	std::vector<T> values;
+	for (T value = start; value < stop; value += step)
+		values.push_back(value);
+	return values;
+}
+
+template<typename T>
+std::vector<double> linspace(T start_in, T end_in, size_t num_in)
+{
+	std::vector<double> linspaced;
+
+	double start = start_in;
+	double end = end_in;
+	double num = double(num_in);
+
+	if (num == 0) { return linspaced; }
+	if (num == 1)
+	{
+		linspaced.push_back(start);
+		return linspaced;
+	}
+
+	auto delta = (end - start) / (num - 1);
+
+	for (auto i = 0; i < num - 1; ++i)
+	{
+		linspaced.push_back(start + delta * i);
+	}
+	linspaced.push_back(end); // I want to ensure that start and end
+	// are exactly the same as the input
+	return linspaced;
+}
+
+template<typename T>
+std::vector<T> fftshift(const std::vector<T>& k) {
+	std::vector<T> v = k;
+	std::ranges::rotate(v, v.begin() + int(round(v.size() / 2.)));
+	return v;
+}
+
+template<typename T>
+std::vector<T> ifftshift(const std::vector<T>& k) {
+	std::vector<T> v = k;
+	std::ranges::rotate(v, v.end() - int(round(v.size() / 2.)));
+	return v;
+}
+
+template <typename T>
+std::vector<T> fftfreq(int n, double d = 1.0) {
+	auto val = 1.0 / (n * d);
+	std::vector<T> results(n);
+	auto N = (n - 1) / 2 + 1;
+	auto p1 = arange<int>(0, N);
+	for (auto x = 0; x < N; x++)
+		results[x] = p1[x];
+	auto p2 = arange<int>(-(n / 2), 0);
+	for (auto x = N; x < results.size(); x++)
+		results[x] = p2[x - size_t(N)];
+	for (auto x = 0; x < results.size(); x++)
+		results[x] *= val;
+	return results;
 }
 
 class Quantum
@@ -1007,27 +1071,6 @@ public:
 		}
 	}
 
-	template<typename T>
-	std::vector<T> arange(T start, T stop, T step = 1) {
-		std::vector<T> values;
-		for (T value = start; value < stop; value += step)
-			values.push_back(value);
-		return values;
-	}
-
-	template<typename T>
-	std::vector<T> fftshift(const std::vector<T>& k) {
-		std::vector<T> v = k;
-		std::ranges::rotate(v, v.begin() + int(round(v.size() / 2.)));
-		return v;
-	}
-
-	template<typename T>
-	std::vector<T> ifftshift(const std::vector<T>& k) {
-		std::vector<T> v = k;
-		std::ranges::rotate(v, v.end() - int(round(v.size() / 2.)));
-		return v;
-	}
 
 	std::vector<MX0> norm(const std::vector<MX0>& phi) {
 
@@ -1041,33 +1084,6 @@ public:
 			i /= sqrt(norm);
 
 		return v;
-	}
-
-	template<typename T>
-	std::vector<double> linspace(T start_in, T end_in, size_t num_in)
-	{
-		std::vector<double> linspaced;
-
-		double start = start_in;
-		double end = end_in;
-		double num = double(num_in);
-
-		if (num == 0) { return linspaced; }
-		if (num == 1)
-		{
-			linspaced.push_back(start);
-			return linspaced;
-		}
-
-		auto delta = (end - start) / (num - 1);
-
-		for (auto i = 0; i < num - 1; ++i)
-		{
-			linspaced.push_back(start + delta * i);
-		}
-		linspaced.push_back(end); // I want to ensure that start and end
-		// are exactly the same as the input
-		return linspaced;
 	}
 
 	std::vector<MX0> d_dxdx(const std::vector<MX0>& phi) {

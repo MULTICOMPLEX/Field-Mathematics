@@ -30,6 +30,12 @@
     <ClInclude Include="number_theory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="operators.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fft.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Galton_Board.cpp">

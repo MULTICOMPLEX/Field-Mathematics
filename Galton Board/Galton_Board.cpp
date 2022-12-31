@@ -6,9 +6,6 @@
 int main(int argc, char** argv)
 {
 
-	//Quantum qm;
-	//return (0);
-
 	std::setlocale(LC_ALL, "en_US.utf8");
 
 	typedef unsigned U;
@@ -45,15 +42,24 @@ int main(int argc, char** argv)
 
 	//Plot Fourier transform with probability wave twiddle factors
 	B doDFTr = true;
+	if (N_Bins != 2048)
+		doDFTr = false;
 
 	//Enable Sliding FFT
 	const B Sliding_FFT = false;
 
 	//Write twiddle factors to disk
 	B W_DFTCoeff = false;
-	if ((N_Bins != 2048) || (N_cycles != 1))
+	if ((N_Bins != 2048) || (N_cycles != 1)) 
 		W_DFTCoeff = false;
 
+	B Quantum_sim = false;
+
+	if (Quantum_sim) {
+		Quantum qm;
+		return (0);
+	}
+	
 	/***************SETTINGS*****************/
 
 	if (wav) {
@@ -254,10 +260,8 @@ int main(int argc, char** argv)
 				}
 			}
 
-			else {
-				cx.resize(Y.size());
-				doDFT(Y, cx);
-			}
+			else 	
+				cx = doDFT(Y);
 
 			//wavepacket(Y, N_Trials, N_cycles, false);
 			//wave_packet(0, 40, 0.2);

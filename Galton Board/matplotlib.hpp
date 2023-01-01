@@ -105,6 +105,8 @@ public:
 		const double x_head, const double y_head, std::string color);
 
 	void imshow(const std::string& points, const std::string& cmap = "gray", double extent = 1.0);
+	void vector_data(const auto& X);
+
 };
 
 
@@ -260,6 +262,22 @@ void plot_matplotlib::show()
 	//if(autorange && !_autorange) { this->set_range_auto(); }
 	//if(keepaspectratio) { this->set_equal_ascpectratio(); }
 	PyRun_SimpleStringStd("plt.show()");
+}
+
+void plot_matplotlib::vector_data(const auto& v)
+{
+	std::string vs = "";
+
+	if (v.size()) {
+
+		for (size_t i = 0; i < v.size(); i++) {
+			vs += std::to_string(v[i]);
+			vs += ",";
+		}
+
+		PyRun_SimpleStringStd("vec = [" + vs + "]");
+	}
+	PyRun_SimpleStringStd("print(vec)");
 }
 
 void plot_matplotlib::plot_somedata(const auto& X, const auto& Y,

@@ -729,13 +729,9 @@ std::vector<T> fftfreq(int n, double d = 1.0) {
 
 template <typename T>
 std::vector<T> init_fftfreq(int N, double dx, double hbar) {
-	std::vector<T> p2;
-	auto px = fftshift(fftfreq<double>(N, dx));
-	for (auto& i : px)
-		i *= hbar * 2.0 * std::numbers::pi;
-	for (auto& i : px)
-		p2.push_back(i * i);
-	return p2;
+	auto px = fftfreq<double>(N, dx);
+		px *= hbar * 2.0 * std::numbers::pi;
+	return px * px;
 }
 
 template <typename T>
@@ -876,8 +872,8 @@ public:
 			tmp = psi[i];
 			for (auto j = 0; j < Nt_per_store_step; j++) {
 
-				c = fftshift(FFT(Ur * tmp));
-				tmp = Ur * IFFT(ifftshift(Uk * c));
+				c = FFT(Ur * tmp);
+				tmp = Ur * IFFT(Uk * c);
 
 			}
 			psi[i + 1ull] = tmp;

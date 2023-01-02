@@ -648,14 +648,12 @@ std::vector<T> wavepacket(std::vector<T>& v, std::uint64_t N_Trials, unsigned N_
 
 	plot.plot_somedata(X, Y, "", "Gaussian", "green");
 
-	for (auto i = 0; i < Y.size(); i++)
-		Y_buf[i] *= -Y[i];
+	Y_buf *= -Y;
 
 	plot.plot_somedata(X, Y_buf, "", "Wave packet real", "red");
 	std::ranges::rotate(Y_buf2, Y_buf2.begin() + Y_buf2.size() / (4ull * N_cycles));
 
-	for (auto i = 0; i < Y.size(); i++)
-		Y_buf2[i] *= -Y[i];
+	Y_buf2 *= -Y;
 
 	plot.plot_somedata(X, Y_buf2, "", "Wave packet imag", "blue");
 
@@ -898,14 +896,10 @@ public:
 			<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()
 			<< "[ms]" << std::endl << std::endl;
 
-		auto mp = amax(psi);
-
-		for (auto& j : psi)
-				j /= mp;
+		psi /= amax(psi);
 	
 		for (auto j = 0; j < psi.size(); j++)
 			plotWave2(x, psi[j], t++, true);
-
 	}
 
 	std::vector<MX0> norm(const std::vector<MX0>& phi) {
@@ -916,8 +910,7 @@ public:
 		for (auto& i : v)
 			norm += pow(abs(i), 2) * deltax;
 
-		for (auto& i : v)
-			i /= sqrt(norm);
+		v /= sqrt(norm);
 
 		return v;
 	}
@@ -926,8 +919,7 @@ public:
 
 		std::vector<MX0> v(phi.size());
 
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = -2 * phi[i];
+		v = -2 * phi;
 
 		for (auto i = 1; i < v.size(); i++)
 			v[i - 1ull] += phi[i];
@@ -935,47 +927,26 @@ public:
 		for (auto i = 1; i < v.size(); i++)
 			v[i] += phi[i - 1ull];
 
-		for (auto& i : v)
-			i /= deltax;
+			v /= deltax;
 
 		return v;
 	}
 
 	std::vector<MX0> d_dt(const std::vector<MX0>& phi, double h = 1, double m = 100) {
 
-		std::vector<MX0> v(phi.size()), k;
-
-		k = d_dxdx(phi);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = J * h / 2 / m * k[i] - J * V[i] * phi[i] / h;
+		auto k = d_dxdx(phi);
+		auto v = J * h / 2 / m * k - J * V * phi / h;
 
 		return v;
 	}
 
 	std::vector<MX0> rk4(const std::vector<MX0>& phi, double dt) {
 
-		std::vector<MX0> v(phi.size()), k;
-
 		auto k1 = d_dt(phi);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt / 2 * k1[i];
-
-		auto k2 = d_dt(v);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt / 2 * k2[i];
-
-		auto k3 = d_dt(v);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt * k3[i];
-
-		auto k4 = d_dt(v);
-
-		for (auto i = 0; i < phi.size(); i++)
-			v[i] = phi[i] + dt / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+		auto k2 = d_dt(phi + dt / 2 * k1);
+		auto k3 = d_dt(phi + dt / 2 * k2);
+		auto k4 = d_dt(phi + dt * k3);
+		auto v = phi + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4);
 
 		return v;
 	}

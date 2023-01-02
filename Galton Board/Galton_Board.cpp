@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 	if ((N_Bins != 2048) || (N_cycles != 1)) 
 		W_DFTCoeff = false;
 
-	B Quantum_sim = 0;
+	B Quantum_sim = false;
 
 	if (Quantum_sim) {
 		Quantum qm;
@@ -172,12 +172,10 @@ int main(int argc, char** argv)
 			for (const auto& i : galton_arr[k])
 				std::ranges::transform(i, std::back_inserter(Y), [](auto& c) {return double(c); });
 
-			for (auto i = 0; i < Y.size(); i++)
-				Y_buf[i] += Y[i];
+			Y_buf += Y;
 		}
 
-		for (auto& i : Y_buf)
-			i /= R(N_Integrations);
+		Y_buf /= R(N_Integrations);
 
 		Y = Y_buf;
 
@@ -213,12 +211,10 @@ int main(int argc, char** argv)
 			for (const auto& i : galton_arr[k])
 				std::ranges::transform(i, std::back_inserter(Y), [](auto& c) {return double(c); });
 
-			for (auto i = 0; i < Y.size(); i++)
-				Y_buf[i] += Y[i];
+			Y_buf += Y;
 		}
 
-		for (auto& i : Y_buf)
-			i /= R(N_Integrations);
+		Y_buf /= R(N_Integrations);
 
 		std::cout << " Avarage        " << avarage_vector(Y_buf) / N_cycles << std::endl;
 		std::cout << " AC Amplitude   " << ac_amplite_vector(Y_buf) / N_cycles << std::endl;

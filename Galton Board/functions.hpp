@@ -13,6 +13,7 @@
 #include "operators.hpp"
 #include "fft.hpp"
 
+
 plot_matplotlib plot;
 
 auto Galton_Classic = []<typename L, typename K>
@@ -748,35 +749,52 @@ std::vector<MX0> initial_wavefunction(const std::vector<T>& x) {
 	return v;
 }
 
+//C++23 test
 template <typename T>
 std::vector<T> potential_barrier(const std::vector<T>& x, double x0, double x1) {
+	using namespace std;
+	using std::ranges::views::zip;
+
 	auto V0 = 2;
 	auto a = 1 * qc::Am;
+
 	std::vector<T> barrier(x.size());
-	for (auto k = 0; const auto & i : x) {
-		if (((i > (x0 - a / 2)) && (i < (x0 + a / 2))) || ((i > (x1 - a / 2)) && (i < (x1 + a / 2))))
-			barrier[k] = V0;
-		else barrier[k] = 0;
-		k++;
+
+	for (const auto& i : zip(x, barrier)) {
+		if (((get<0>(i) > (x0 - a / 2)) && (get<0>(i) < (x0 + a / 2))) || ((get<0>(i) >
+			(x1 - a / 2)) && (get<0>(i) < (x1 + a / 2))))
+			get<1>(i) = V0;
+		else get<1>(i) = 0;
 	}
+	
 	return barrier;
 }
 
-double amax(const std::vector<std::vector<MX0>>& a) {
-	std::vector<MX0> tmp;
-	std::vector<double> tmp2;
-	//create 1-dimensional array to find the max element
-	for (auto i = 0; i < a.size(); i++) {
-		tmp.insert(tmp.end(), a[i].begin(), a[i].end());
-	}
+template <typename T>
+	requires std::same_as<T, std::vector<std::vector<MX0>>>
+double amax(const T& a) {
+	std::vector<double> tmp;
 
-	for (const auto& i : tmp)
-		tmp2.push_back(abs(i));
+	for (const auto& y : a)
+		for (const auto& i : y)
+			tmp.push_back(abs(i));
 
-	auto val = *max_element(tmp2.begin(), tmp2.end());
-	return val;
+	auto val = std::ranges::max_element(tmp.begin(), tmp.end());
+	return *val;
 }
 
+template <typename T>
+	requires std::same_as<T, std::vector<std::vector<MX0>>>
+double amin(const T& a) {
+	std::vector<double> tmp;
+
+	for (const auto& y : a)
+		for (const auto& i : y)
+			tmp.push_back(abs(i));
+
+	auto val = std::ranges::min_element(tmp.begin(), tmp.end());
+	return *val;
+}
 
 class Quantum
 {
@@ -786,7 +804,7 @@ private:
 
 public:
 	std::vector<double> X, V, x, p2;
-	std::vector<MX0> phi, Ur, Uk;
+	std::vector<MX0> phi;
 	double deltax;
 	MX0 J = { 0,1 };
 	size_t save_every = 500;
@@ -843,14 +861,10 @@ public:
 		auto m = 1.;
 		auto Vgrid = potential_barrier(x, x0, x1);
 
-		for (const auto& i : Vgrid)
-			Ur.push_back(exp(-0.5 * J * (dt / qc::hbar) * i));
-
-		for (const auto& i : p2)
-			Uk.push_back(exp(-0.5 * J * (dt / (m * qc::hbar)) * i));
+		auto Ur = exp(-0.5 * J * (dt / qc::hbar) * Vgrid);
+		auto Uk = exp(-0.5 * J * (dt / (m * qc::hbar)) * p2);
 
 		int t = 0;
-
 
 		// Initializing a single row
 		std::vector<MX0> row(N, 0);
@@ -868,15 +882,15 @@ public:
 
 		auto begin = std::chrono::high_resolution_clock::now();
 
-		for (auto i = 0; i < store_steps - 1; i++) {
-			tmp = psi[i];
+		for (auto i = 1; i < store_steps; i++) {
+			tmp = psi[i - 1ull];
 			for (auto j = 0; j < Nt_per_store_step; j++) {
 
 				c = FFT(Ur * tmp);
 				tmp = Ur * IFFT(Uk * c);
 
 			}
-			psi[i + 1ull] = tmp;
+			psi[i] = tmp;
 		}
 
 		auto end = std::chrono::high_resolution_clock::now();
@@ -885,11 +899,10 @@ public:
 			<< "[ms]" << std::endl << std::endl;
 
 		auto mp = amax(psi);
-		for (auto j = 0; j < psi.size(); j++)
-			for (auto k = 0; k < psi[j].size(); k++)
-				psi[j][k] /= mp;
-	
 
+		for (auto& j : psi)
+				j /= mp;
+	
 		for (auto j = 0; j < psi.size(); j++)
 			plotWave2(x, psi[j], t++, true);
 
@@ -1042,8 +1055,7 @@ public:
 
 		plot.PyRun_Simple("plt.ylim(-1, 1)");
 
-		for (auto& i : x)
-			i /= qc::Am;
+		x /= qc::Am;
 
 		plot.plot_somedata(x, kr, "", "Re", "C0", 1.5);
 		plot.plot_somedata(x, ki, "", "Im", "C1", 1.5);

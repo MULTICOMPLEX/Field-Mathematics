@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv)
 {
-		
+	
 	std::setlocale(LC_ALL, "en_US.utf8");
 
 	typedef unsigned U;
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 	if ((N_Bins != 2048) || (N_cycles != 1)) 
 		W_DFTCoeff = false;
 
-	B Quantum_sim = false;
+	B Quantum_sim = 0;
 
 	if (Quantum_sim) {
 		Quantum qm;

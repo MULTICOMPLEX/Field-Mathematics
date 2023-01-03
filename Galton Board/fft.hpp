@@ -105,8 +105,7 @@ std::vector<T> IFFT(std::vector<T> v)
 		i = i.conj();
 
 	// scale the numbers
-	for (auto& i : v)
-		i /= double(v.size());
+	v /= double(v.size());
 
 	return v;
 }

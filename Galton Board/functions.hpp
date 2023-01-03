@@ -729,7 +729,7 @@ std::vector<T> fftfreq(int n, double d = 1.0) {
 template <typename T>
 std::vector<T> init_fftfreq(int N, double dx, double hbar) {
 	auto px = fftfreq<double>(N, dx);
-		px *= hbar * 2.0 * std::numbers::pi;
+	px *= hbar * 2.0 * std::numbers::pi;
 	return px * px;
 }
 
@@ -739,10 +739,11 @@ std::vector<MX0> initial_wavefunction(const std::vector<T>& x) {
 	auto sigma = 0.7 * qc::Am;
 	auto v0 = 40 * qc::Am / qc::femtoseconds;
 	auto p_x0 = qc::m_e * v0;
+	double offset = 10;
 	std::vector<MX0> v;
 	MX0 j(0, 1);
 	for (const auto& i : x)
-		v.push_back(exp(-1 / (4 * pow(sigma, 2)) * (pow(i + 10, 2)) / sqrt(2 * std::numbers::pi * pow(sigma, 2))) *
+		v.push_back(exp(-1 / (4 * pow(sigma, 2)) * (pow(i + offset, 2)) / sqrt(2 * std::numbers::pi * pow(sigma, 2))) *
 			exp(p_x0 * i * j));
 	return v;
 }
@@ -764,8 +765,14 @@ std::vector<T> potential_barrier(const std::vector<T>& x, double x0, double x1) 
 			get<1>(i) = V0;
 		else get<1>(i) = 0;
 	}
-	
+
 	return barrier;
+}
+
+template <typename T>
+std::vector<T> potential_quadratic(const std::vector<T>& x) {
+	auto quadratic_potential = 1e-2 * x * x;
+	return quadratic_potential;
 }
 
 template <typename T>
@@ -776,6 +783,18 @@ double amax(const T& a) {
 	for (const auto& y : a)
 		for (const auto& i : y)
 			tmp.push_back(abs(i));
+
+	auto val = std::ranges::max_element(tmp.begin(), tmp.end());
+	return *val;
+}
+
+template <typename T>
+	requires std::same_as<T, std::vector<MX0>>
+double amax(const T& a) {
+	std::vector<double> tmp;
+
+	for (const auto& i : a)
+		tmp.push_back(abs(i));
 
 	auto val = std::ranges::max_element(tmp.begin(), tmp.end());
 	return *val;
@@ -857,8 +876,18 @@ public:
 		auto m = 1.;
 		auto Vgrid = potential_barrier(x, x0, x1);
 
-		auto Ur = exp(0.5 * J * (-dt / qc::hbar) * Vgrid);
-		auto Uk = exp(0.5 * J * (-dt / (m * qc::hbar)) * p2);
+		std::vector<MX0> Ur(Vgrid.size()), Uk(Vgrid.size());
+
+		bool imaginary_time_evolution = false;
+
+		if (imaginary_time_evolution)
+			J = 1;
+		else J = { 0,1 };
+
+		for (auto i = 0; i < Ur.size(); i++) {
+			Ur[i] = exp(-0.5 * J * (dt / qc::hbar) * Vgrid[i]);
+			Uk[i] = exp(-0.5 * J * (dt / (m * qc::hbar)) * p2[i]);
+		}
 
 		int t = 0;
 
@@ -869,6 +898,8 @@ public:
 		std::vector<std::vector<MX0>> psi(store_steps, row);
 
 		std::vector<MX0> c, tmp;
+		std::vector<double> density(x.size());
+
 
 		psi[0] = initial_wavefunction(x);
 		//plotWave2(x, psi[0], t++, true);
@@ -885,6 +916,9 @@ public:
 				c = FFT(Ur * tmp);
 				tmp = Ur * IFFT(Uk * c);
 
+				if (imaginary_time_evolution)
+					tmp /= amax(tmp);
+
 			}
 			psi[i] = tmp;
 		}
@@ -895,7 +929,7 @@ public:
 			<< "[ms]" << std::endl << std::endl;
 
 		psi /= amax(psi);
-	
+
 		for (auto j = 0; j < psi.size(); j++)
 			plotWave2(x, psi[j], t++, true);
 	}
@@ -925,7 +959,7 @@ public:
 		for (auto i = 1; i < v.size(); i++)
 			v[i] += phi[i - 1ull];
 
-			v /= deltax;
+		v /= deltax;
 
 		return v;
 	}
@@ -1019,8 +1053,8 @@ public:
 		b += ",";
 		b += std::to_string(x1 / qc::Am + 0.5);
 
-		plot.PyRun_Simple("plt.axvspan("+ a +", alpha = 0.2, color = 'orange')");
-		plot.PyRun_Simple("plt.axvspan("+ b + ", alpha = 0.2, color = 'orange')");
+		plot.PyRun_Simple("plt.axvspan(" + a + ", alpha = 0.2, color = 'orange')");
+		plot.PyRun_Simple("plt.axvspan(" + b + ", alpha = 0.2, color = 'orange')");
 
 		plot.PyRun_Simple("plt.ylim(-1, 1)");
 

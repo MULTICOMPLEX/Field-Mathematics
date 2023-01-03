@@ -73,9 +73,6 @@ std::vector<T> FFT
 	for (auto s = 1; s <= lgn; s++) {
 		auto m = (1 << s);
 		T wm = exp(-2 * std::numbers::pi * J / m);
-		//auto index = std::uint64_t(1.0 / m * n);
-		//T wm { cosine[index], sine[index] };
-
 		for (auto k = 0; k < n; k += m) {
 			T w = 1;
 			for (auto j = 0; j < m / 2; j++) {

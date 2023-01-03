@@ -811,13 +811,11 @@ public:
 
 	double extent = 50 * qc::Am;
 	int	N = 1024;
-	double 	total_time = 0.5 * qc::femtoseconds;
+	double total_time = 0.5 * qc::femtoseconds;
 	int store_steps = 100;
 
-	double dx = extent / N;
 	double dt = total_time / 5000.;
 	double dt_store = total_time / store_steps;
-
 
 	double x0 = 4 * qc::Am;
 	double x1 = 9 * qc::Am;
@@ -850,17 +848,17 @@ public:
 
 		/////
 		x = linspace(-extent / 2, extent / 2, N);
+		auto dx = x[1] - x[0];
 		p2 = init_fftfreq<double>(N, dx, qc::hbar);
 
-		auto Nt = int(round(total_time / dt));
 		auto Nt_per_store_step = int(round(dt_store / dt));
 		//time / dt and dt_store / dt must be integers.Otherwise dt is rounded to match that the Nt_per_store_stepdivisions are integers
-		auto dt = dt_store / Nt_per_store_step;
+		dt = dt_store / Nt_per_store_step;
 		auto m = 1.;
 		auto Vgrid = potential_barrier(x, x0, x1);
 
-		auto Ur = exp(-0.5 * J * (dt / qc::hbar) * Vgrid);
-		auto Uk = exp(-0.5 * J * (dt / (m * qc::hbar)) * p2);
+		auto Ur = exp(0.5 * J * (-dt / qc::hbar) * Vgrid);
+		auto Uk = exp(0.5 * J * (-dt / (m * qc::hbar)) * p2);
 
 		int t = 0;
 

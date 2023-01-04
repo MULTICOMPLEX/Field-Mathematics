@@ -94,7 +94,7 @@ public:
 
 	void grid_off();
 	void grid_on();
-	void line(const double x1 = 0, const double y1 = 0, const double x2 = 10, const double y2 = 10, 
+	void line(const double x1 = 0, const double y1 = 0, const double x2 = 10, const double y2 = 10,
 		const std::string color = "black", const double linewidth = 2,
 		const std::string linestyle = "solid");
 
@@ -105,7 +105,7 @@ public:
 		const double x_head, const double y_head, std::string color);
 
 	void imshow(const std::string& points, const std::string& cmap = "gray", double extent = 1.0);
-	void vector_data(const auto& X);
+	std::string vector_data(const std::vector<double>& v);
 
 };
 
@@ -183,12 +183,12 @@ void plot_matplotlib::set_title(std::string title, std::string font, int fs)
 {
 	title.append(R"(")");
 	title.insert(0, R"(")");
-	
+
 	PyRun_SimpleStringStd(
 		"plt.title(" + title + ", font='" + font + "', fontsize="
 		+ std::to_string(fs) + " )");
 }
- 
+
 //Set the aspect ratio of the plot to equal (desired for plotting paths and path Segments)
 void plot_matplotlib::set_equal_ascpectratio()
 {
@@ -264,29 +264,30 @@ void plot_matplotlib::show()
 	PyRun_SimpleStringStd("plt.show()");
 }
 
-void plot_matplotlib::vector_data(const auto& v)
+std::string plot_matplotlib::vector_data(const std::vector<double>& v)
 {
 	std::string vs = "";
 
 	if (v.size()) {
+		vs.reserve(v.size());
 
 		for (size_t i = 0; i < v.size(); i++) {
 			vs += std::to_string(v[i]);
 			vs += ",";
 		}
-
-		PyRun_SimpleStringStd("vec = [" + vs + "]");
 	}
-	PyRun_SimpleStringStd("print(vec)");
+	return vs;
 }
 
 void plot_matplotlib::plot_somedata(const auto& X, const auto& Y,
-	std::string properties, std::string label, std::string color, 
+	std::string properties, std::string label, std::string color,
 	double linewidth, double markersize, double alpha)
 {
 	// Plot Points:
 	std::string xpoints = "";
 	std::string ypoints = "";
+	xpoints.reserve(2 * X.size());
+	ypoints.reserve(2 * Y.size());
 
 	properties.append("'");
 	properties.insert(0, "'");
@@ -328,7 +329,7 @@ void plot_matplotlib::plot_somedata(const auto& X, const auto& Y,
 	}
 
 	PyRun_SimpleStringStd(
-		"plt.plot( [" + xpoints + "], [" + ypoints + "]" + properties + ",label=" + label + ",\
+		"plt.plot( np.array([" + xpoints + "]), np.array([" + ypoints + "])" + properties + ",label=" + label + ",\
 color=" + color + ",\
 linewidth=" + std::to_string(linewidth) + ", markersize=" + std::to_string(markersize) + ",\
 alpha=" + std::to_string(alpha) + ")");
@@ -343,6 +344,8 @@ void plot_matplotlib::plot_polar(const auto& X, const auto& Y,
 	// Plot Points:
 	std::string xpoints = "";
 	std::string ypoints = "";
+	xpoints.reserve(2 * X.size());
+	ypoints.reserve(2 * Y.size());
 
 	properties.append("'");
 	properties.insert(0, "'");
@@ -384,7 +387,7 @@ void plot_matplotlib::plot_polar(const auto& X, const auto& Y,
 	}
 
 	PyRun_SimpleStringStd(
-		"ax.plot( [" + xpoints + "], [" + ypoints + "]" + properties + ",label=" + label + ",\
+		"ax.plot( np.array([" + xpoints + "]), np.array([" + ypoints + "])" + properties + ",label=" + label + ",\
 color=" + color + ",\
 linewidth=" + std::to_string(linewidth) + ", markersize=" + std::to_string(markersize) + ",\
 alpha=" + std::to_string(alpha) + ")");
@@ -402,6 +405,8 @@ void plot_matplotlib::plot_somedata_step(const std::vector<double>& X, const std
 	// Plot Points:
 	std::string xpoints = "";
 	std::string ypoints = "";
+	xpoints.reserve(2 * X.size());
+	ypoints.reserve(2 * Y.size());
 
 	properties.append("'");
 	properties.insert(0, "'");
@@ -443,7 +448,7 @@ void plot_matplotlib::plot_somedata_step(const std::vector<double>& X, const std
 	}
 
 	PyRun_SimpleStringStd(
-		"plt.step( [" + xpoints + "], [" + ypoints + "]" + properties + ", label=" + label + ",color=" + color + ",\
+		"plt.step( np.array([" + xpoints + "]), np.array([" + ypoints + "])" + properties + ", label=" + label + ",color=" + color + ",\
       linewidth=" + std::to_string(linewidth) + ", markersize=" + std::to_string(markersize) + ",\
       alpha=" + std::to_string(alpha) + ")");
 
@@ -477,6 +482,9 @@ void plot_matplotlib::plot_somedata_3D(const std::vector<double>& X, const std::
 	std::string xpoints = "";
 	std::string ypoints = "";
 	std::string zpoints = "";
+	xpoints.reserve(2 * X.size());
+	ypoints.reserve(2 * Y.size());
+	zpoints.reserve(2 * Z.size());
 
 	properties.append("'");
 	properties.insert(0, "'");
@@ -533,7 +541,7 @@ void plot_matplotlib::plot_somedata_3D(const std::vector<double>& X, const std::
 	PyRun_SimpleStringStd("ax = plt.subplot(111, projection = '3d')");
 
 	PyRun_SimpleStringStd(
-		"ax.plot( [" + xpoints + "], [" + ypoints + "], [" + zpoints + "]" + properties + ", label=" + label + ",color=" + color + ",alpha=" + std::to_string(alpha) + ")");
+		"ax.plot( np.array([" + xpoints + "]), np.array([" + ypoints + "]), np.array([" + zpoints + "])" + properties + ", label=" + label + ",color=" + color + ",alpha=" + std::to_string(alpha) + ")");
 
 	if (label != "")PyRun_SimpleStringStd("plt.legend()");
 }
@@ -547,7 +555,7 @@ void plot_matplotlib::PyRun_Simple(std::string somestring)
 	_pythoncmd += somestring;
 }
 
-void plot_matplotlib::line(const double x1, const double x2, const double y1, const double y2, 
+void plot_matplotlib::line(const double x1, const double x2, const double y1, const double y2,
 	const std::string color, const double linewidth, const std::string linestyle)
 {
 	PyRun_SimpleStringStd("plt.plot([" + std::to_string(x1) + ", "
@@ -597,7 +605,7 @@ void plot_matplotlib::init_plot_window(const char* name, int x, int y)
 std::vector<std::string> plot_matplotlib::colors
 {
 	/*
-			"cloudy blue",
+	"cloudy blue",
 	"dark pastel green",
 	"dust",
 	"electric lime",

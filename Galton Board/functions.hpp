@@ -4,6 +4,9 @@
 #include <numbers>
 #include <span>
 #include "MULTICOMPLEX.hpp"
+//typedef std::complex<double> Complex;
+typedef MX0 Complex;
+ 
 //#include "coroutine.hpp"
 #include "matplotlib.hpp"
 #include "number_theory.hpp"

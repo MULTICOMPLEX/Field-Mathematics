@@ -18,38 +18,38 @@ public:
 
 	using one_less = multicomplex<elem, order - 1>;//recursion
 
-	one_less real;
-	one_less imag;
+	one_less Real;
+	one_less Imag;
 
 	multicomplex() = default;
 	virtual ~multicomplex() = default;
 
-	multicomplex(const one_less& r, const one_less& i) : real(r), imag(i) {}
-	multicomplex(const elem& y) : real(y) {}
+	multicomplex(const one_less& r, const one_less& i) : Real(r), Imag(i) {}
+	multicomplex(const elem& y) : Real(y) {}
 
 	// unary operators
 	multicomplex operator+ () const
 	{
 		return
 		{
-			+real,
-			+imag
+			+Real,
+			+Imag
 		};
 	}
 	multicomplex operator~ () const
 	{
 		return
 		{
-			+real,
-			-imag
+			+Real,
+			-Imag
 		};
 	}
 	multicomplex operator- () const
 	{
 		return
 		{
-			-real,
-			-imag
+			-Real,
+			-Imag
 		};
 	}
 
@@ -60,8 +60,8 @@ operator+ (multicomplex<elem, o_order> const& o) const
 {
 	return
 	{
-		real + o,
-		imag
+		Real + o,
+		Imag
 	};
 }
 
@@ -71,8 +71,8 @@ typename std::enable_if_t < order < o_order, multicomplex<elem, o_order>>
 {
 	return
 	{
-		*this + o.real,
-		+o.imag
+		*this + o.Real,
+		+o.Imag
 	};
 }
 
@@ -82,8 +82,8 @@ operator+ (multicomplex<elem, o_order> const& o) const
 {
 	return
 	{
-		real + o.real,
-		imag + o.imag
+		Real + o.Real,
+		Imag + o.Imag
 	};
 }
 
@@ -100,8 +100,8 @@ operator+ (elem const& o)
 {
 	return
 	{
-		real + o,
-		imag + o
+		Real + o,
+		Imag + o
 	};
 }
 
@@ -109,12 +109,12 @@ template <int o_order>
 typename std::enable_if_t <(order > o_order), multicomplex<elem, order>>
 operator+= (multicomplex<elem, o_order> const& o)
 {
-	real += o;
+	Real += o;
 
 	return
 	{
-		real,
-		imag
+		Real,
+		Imag
 	};
 }
 
@@ -129,8 +129,8 @@ multicomplex operator+= (elem const& o)
 {
 	return
 	{
-		real += o,
-		imag
+		Real += o,
+		Imag
 	};
 }
 
@@ -165,8 +165,8 @@ operator- (multicomplex<elem, o_order> const& o) const
 {
 	return
 	{
-		real - o,
-		imag
+		Real - o,
+		Imag
 	};
 }
 
@@ -176,8 +176,8 @@ typename std::enable_if_t <(order < o_order), multicomplex<elem, o_order>>
 {
 	return
 	{
-		*this - o.real,
-		-o.imag
+		*this - o.Real,
+		-o.Imag
 	};
 }
 
@@ -187,8 +187,8 @@ operator- (multicomplex<elem, o_order> const& o) const
 {
 	return
 	{
-		real - o.real,
-		imag - o.imag
+		Real - o.Real,
+		Imag - o.Imag
 	};
 }
 
@@ -196,11 +196,11 @@ template <int o_order>
 typename std::enable_if_t <(order > o_order), multicomplex<elem, order>>
 operator-= (multicomplex<elem, o_order> const& o)
 {
-	real -= o;
+	Real -= o;
 	return
 	{
-		real,
-		imag
+		Real,
+		Imag
 	};
 }
 
@@ -215,8 +215,8 @@ multicomplex operator-= (elem const& o)
 {
 	return
 	{
-		real -= o,
-		imag
+		Real -= o,
+		Imag
 	};
 }
 
@@ -233,8 +233,8 @@ operator* (multicomplex<elem, o_order> const& o) const
 {
 	return
 	{
-		real * o,
-		imag * o
+		Real * o,
+		Imag * o
 	};
 }
 
@@ -244,8 +244,8 @@ typename std::enable_if_t < order < o_order, multicomplex<elem, o_order>>
 {
 	return
 	{
-		*this * o.real,
-		*this * o.imag
+		*this * o.Real,
+		*this * o.Imag
 	};
 }
 
@@ -255,8 +255,8 @@ operator* (multicomplex<elem, o_order> const& o) const
 {
 	return
 	{
-		real * o.real - imag * o.imag,
-		real * o.imag + imag * o.real
+		Real * o.Real - Imag * o.Imag,
+		Real * o.Imag + Imag * o.Real
 	};
 }
 
@@ -281,8 +281,8 @@ multicomplex operator* (elem const& o) const
 {
 	return
 	{
-		real * o,
-		imag * o
+		Real * o,
+		Imag * o
 	};
 }
 
@@ -305,8 +305,8 @@ multicomplex operator/ (multicomplex<elem, 0> const& o) const
 {
 	return
 	{
-		real / o,
-		imag / o
+		Real / o,
+		Imag / o
 	};
 }
 
@@ -314,8 +314,8 @@ multicomplex operator/ (elem const& o) const
 {
 	return
 	{
-		real / o,
-		imag / o
+		Real / o,
+		Imag / o
 	};
 }
 
@@ -323,8 +323,8 @@ multicomplex operator/= (elem const& o)
 {
 	return
 	{
-		real = real / o,
-		imag = imag / o
+		Real = Real / o,
+		Imag = Imag / o
 	};
 }
 
@@ -335,7 +335,7 @@ multicomplex operator/= (const T& z)
 }
 
 one_less fold() const {
-	return real * real + imag * imag;
+	return Real * Real + Imag * Imag;
 }
 
 // miscellaneous
@@ -345,19 +345,29 @@ elem magnitude() const
 }
 elem norm() const
 {
-	return real.norm() + imag.norm();
+	return Real.norm() + Imag.norm();
 }
 elem signr() const
 {
-	return real.signr();
+	return Real.signr();
 }
 elem signi() const
 {
-	return real.signi();
+	return Real.signi();
 }
 elem comp() const
 {
-	return real.comp() + imag.comp();
+	return Real.comp() + Imag.comp();
+}
+
+elem imag() const
+{
+	return Imag;
+}
+
+elem real() const
+{
+	return Real;
 }
 
 multicomplex clear()
@@ -367,7 +377,7 @@ multicomplex clear()
 
 multicomplex conj()
 {
-	imag = -imag;
+	Imag = -Imag;
 	return *this;
 }
 
@@ -379,9 +389,9 @@ std::enable_if_t <(order > x_order), multicomplex<elem, x_order> const&>
 priv_at_con(multicomplex<elem, order> const& source, int const n) {
 	static constexpr int half{ 1 << (order - x_order - 1) };
 	if (n < half)
-		return one_less::template priv_at_con<x_order>(source.real, n);
+		return one_less::template priv_at_con<x_order>(source.Real, n);
 	else
-		return one_less::template priv_at_con<x_order>(source.imag, n - half);
+		return one_less::template priv_at_con<x_order>(source.Imag, n - half);
 }
 
 template <int x_order>
@@ -390,9 +400,9 @@ std::enable_if_t<(order > x_order), multicomplex<elem, x_order>&>
 priv_at_var(multicomplex<elem, order>& source, int const n) {
 	static constexpr int half{ 1 << (order - x_order - 1) };
 	if (n < half)
-		return one_less::template priv_at_var<x_order>(source.real, n);
+		return one_less::template priv_at_var<x_order>(source.Real, n);
 	else
-		return one_less::template priv_at_var<x_order>(source.imag, n - half);
+		return one_less::template priv_at_var<x_order>(source.Imag, n - half);
 }
 
 private:
@@ -431,7 +441,7 @@ public:
 
 	bool operator== (const int o) const
 	{
-		if (real == o) return true;
+		if (Real == o) return true;
 		return false;
 	}
 
@@ -444,7 +454,7 @@ public:
 
 	bool operator!= (const int o) const
 	{
-		if (real != o) return true;
+		if (Real != o) return true;
 		return false;
 	}
 
@@ -457,7 +467,7 @@ public:
 
 	bool operator> (const int o) const
 	{
-		if (real > o) return true;
+		if (Real > o) return true;
 		return false;
 	}
 
@@ -470,7 +480,7 @@ public:
 
 	bool operator< (const int o) const
 	{
-		if (real < o) return true;
+		if (Real < o) return true;
 		return false;
 	}
 
@@ -483,7 +493,7 @@ public:
 
 	bool operator>= (const int o) const
 	{
-		if (real >= o) return true;
+		if (Real >= o) return true;
 		return false;
 	}
 
@@ -496,7 +506,7 @@ public:
 
 	bool operator<= (const int o) const
 	{
-		if (real <= o) return true;
+		if (Real <= o) return true;
 		return false;
 	}
 
@@ -506,6 +516,7 @@ public:
 	void view_j(std::ostream&) const;
 	void view_j(std::ostream&, const int) const;
 	void view_k(std::ostream&) const;
+
 
 };
 
@@ -517,30 +528,30 @@ class multicomplex<elem, 0>
 
 public:
 
-	elem real{};
-	elem imag{};
+	elem Real{};
+	elem Imag{};
 
 	multicomplex() = default;
 	virtual ~multicomplex() = default;
 
-	multicomplex(const elem& r, const elem& i) : real(r), imag(i) {}
-	multicomplex(const elem& y) : real(y) {}
+	multicomplex(const elem& r, const elem& i) : Real(r), Imag(i) {}
+	multicomplex(const elem& y) : Real(y) {}
 
 	// unary operators
 	multicomplex operator+ () const
 	{
 		return
 		{
-			+real,
-			+imag
+			+Real,
+			+Imag
 		};
 	}
 	multicomplex operator~ () const
 	{
 		return
 		{
-			+real,
-			-imag
+			+Real,
+			-Imag
 		};
 	}
 
@@ -548,8 +559,8 @@ public:
 	{
 		return
 		{
-			-real,
-			-imag
+			-Real,
+			-Imag
 		};
 	}
 
@@ -558,8 +569,8 @@ public:
 	{
 		return
 		{
-			real + o.real,
-			imag + o.imag
+			Real + o.Real,
+			Imag + o.Imag
 		};
 	}
 
@@ -573,8 +584,8 @@ public:
 	{
 		return
 		{
-			real + o,
-			imag
+			Real + o,
+			Imag
 		};
 	}
 
@@ -594,8 +605,8 @@ public:
 	{
 		return
 		{
-			real += o,
-			imag
+			Real += o,
+			Imag
 		};
 	}
 
@@ -604,8 +615,8 @@ public:
 	{
 		return
 		{
-			real - o.real,
-			imag - o.imag
+			Real - o.Real,
+			Imag - o.Imag
 		};
 	}
 
@@ -631,8 +642,8 @@ public:
 	{
 		return
 		{
-			real * o.real - imag * o.imag,
-			real * o.imag + imag * o.real
+			Real * o.Real - Imag * o.Imag,
+			Real * o.Imag + Imag * o.Real
 		};
 	}
 
@@ -646,8 +657,8 @@ public:
 	{
 		return
 		{
-			real * o,
-			imag * o
+			Real * o,
+			Imag * o
 		};
 	}
 
@@ -661,8 +672,8 @@ public:
 	{
 		return
 		{
-			(real * o.real + imag * o.imag) / (o.real * o.real + o.imag * o.imag),
-			(imag * o.real - real * o.imag) / (o.real * o.real + o.imag * o.imag)
+			(Real * o.Real + Imag * o.Imag) / (o.Real * o.Real + o.Imag * o.Imag),
+			(Imag * o.Real - Real * o.Imag) / (o.Real * o.Real + o.Imag * o.Imag)
 		};
 	}
 
@@ -681,8 +692,8 @@ public:
 	{
 		return
 		{
-			real / o,
-			imag / o
+			Real / o,
+			Imag / o
 		};
 	}
 
@@ -693,17 +704,17 @@ public:
 
 	elem fold()
 	{
-		return real * real + imag * imag;
+		return Real * Real + Imag * Imag;
 	}
 
 	// miscellaneous
 	elem signr() const
 	{
-		return real;
+		return Real;
 	}
 	elem signi() const
 	{
-		return imag;
+		return Imag;
 	}
 	elem magnitude() const
 	{
@@ -711,11 +722,11 @@ public:
 	}
 	elem norm() const
 	{
-		return real * real + imag * imag;
+		return Real * Real + Imag * Imag;
 	}
 	elem comp() const
 	{
-		return real * imag + real + imag;
+		return Real * Imag + Real + Imag;
 	}
 
 	multicomplex clear()
@@ -725,8 +736,18 @@ public:
 
 	multicomplex conj()
 	{
-		imag = -imag;
+		Imag = -Imag;
 		return *this;
+	}
+	
+	elem imag() const
+	{
+		return Imag;
+	}
+
+	elem real() const
+	{
+		return Real;
 	}
 
 	// selection by position
@@ -773,7 +794,7 @@ public:
 	template <typename T>
 	bool operator== (const T o) const
 	{
-		if (real == o) return true;
+		if (Real == o) return true;
 		return false;
 	}
 
@@ -792,7 +813,7 @@ public:
 
 	bool operator!= (const int o) const
 	{
-		if (real != o) return true;
+		if (Real != o) return true;
 		return false;
 	}
 
@@ -805,7 +826,7 @@ public:
 
 	bool operator> (const int o) const
 	{
-		if (real > o) return true;
+		if (Real > o) return true;
 		return false;
 	}
 
@@ -817,7 +838,7 @@ public:
 
 	bool operator< (const int o) const
 	{
-		if (real < o) return true;
+		if (Real < o) return true;
 		return false;
 	}
 
@@ -849,7 +870,7 @@ public:
 
 	bool operator>= (const int o) const
 	{
-		if (real >= o) return true;
+		if (Real >= o) return true;
 		return false;
 	}
 
@@ -862,7 +883,7 @@ public:
 
 	bool operator<= (const int o) const
 	{
-		if (real <= o) return true;
+		if (Real <= o) return true;
 		return false;
 	}
 
@@ -887,8 +908,8 @@ template <typename old_elem, typename new_elem, int order>
 multicomplex<new_elem, order> convert_elem(multicomplex<old_elem, order> const& o)
 {
 	return multicomplex<new_elem, order> {
-		convert_elem<old_elem, new_elem, order - 1>(o.real),
-			convert_elem<old_elem, new_elem, order - 1>(o.imag)
+		convert_elem<old_elem, new_elem, order - 1>(o.Real),
+			convert_elem<old_elem, new_elem, order - 1>(o.Imag)
 	};
 }
 
@@ -958,42 +979,42 @@ typedef std::vector<REAL> Vec;
 template <typename elem, int order>
 bool operator< (const int a, const multicomplex<elem, order>& b)
 {
-	if (a < b.real) return true;
+	if (a < b.Real) return true;
 	return false;
 }
 
 template <typename elem, int order>
 bool operator<= (const int a, const multicomplex<elem, order>& b)
 {
-	if (a <= b.real) return true;
+	if (a <= b.Real) return true;
 	return false;
 }
 
 template <typename elem, int order>
 bool operator> (const int a, const multicomplex<elem, order>& b)
 {
-	if (a > b.real) return true;
+	if (a > b.Real) return true;
 	return false;
 }
 
 template <typename elem, int order>
 bool operator>= (const int a, const multicomplex<elem, order>& b)
 {
-	if (a >= b.real) return true;
+	if (a >= b.Real) return true;
 	return false;
 }
 
 template <typename elem, int order>
 bool operator== (const int a, const multicomplex<elem, order>& b)
 {
-	if (a == b.real) return true;
+	if (a == b.Real) return true;
 	return false;
 }
 
 template <typename elem, int order>
 bool operator!= (const int a, const multicomplex<elem, order>& b)
 {
-	if (a != b.real) return true;
+	if (a != b.Real) return true;
 	return false;
 }
 
@@ -1033,7 +1054,7 @@ void multicomplex<elem, order>::view_i
 	std::ostream& o
 ) const
 {
-	o << "(" << real << " " << "+ " << imag << "*i" << order + 1 << ")";
+	o << "(" << Real << " " << "+ " << Imag << "*i" << order + 1 << ")";
 }
 
 template <typename elem>
@@ -1043,14 +1064,14 @@ void multicomplex<elem, 0>::view_i
 ) const
 {
 	o << "(";
-	if (real >= 0)
-		o << "+ " << +real;
+	if (Real >= 0)
+		o << "+ " << +Real;
 	else
-		o << "- " << -real;
-	if (imag >= 0)
-		o << " + " << +imag;
+		o << "- " << -Real;
+	if (Imag >= 0)
+		o << " + " << +Imag;
 	else
-		o << " - " << -imag;
+		o << " - " << -Imag;
 	o << "*i1" << ")";
 }
 
@@ -1074,9 +1095,9 @@ void multicomplex<elem, order>::view_j
 	int const sum
 ) const
 {
-	real.view_j(o, sum);
+	Real.view_j(o, sum);
 	o << " ";
-	imag.view_j(o, sum + off);
+	Imag.view_j(o, sum + off);
 }
 
 template <typename elem>
@@ -1085,16 +1106,16 @@ void multicomplex<elem, 0>::view_j
 	std::ostream& o, int const sum
 ) const
 {
-	if (real >= 0)
-		o << "+ " << +real;
+	if (Real >= 0)
+		o << "+ " << +Real;
 	else
-		o << "- " << -real;
+		o << "- " << -Real;
 	o << "*j" << sum;
 
-	if (imag >= 0)
-		o << " + " << +imag;
+	if (Imag >= 0)
+		o << " + " << +Imag;
 	else
-		o << " - " << -imag;
+		o << " - " << -Imag;
 	o << "*j" << sum + 1;
 }
 
@@ -1117,9 +1138,9 @@ void multicomplex<elem, order>::view_k
 ) const
 {
 	o << "[";
-	real.view_k(o);
+	Real.view_k(o);
 	o << " ";
-	imag.view_k(o);
+	Imag.view_k(o);
 	o << "]";
 }
 
@@ -1130,8 +1151,8 @@ void multicomplex<elem, 0>::view_k
 ) const
 {
 	o << "[";
-	o << real << " ";
-	o << imag;
+	o << Real << " ";
+	o << Imag;
 	o << "]";
 }
 

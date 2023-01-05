@@ -73,6 +73,18 @@ multicomplex<elem,order> sqrts
 
 //---------------------------------------------------
 
+template <typename elem, int order>
+inline multicomplex<elem, order> conj
+(
+  const multicomplex<elem, order>& x
+)
+{
+  auto k = x;
+  return k.conj();
+}
+
+//---------------------------------------------------
+
 template <typename elem, int order> 
 multicomplex<elem,order> sqrtpow 
 (
@@ -111,7 +123,7 @@ multicomplex<elem,order> log
   return x_0;
   //log derivative
   //MX1 ax; 
-  //return {ax.real,x.imag/x.real};
+  //return {ax.Real,x.Imag/x.Real};
 }
 
 //---------------------------------------------------
@@ -195,7 +207,7 @@ inline multicomplex<elem, order> floor
 (
   const multicomplex<elem, order> n
 ) {
-  return {floor(n.real), floor(n.imag)};
+  return {floor(n.Real), floor(n.Imag)};
 }
 
 
@@ -226,8 +238,8 @@ inline multicomplex<elem,order> sin
 {
   return 
   {
-    sin (z.real) * cosh (z.imag),
-    cos (z.real) * sinh (z.imag)
+    sin (z.Real) * cosh (z.Imag),
+    cos (z.Real) * sinh (z.Imag)
   };
 }
 
@@ -241,8 +253,8 @@ inline multicomplex<elem, 0> sin
 {
   return 
   {
-    std::sin (z.real) * std::cosh (z.imag),
-    std::cos (z.real) * std::sinh (z.imag)
+    std::sin (z.Real) * std::cosh (z.Imag),
+    std::cos (z.Real) * std::sinh (z.Imag)
   };
 }
 
@@ -256,8 +268,8 @@ inline multicomplex<elem,order> sinh
 {
   return 
   {
-    sinh (z.real) * cos (z.imag),
-    cosh (z.real) * sin (z.imag)
+    sinh (z.Real) * cos (z.Imag),
+    cosh (z.Real) * sin (z.Imag)
   };
 }
 
@@ -271,8 +283,8 @@ inline multicomplex<elem, 0> sinh
 {
   return 
   {
-    std::sinh (z.real) * std::cos (z.imag),
-    std::cosh (z.real) * std::sin (z.imag)
+    std::sinh (z.Real) * std::cos (z.Imag),
+    std::cosh (z.Real) * std::sin (z.Imag)
   };
 }
 
@@ -287,8 +299,8 @@ inline multicomplex<elem,order> cos
 {
  return 
   {
-    + cos (z.real) * cosh (z.imag),
-    - sin (z.real) * sinh (z.imag)
+    + cos (z.Real) * cosh (z.Imag),
+    - sin (z.Real) * sinh (z.Imag)
   };
 }
 
@@ -301,8 +313,8 @@ inline multicomplex<elem, 0> cos
 {
   return 
   {
-    + std::cos (z.real) * std::cosh (z.imag),
-    - std::sin (z.real) * std::sinh (z.imag)
+    + std::cos (z.Real) * std::cosh (z.Imag),
+    - std::sin (z.Real) * std::sinh (z.Imag)
   };
 }
 
@@ -332,8 +344,8 @@ inline multicomplex<elem,order> cosh
 {
   return 
   {
-    cosh (z.real) * cos (z.imag),
-    sinh (z.real) * sin (z.imag)
+    cosh (z.Real) * cos (z.Imag),
+    sinh (z.Real) * sin (z.Imag)
   };
 }
 
@@ -347,8 +359,8 @@ inline multicomplex<elem, 0> cosh
 {
   return 
   {
-    std::cosh (z.real) * std::cos (z.imag),
-    std::sinh (z.real) * std::sin (z.imag)
+    std::cosh (z.Real) * std::cos (z.Imag),
+    std::sinh (z.Real) * std::sin (z.Imag)
   };
 }
 
@@ -376,11 +388,11 @@ inline multicomplex<elem,order> exp
   multicomplex<elem,order> const & z
 ) 
 {
-  multicomplex<elem,order-1> const r {exp (z.real)};
+  multicomplex<elem,order-1> const r {exp (z.Real)};
   return  
   {
-    r * cos (z.imag),
-    r * sin (z.imag)
+    r * cos (z.Imag),
+    r * sin (z.Imag)
   };
 }
 
@@ -394,8 +406,8 @@ inline multicomplex<elem, 0> exp
 {
   return 
   {
-    std::exp (z.real) * std::cos (z.imag),
-    std::exp (z.real) * std::sin (z.imag)
+    std::exp (z.Real) * std::cos (z.Imag),
+    std::exp (z.Real) * std::sin (z.Imag)
   };
 }
 
@@ -437,11 +449,11 @@ inline multicomplex<elem,order> expl
   multicomplex<elem,order> const & z
 ) 
 {
-  multicomplex<elem,order-1> const r {expl (z.real)};
+  multicomplex<elem,order-1> const r {expl (z.Real)};
   return  
   {
-    r * cos (z.imag),
-    r * sin (z.imag)
+    r * cos (z.Imag),
+    r * sin (z.Imag)
   };
 }
 
@@ -455,8 +467,8 @@ inline multicomplex<elem, 0> expl
 {
   return 
   {
-    elem(expl (z.real)) * std::cos (z.imag),
-    elem(expl (z.real)) * std::sin (z.imag)
+    elem(expl (z.Real)) * std::cos (z.Imag),
+    elem(expl (z.Real)) * std::sin (z.Imag)
   };
 }
 
@@ -590,7 +602,7 @@ inline const multicomplex<elem, order-1> abs
 {
   return 
   {
-    sqrt(a.real*a.real + a.imag*a.imag)
+    sqrt(a.Real*a.Real + a.Imag*a.Imag)
   };
 }
 
@@ -604,7 +616,7 @@ inline const elem abs
 {
   return 
   {
-    std::sqrt(a.real*a.real + a.imag*a.imag)
+    std::sqrt(a.Real*a.Real + a.Imag*a.Imag)
   };
 }
 
@@ -616,7 +628,7 @@ inline multicomplex<elem,order> arg
   const multicomplex<elem,order> & z
 ) 
 {
-  std::complex a(z.real.real,z.real.imag);
+  std::complex a(z.Real.Real,z.Real.Imag);
   auto x = std::arg(a);
   
   multicomplex<elem,order> b{x};
@@ -634,7 +646,7 @@ inline multicomplex<elem,0> arg
   const multicomplex<elem,0> & z
 ) 
 {
-  std::complex a(z.real,z.imag);
+  std::complex a(z.Real,z.Imag);
   auto x = std::arg(a);
   
   multicomplex<elem,0> b{x};
@@ -720,7 +732,7 @@ multicomplex<elem, order> Riemann_Siegel_theta
 )
 {
   multicomplex<elem,0> i = {0,1};
-  return arg(gamma(quarter + half * i * t.real)) - half * t * std::log(pi);
+  return arg(gamma(quarter + half * i * t.Real)) - half * t * std::log(pi);
 }
 
 //---------------------------------------------------
@@ -854,8 +866,8 @@ multicomplex<elem,order> asin
 ) 
 {
 	MX0 i;
-	i.real = 0;
-	i.imag = 1;
+	i.Real = 0;
+	i.Imag = 1;
 		
 	return -i * log(sqrt(1 - z*z) + i * z);	//-i log(sqrt(1 - z^2) + i z)	
 }
@@ -867,8 +879,8 @@ multicomplex<elem,order> acos
 ) 
 {
 	MX0 i;
-	i.real = 0;
-	i.imag = 1;
+	i.Real = 0;
+	i.Imag = 1;
 		
 	return half_pi + i * log(sqrt(1 - z*z) + i * z);//π/2 + i log(sqrt(1 - z^2) + i z)		
 }
@@ -880,8 +892,8 @@ multicomplex<elem,order> atan
 ) 
 {
 	MX0 i;
-	i.real = 0;
-	i.imag = 1;
+	i.Real = 0;
+	i.Imag = 1;
 	return half * i * log(1 - i * z) - half * i * log(1 + i * z);//1/2 i log(1 - i z) - 1/2 i log(1 + i z)		
 }
 
@@ -892,7 +904,7 @@ multicomplex<elem,order> atan2
   const multicomplex<elem,order>& z
 ) 
 {
-	return atan2(z.imag,z.real);
+	return atan2(z.Imag,z.Real);
 }
 
 template <typename elem> 
@@ -902,15 +914,15 @@ elem atan2
 ) 
 {
 	//multicomplex<elem,0> z;
-	//z.real = zi.imag;
-	//z.imag = zi.real;
-	//if(z.real>0)return std::atan(z.imag/z.real);
-	//else if((z.real<0) && (z.imag >= 0))return std::atan(z.imag/z.real) + pi;
-	//else if((z.real<0) && (z.imag < 0))return std::atan(z.imag/z.real) - pi;
-	//else if((z.real==0) && (z.imag > 0))return half_pi;
-	//else if((z.real==0) && (z.imag < 0))return -half_pi;
-	//else return 0; //if((z.real==0) && (z.imag == 0))
-	return std::atan2(zi.imag,zi.real);
+	//z.Real = zi.Imag;
+	//z.Imag = zi.Real;
+	//if(z.Real>0)return std::atan(z.Imag/z.Real);
+	//else if((z.Real<0) && (z.Imag >= 0))return std::atan(z.Imag/z.Real) + pi;
+	//else if((z.Real<0) && (z.Imag < 0))return std::atan(z.Imag/z.Real) - pi;
+	//else if((z.Real==0) && (z.Imag > 0))return half_pi;
+	//else if((z.Real==0) && (z.Imag < 0))return -half_pi;
+	//else return 0; //if((z.Real==0) && (z.Imag == 0))
+	return std::atan2(zi.Imag,zi.Real);
 }
 
 template <typename elem, int order> 
@@ -984,8 +996,8 @@ multicomplex<elem,order> function
 			mcdv mcdv;
 			
 			MX0 i;
-			i.real = 0;
-			i.imag = 1;
+			i.Real = 0;
+			i.Imag = 1;
 			
 			multicomplex<elem,order+1> z1;
 			multicomplex<elem,order+2> z2;

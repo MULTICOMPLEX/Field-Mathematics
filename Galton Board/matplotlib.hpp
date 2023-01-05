@@ -1,6 +1,4 @@
-﻿#pragma once
-
-#include <Python.h>
+﻿#include <Python.h>
 
 class plot_matplotlib
 {

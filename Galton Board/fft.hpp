@@ -20,7 +20,7 @@ void Read_DFTCoeff(std::vector<T>& v) {
 }
 
 template <typename T>
-T rev
+const T rev
 (
 	T x,
 	T lgn
@@ -33,38 +33,27 @@ T rev
 	return res;
 }
 
-template <typename T>
-T logint
-(
-	const T n)
+bool isPowerOfTwo(const size_t n)
 {
-	auto lg = 0;
-	while ((T(1) << lg) < n)
-		lg++;
-	return lg;
+	return std::ceil(std::log2(n)) == floor(std::log2(n));
 }
 
 template <typename T>
-	requires std::same_as<T, MX0> ||
-std::same_as<T, std::complex<double>>
 std::vector<T> FFT
 (
-	const std::vector<T>& v)
+	const std::vector<T>& v
+)
 {
 	const T J(0, 1);
 
-	auto n = v.size();
-	std::vector<double> sine(n), cosine(n);
+	const auto n = v.size();
+	const auto lgn = size_t(std::log2(n));
 
-	/*
-	for (auto k = 0; k < n; k++) {
-		cosine[k] = cos(2 * std::numbers::pi * k / n);
-		sine[k] = sin(2 * std::numbers::pi * k / n);
+	if (!isPowerOfTwo(n)) {
+		std::cout << "Input FFT is not a power of two! " << n;
+		exit(0);
 	}
-	*/
 
-	auto lgn = logint(n);
-	assert((n & (n - 1)) == 0);
 	std::vector<T> perm(n);
 
 	for (size_t i = 0; auto & d : perm)
@@ -72,7 +61,7 @@ std::vector<T> FFT
 
 	for (auto s = 1; s <= lgn; s++) {
 		auto m = (1 << s);
-		T wm = exp(-2 * std::numbers::pi * J / m);
+		T wm = exp(-2 * std::numbers::pi * J / T(m));
 		for (auto k = 0; k < n; k += m) {
 			T w = 1;
 			for (auto j = 0; j < m / 2; j++) {
@@ -89,26 +78,29 @@ std::vector<T> FFT
 }
 
 template <typename T>
-	requires std::same_as<T, MX0> ||
-std::same_as<T, std::complex<double>>
-std::vector<T> IFFT(std::vector<T> v)
+	requires std::same_as<T, Complex>
+std::vector<T> IFFT
+(
+	std::vector<T> v
+)
 {
 	for (auto& i : v)
 		// conjugate the complex numbers
-		i = i.conj();
+		i = conj(i);
 
 	// forward fft
 	v = FFT(v);
 
 	for (auto& i : v)
 		// conjugate the complex numbers again
-		i = i.conj();
+		i = conj(i);
 
 	// scale the numbers
 	v /= double(v.size());
 
 	return v;
 }
+
 
 template <typename T>
 std::vector<MX0> doDFT(const std::vector<T>& in)

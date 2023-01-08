@@ -1,3 +1,5 @@
+#ifndef __BASIC_HPP__
+#define __BASIC_HPP__
 
 #include <list>
 
@@ -78,10 +80,10 @@ using Myclass = typename Myclass_helper<k>::type;
     const multicomplex& b
     ) const 
     {
-      elem x = real;
-      elem y = imag;
-      elem u = b.real;
-      elem v = b.imag;
+      elem x = Real;
+      elem y = Imag;
+      elem u = b.Real;
+      elem v = b.Imag;
       //w+z = (x+u) + (y+v) in+1 
       elem c = (x+u);
       elem d = (y+v);
@@ -93,10 +95,10 @@ using Myclass = typename Myclass_helper<k>::type;
     const multicomplex& b
     ) const 
     {
-      elem x = real;
-      elem y = imag;
-      elem u = b.real;
-      elem v = b.imag;
+      elem x = Real;
+      elem y = Imag;
+      elem u = b.Real;
+      elem v = b.Imag;
       //w+z = (x+u) + (y+v) in+1 
       elem c = (x-u);
       elem d = (y-v);
@@ -108,10 +110,10 @@ using Myclass = typename Myclass_helper<k>::type;
     const multicomplex& b
     ) const 
     {
-      elem x = real;
-      elem y = imag;
-      elem u = b.real;
-      elem v = b.imag;
+      elem x = Real;
+      elem y = Imag;
+      elem u = b.Real;
+      elem v = b.Imag;
       //wz = (ux − vy) + (uy + vx) in+1 
       elem c = (u*x - v*y);
       elem d = (u*y + v*x);
@@ -123,10 +125,10 @@ using Myclass = typename Myclass_helper<k>::type;
     const multicomplex& b
     ) const 
     {
-      elem x = real;
-      elem y = imag;
-      elem u = b.real;
-      elem v = b.imag;
+      elem x = Real;
+      elem y = Imag;
+      elem u = b.Real;
+      elem v = b.Imag;
       //w/z = (x*u+y*v) / (u*u+v*v) + (y*u-x*v) / (u*u+v*v) in+1 
       elem c = (x*u+y*v) / (u*u+v*v);
       elem d = (y*u-x*v) / (u*u+v*v);
@@ -262,5 +264,4 @@ int Fibonacci_driver()
     std::cout << fib6 << '\n';
   return 1;
 }
-
-
+#endif // __BASIC_HPP__

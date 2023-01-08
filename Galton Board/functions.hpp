@@ -15,8 +15,8 @@ typedef MX0 Complex;
 #include "constants.hpp"
 #include "operators.hpp"
 #include "fft.hpp"
-
-
+ 
+ 
 plot_matplotlib plot;
 
 auto Galton_Classic = []<typename L, typename K>

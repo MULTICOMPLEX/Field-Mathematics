@@ -1,3 +1,6 @@
+#ifndef __DERIVATIVE_HPP__
+#define __DERIVATIVE_HPP__
+
 // prime for derivative complex
 
 //https://en.wikipedia.org/wiki/Numerical_differentiation
@@ -16,8 +19,8 @@ multicomplex<elem, order+1> di
   
   flat a = z;
   
-  a.at(0) = x.real;
-  a.at(1) = x.imag;
+  a.at(0) = x.Real;
+  a.at(1) = x.Imag;
   
   for(int j=2; j < a.size(); j*=2)
     a.at(j) = lambda;// 2 4 8 16 32 64...
@@ -36,8 +39,8 @@ void sh
 {
   flat a = z;
   
-  a.at(0) = x.real;
-  a.at(1) = x.imag;
+  a.at(0) = x.Real;
+  a.at(1) = x.Imag;
   
   for(int j=2; j < a.size(); j*=2)
     a.at(j) = lambda;// 2 4 8 16 32 64...
@@ -132,3 +135,5 @@ elem gr
   flat a = z;
   return a.at(0);
 }
+
+#endif // DERIVATIVE

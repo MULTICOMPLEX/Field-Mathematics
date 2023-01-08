@@ -1,3 +1,6 @@
+#ifndef __ELEMENTRY_FUNCTIONS_HPP__
+#define __ELEMENTRY_FUNCTIONS_HPP__
+
 /// primary functions
 
 template <typename elem, int order>
@@ -1113,7 +1116,4 @@ multicomplex<elem,order> function
 			else return mcdv.dv<order>(gamma(log(z2)));
 		};
 
-
-
-
-
+#endif //__ELEMENTRY_FUNCTIONS_HPP__

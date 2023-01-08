@@ -1,4 +1,5 @@
-
+#ifndef __POLYNOMALS_HPP__
+#define __POLYNOMALS_HPP__
 
 //https://www.bragitoff.com/2017/12/legendre-polynomial-c-program/
 
@@ -400,3 +401,5 @@ namespace ps
 	}
 
 }
+
+#endif // __POLYNOMALS_HPP__

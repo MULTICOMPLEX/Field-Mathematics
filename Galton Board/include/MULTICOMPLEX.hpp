@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MULTICOMPLEX_HPP__
+#define __MULTICOMPLEX_HPP__
 
 #include <iostream>    
 #include <vector>
@@ -1178,4 +1179,4 @@ std::ostream& operator <<
 	return o;
 }
 
-
+#endif //__MULTICOMPLEX_HPP__

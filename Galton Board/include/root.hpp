@@ -1,3 +1,5 @@
+#ifndef __ROOT_HPP__
+#define __ROOT_HPP__
 
 template <typename elem, int order>
   requires ((order >= 0) && (order < 25))
@@ -97,3 +99,5 @@ multicomplex<elem, order> Critical_point(F1 f1, multicomplex<elem, order>& x, in
 
   return x;
 }
+
+#endif // __ROOT_HPP__

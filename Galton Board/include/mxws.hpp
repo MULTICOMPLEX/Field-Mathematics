@@ -1,4 +1,10 @@
+
+#ifndef __MXWS_HPP__
+#define __MXWS_HPP__
+
+#ifndef __x86_64
 #define __x86_64 1
+#endif
 #include "../pcg_random.hpp"
 
 #include <random>
@@ -6,7 +12,7 @@
 #include <iostream>
 #include "../ziggurat.hpp"
 
-
+ 
 template <typename RN>
 	requires
 std::same_as<RN, uint32_t> ||
@@ -625,3 +631,5 @@ public:
 	}
 
 };
+
+#endif //__MXWS_HPP__ 

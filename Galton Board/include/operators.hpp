@@ -1,3 +1,6 @@
+#ifndef __OPERATORS_HPP__
+#define __OPERATORS_HPP__
+
 /// const operators, any scalar type
 
 //---------------------------------------------------
@@ -193,3 +196,4 @@ inline const bool operator<=
 
 //---------------------------------------------------
 
+#endif // __OPERATORS_HPP__

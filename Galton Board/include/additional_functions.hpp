@@ -1,3 +1,7 @@
+
+#ifndef __ADDITIONAL_FUNCTIONS_HPP__
+#define __ADDITIONAL_FUNCTIONS_HPP__
+
 // additional functions
 
 template <typename elem, int order>
@@ -85,8 +89,8 @@ multicomplex<elem, order> InitPoint(int k, multicomplex<elem, order> z)
 	if (abs(z - (-exp(-1.))) <= 1.) //we are close to the branch cut, the initial point must be chosen carefully
 	{
 		if (k == 0) ip = -1. + p - 1. / 3. * pow(p, 2) + 11. / 72. * pow(p, 3);
-		if (k == 1 && z.imag < 0.) ip = -1. - p - 1. / 3. * pow(p, 2) - 11. / 72. * pow(p, 3);
-		if (k == -1 && z.imag > 0.) ip = -1. - p - 1. / 3. * pow(p, 2) - 11. / 72. * pow(p, 3);
+		if (k == 1 && z.Imag < 0.) ip = -1. - p - 1. / 3. * pow(p, 2) - 11. / 72. * pow(p, 3);
+		if (k == -1 && z.Imag > 0.) ip = -1. - p - 1. / 3. * pow(p, 2) - 11. / 72. * pow(p, 3);
 	}
 
 	if (k == 0 && abs(z - .5) <= .5) ip = (0.35173371 * (0.1237166 + 7.061302897 * z)) / (2. + 0.827184 * (1. + 2. * z));
@@ -123,20 +127,4 @@ multicomplex<elem, order> LambertW(int k = 0, multicomplex<elem, order> z = 0)
 	return w;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif // __ADDITIONAL_FUNCTIONS_HPP__

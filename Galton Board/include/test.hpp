@@ -1,4 +1,5 @@
-
+#ifndef __TEST_HPP__
+#define __TEST_HPP__
 
 #include <type_traits>
 
@@ -124,3 +125,5 @@ struct funStruct<0>
   
 
 //static_assert(std::is_same<MX1, MX0>::value);
+
+#endif // __TEST_HPP__ 

@@ -1,3 +1,7 @@
+
+#ifndef __INTEGRATOR_HPP__
+#define __INTEGRATOR_HPP__
+
 ///integrator 
 
 #include <functional>
@@ -110,7 +114,7 @@ private:
 		elem& err
 	)
 	{
-		if (a.real == -1.0 && b.real == 1.0)
+		if (a.Real == -1.0 && b.Real == 1.0)
 			return integrate_u(f, tol, result, err);
 		else {
 			UnitFunction unit_f(f, a, b);
@@ -502,27 +506,29 @@ elem Generalized_midpoint
 
 			elem a = pow(2 * M, 2 * n + 1) * Fac<elem>(2 * n + 1);
 
-			if (n == 0) { sum +=   func((B - A) *  x + A, (B2 - A2) * x + A2).real / a; }
+			if (n == 0) { sum +=   func((B - A) *  x + A, (B2 - A2) * x + A2).Real / a; }
 			else if (n == 1) {
-				sh(d1, x); sum += dv(func((B - A) * d1 + A, (B2 - A2) * x + A2)).real / a;
+				sh(d1, x); sum += dv(func((B - A) * d1 + A, (B2 - A2) * x + A2)).Real / a;
 			}
 			else if (n == 2) {
-				sh(d2, x); sum += dv(func((B - A) * d2 + A, (B2 - A2) * x + A2)).real / a;
+				sh(d2, x); sum += dv(func((B - A) * d2 + A, (B2 - A2) * x + A2)).Real / a;
 			}
 
 			else if (n == 3) {
-				sh(d3, x); sum += dv(func((B - A) * d3 + A, (B2 - A2) * x + A2)).real / a;
+				sh(d3, x); sum += dv(func((B - A) * d3 + A, (B2 - A2) * x + A2)).Real / a;
 			}
 
 			else if (n == 4) {
-				sh(d4, x); sum += dv(func((B - A) * d4 + A, (B2 - A2) * x + A2)).real / a;
+				sh(d4, x); sum += dv(func((B - A) * d4 + A, (B2 - A2) * x + A2)).Real / a;
 			}
 
 			else {
-				sh(d5, x); sum += dv(func((B - A) * d5 + A, (B2 - A) * x + A)).real / a;
+				sh(d5, x); sum += dv(func((B - A) * d5 + A, (B2 - A) * x + A)).Real / a;
 			}
 
 		}
 	}
 	return (B - A) * 2 * sum;
 }
+
+#endif // __INTEGRATOR_HPP__

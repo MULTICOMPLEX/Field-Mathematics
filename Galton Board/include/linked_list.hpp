@@ -1,4 +1,7 @@
 
+#ifndef __LINKED_LIST_HPP__
+#define __LINKED_LIST_HPP__
+
 #include <queue>
 
 //https://www.geeksforgeeks.org/linked-list-set-1-introduction/
@@ -557,3 +560,5 @@ int driver()
 }
 
 }
+
+#endif // LINKED_LIST

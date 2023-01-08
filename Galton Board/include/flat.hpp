@@ -1,3 +1,6 @@
+#ifndef __FLAT_HPP__
+#define __FLAT_HPP__
+
 /// flatten class
 
 #include <vector>
@@ -19,15 +22,15 @@ public:
   template <int x_order>
   void help_lower (multicomplex<elem,x_order> const & mc) 
   {
-    help_lower<x_order-1> (mc.real);//recursion
-    help_lower<x_order-1> (mc.imag);//recursion
+    help_lower<x_order-1> (mc.Real);//recursion
+    help_lower<x_order-1> (mc.Imag);//recursion
   }
 
   template <int x_order>
   void help_lower (multicomplex<elem,0> const & mc) 
   {
-    vec.push_back (mc.real);
-    vec.push_back (mc.imag);
+    vec.push_back (mc.Real);
+    vec.push_back (mc.Imag);
   }
 
   template <int x_order> 
@@ -76,3 +79,5 @@ public:
   { return help_raise<order> (0, raw_size); }
 
 };
+
+#endif // __FLAT_HPP__

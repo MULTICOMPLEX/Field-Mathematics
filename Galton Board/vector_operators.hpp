@@ -1,4 +1,7 @@
 
+#ifndef __VECTOR_OPERATORS_HPP__
+#define __VECTOR_OPERATORS_HPP__
+
 template <typename T>
 inline const std::vector<T> operator*
 (
@@ -15,12 +18,29 @@ inline const std::vector<T> operator*
 }
 
 template <typename T>
-inline const std::vector<MX0> operator*
-(const MX0& b,
+inline const std::vector<Complex> operator*
+(
+	const Complex& b,
 	const std::vector<T>& a
 	)
 {
-	std::vector<MX0> v(a.size());
+	std::vector<Complex> v(a.size());
+
+	for (auto i = 0; i < a.size(); i++)
+		v[i] = b * a[i];
+
+	return v;
+}
+
+template <typename T>
+inline const std::vector<Complex> operator*
+(
+	const std::vector<T>& a,
+	const Complex& b
+
+	)
+{
+	std::vector<Complex> v(a.size());
 
 	for (auto i = 0; i < a.size(); i++)
 		v[i] = b * a[i];
@@ -30,23 +50,9 @@ inline const std::vector<MX0> operator*
 
 template <typename A, typename T>
 inline const std::vector<T> operator*
-(const A& b,
-	const std::vector<T>& a
-	)
-{
-	std::vector<T> v(a.size());
-
-	for (auto i = 0; i < a.size(); i++)
-		v[i] = b * a[i];
-
-	return v;
-}
-
-template <typename T>
-inline const std::vector<T> operator*
 (
 	const std::vector<T>& a,
-	const T& b
+	const A& b
 	)
 {
 	std::vector<T> v = a;
@@ -383,4 +389,6 @@ inline const std::vector<T> pow
 
 	return v;
 }
+
+#endif // __VECTOR_OPERATORS_HPP__
 

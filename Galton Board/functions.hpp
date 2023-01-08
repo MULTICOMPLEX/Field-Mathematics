@@ -13,10 +13,10 @@ typedef MX0 Complex;
 #include <map>
 #include <unordered_set>
 #include "constants.hpp"
-#include "operators.hpp"
+#include "vector_operators.hpp"
 #include "fft.hpp"
  
- 
+
 plot_matplotlib plot;
 
 auto Galton_Classic = []<typename L, typename K>

@@ -153,7 +153,6 @@
     <ClInclude Include="include\mxws.hpp" />
     <ClInclude Include="matplotlib.hpp" />
     <ClInclude Include="number_theory.hpp" />
-    <ClInclude Include="operators.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Galton_Board.cpp" />

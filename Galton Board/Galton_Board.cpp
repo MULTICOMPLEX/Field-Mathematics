@@ -380,8 +380,8 @@ int main(int argc, char** argv)
 				X.push_back(x);
 			}
 
-			plot.PyRun_Simple("fig = plt.figure()");
-			plot.PyRun_Simple("ax = fig.add_subplot(projection = 'polar')");
+			plot.Py_STR("fig = plt.figure()");
+			plot.Py_STR("ax = fig.add_subplot(projection = 'polar')");
 
 			plot.plot_polar(X, Y_buf, "", str, "red", 1.0);
 			std::ranges::rotate(Y_buf, Y_buf.begin() + Y_buf.size() / (2ull * N_cycles)); //Rotate left

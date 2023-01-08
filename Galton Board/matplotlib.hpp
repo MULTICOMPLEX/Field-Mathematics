@@ -1,4 +1,7 @@
-﻿#include <Python.h>
+﻿#ifndef __MATPLOTLIB_HPP__
+#define __MATPLOTLIB_HPP__
+
+#include <Python.h>
 
 class plot_matplotlib
 {
@@ -88,7 +91,7 @@ public:
 	void plot_somedata_3D(const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z,
 		std::string properties = "k", std::string label = "Line 1", std::string color = "green", double alpha = 1);
 
-	void PyRun_Simple(std::string somestring);
+	void Py_STR(std::string somestring);
 
 	void grid_off();
 	void grid_on();
@@ -544,7 +547,7 @@ void plot_matplotlib::plot_somedata_3D(const std::vector<double>& X, const std::
 	if (label != "")PyRun_SimpleStringStd("plt.legend()");
 }
 
-void plot_matplotlib::PyRun_Simple(std::string somestring)
+void plot_matplotlib::Py_STR(std::string somestring)
 {
 	PyRun_SimpleStringFlags(somestring.c_str(), NULL);
 	if (_pythoncmd != "") {
@@ -591,13 +594,13 @@ void plot_matplotlib::arrow(const double x_tail, const double y_tail,
 void plot_matplotlib::init_plot_window(const char* name, int x, int y)
 {
 	run_customcommand(name);
-	// PyRun_Simple("fig = plt.figure(1)");
-	PyRun_Simple("wm = plt.get_current_fig_manager()");
-	PyRun_Simple("wm.window.wm_geometry('+" + std::to_string(x) + "+" + std::to_string(y) + "')");
+	// Py_STR("fig = plt.figure(1)");
+	Py_STR("wm = plt.get_current_fig_manager()");
+	Py_STR("wm.window.wm_geometry('+" + std::to_string(x) + "+" + std::to_string(y) + "')");
 	adjust_ticker();
-	PyRun_Simple("import atexit");
-	PyRun_Simple("import sys");
-	PyRun_Simple("import subprocess");
+	Py_STR("import atexit");
+	Py_STR("import sys");
+	Py_STR("import subprocess");
 }
 
 std::vector<std::string> plot_matplotlib::colors
@@ -1553,3 +1556,6 @@ std::vector<std::string> plot_matplotlib::colors
 	"blue",
 	"green",
 	"purple" };
+
+
+#endif // __MATPLOTLIB_HPP__

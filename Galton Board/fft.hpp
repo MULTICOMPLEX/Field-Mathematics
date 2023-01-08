@@ -1,3 +1,6 @@
+#ifndef __FFT_HPP__
+#define __FFT_HPP__
+#include <vector>
 
 template <typename T>
 void Write_DFTCoeff(const std::vector<T>& v) {
@@ -319,3 +322,5 @@ void slidingDFT_driver(
 		}
 	}
 }
+
+#endif // __FFT_HPP__

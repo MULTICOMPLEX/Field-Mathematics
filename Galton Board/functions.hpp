@@ -1,5 +1,7 @@
 ﻿
-#pragma once
+#ifndef __FUNCTIONS_HPP__
+#define __FUNCTIONS_HPP__
+
 #include <future>
 #include <numbers>
 #include <span>
@@ -699,5 +701,5 @@ std::vector<double> linspace(T start_in, T end_in, size_t num_in)
 	return linspaced;
 }
 
-
+#endif // FUNCTIONS
 

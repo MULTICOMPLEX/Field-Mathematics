@@ -1,6 +1,6 @@
 # Generalized field theory with probability p-numbers
 
-From Normal to Sinewave distribaution using the : 
+From Normal to Sinewave distribution using the : 
 
 https://en.wikipedia.org/wiki/Galton_board
 

@@ -1,6 +1,10 @@
-# Galton Board
+# Generalized field theory with probability p-numbers
+
+From Normal to Sinewave distribaution using the : 
 
 https://en.wikipedia.org/wiki/Galton_board
+
+Analogy
 
 https://www.youtube.com/watch?v=UCmPmkHqHXk&feature=youtu.be
 

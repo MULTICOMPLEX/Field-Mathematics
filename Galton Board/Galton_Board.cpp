@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	std::uint64_t N_Trials = 1000000;
 
 	//Wave cycles or threads  
-	U N_cycles = 400;
+	U N_cycles = 700;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -239,7 +239,7 @@ int main(int argc, char** argv)
 
 		if (((Y.size() <= 1000000) || pow2) && !DC && dft)
 		{
-			/*
+			
 			if (pow2) {
 				if (Sliding_FFT) {
 					cx.resize(Y.size());
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
 			}
 
 			else 	
-				*/
+				
 				cx = doDFT(Y);
 
 			//wavepacket(Y, N_Trials, N_cycles, false);

@@ -13,18 +13,20 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 100000000;
+	std::uint64_t N_Trials = 1000000;
 
 	//Wave cycles or threads  
-	U N_cycles = 8;
+	U N_cycles = 400;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
 	U N_Bins = 2048;
+	if (N_Bins < 3 * N_cycles)//minimum 3 x N_cycles
+		N_Bins = 3 * N_cycles;
 	//Sinusoidal distribution or Normal distribution
 	B probability_wave = true;
 	//Entropy analysis
-	B Entropy = true;
+	B Entropy = false;
 	//DFT Entropy analysis
 	B DFTEntropy = false;
 	//DC distribution
@@ -62,6 +64,7 @@ int main(int argc, char** argv)
 	}
 
 	U Board_SIZE = U(round(N_Bins / R(N_cycles)));
+	
 
 	/* get cmd args */
 	if (argc < 7) {
@@ -236,6 +239,7 @@ int main(int argc, char** argv)
 
 		if (((Y.size() <= 1000000) || pow2) && !DC && dft)
 		{
+			/*
 			if (pow2) {
 				if (Sliding_FFT) {
 					cx.resize(Y.size());
@@ -249,6 +253,7 @@ int main(int argc, char** argv)
 			}
 
 			else 	
+				*/
 				cx = doDFT(Y);
 
 			//wavepacket(Y, N_Trials, N_cycles, false);

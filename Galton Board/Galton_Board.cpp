@@ -13,10 +13,10 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 1000000;
+	std::uint64_t N_Trials = 100000;
 
 	//Wave cycles or threads  
-	U N_cycles = 700;
+	U N_cycles = 10;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins

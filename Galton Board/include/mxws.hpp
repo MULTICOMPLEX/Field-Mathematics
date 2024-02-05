@@ -432,6 +432,9 @@ public:
 			
 		}
 
+	//std::cout << "Board_size " << Board_size << std::endl;
+	//std::cout << "rn_range " << rn_range << std::endl;
+
 		return std::make_tuple(rn_range, Board_size);
 	}
 

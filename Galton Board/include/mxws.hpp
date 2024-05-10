@@ -432,6 +432,7 @@ public:
 			
 		}
 
+	//std::cout << "Board_SIZE " << Board_SIZE << std::endl;
 	//std::cout << "Board_size " << Board_size << std::endl;
 	//std::cout << "rn_range " << rn_range << std::endl;
 

@@ -14,7 +14,7 @@ plt.plot(initial_n_bins,  n_bins, label='NBins')
 plt.plot(initial_n_bins, rn_mag, label='RNMag')
 plt.xlabel('Initial NBins')
 plt.ylabel('RNMag, NBins')
-plt.title('NBins  =  log( 6 x Initial NBins ) sqrt( π )\n RNMag = Initial NBins / sqrt( log2( Initial NBins ))' )
+plt.title('NBins  =  log( 6 x Initial NBins ) sqrt( π )\n RNMag = Initial NBins / sqrt( log2( Initial NBins ))')
 plt.legend()
 plt.grid(True)
 plt.show()
@@ -22,10 +22,7 @@ plt.show()
 ############################
 
 INITIAL_NBINS = 200
-TRIALS = 100000
-
-# Seed the random number generator (optional for reproducibility)
-fastrand.pcg32_seed(10)#np.random.seed( 10 )  # Replace 10 with any desired seed value
+TRIALS = 5000000
 
 def simulate_wave_galton_board(trials, initial_n_bins):
     """Simulates a Cycle Galton board with efficient random number generation and bin updating.
@@ -43,6 +40,9 @@ def simulate_wave_galton_board(trials, initial_n_bins):
 
     # Initialize cycle array
     cycle = np.zeros(initial_n_bins, dtype=np.uint64)  # Use uint64 to prevent overflow
+
+    # Seed the random number generator (optional for reproducibility)
+    fastrand.pcg32_seed(10)#np.random.seed( 10 )  # Replace 10 with any desired seed value
 
     for _ in range(trials):
         random_walk = np.uint64(0)
@@ -67,6 +67,7 @@ plt.figure(figsize=(10, 6))
 plt.step(initial_n_bins,  cycle, label='Cycle')
 plt.xlabel('Bin')
 plt.ylabel('Frequency')
+plt.title('Simulate a Cycle Galton Board')
 plt.legend()
 plt.grid(True)
 plt.show()

@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 100000000;
+	std::uint64_t N_Trials = 1000000000;
 
 	//Wave cycles or threads  
 	U N_cycles = 17;

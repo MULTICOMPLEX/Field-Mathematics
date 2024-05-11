@@ -13,14 +13,14 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 10000000;
+	std::uint64_t N_Trials = 10000;
 
 	//Wave cycles or threads  
-	U N_cycles = 5;
+	U N_cycles = 1000;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
-	U N_Bins = 2048;
+	U N_Bins = 3000;
 	if (N_Bins < 3 * N_cycles)//minimum 3 x N_cycles
 		N_Bins = 3 * N_cycles;
 	//Sinusoidal distribution or Normal distribution
@@ -280,41 +280,40 @@ int main(int argc, char** argv)
 
 			std::cout << " RMS	        " << rms << "[dB]" << std::endl << std::endl;
 
-			std::string str = "RMS= ";
-			str += std::to_string(rms);
-			str += "    RNG range= ";
-
 			auto text_x_offset = N_Bins / 10; //210
 
-			auto rng_range = std::get<R>(tuple);
-			str += to_string_with_precision(rng_range, 0);
-			plot.text(text_x_offset, -23, str, "green", 11);
-
-			if (Board_SIZE > Board_size) str = "Shrunken to ";
-			else if (Board_SIZE < Board_size) str = "Grown to ";
-			else str = "Size stayed the same= ";
-			plot.text(text_x_offset, -13, str + std::to_string(Board_size), "purple", 11);
-
-			str = "Factor= "; plot.text(text_x_offset, -18, str, "orange", 11);
-			if (Board_SIZE > Board_size)
-				str += to_string_with_precision(R(Board_SIZE) / Board_size, 3);
-			else if (Board_SIZE < Board_size)
-				str += to_string_with_precision(Board_size / R(Board_SIZE), 3);
-			else
-				str += to_string_with_precision(R(Board_SIZE), 3);
-			plot.text(text_x_offset, -18, str, "orange", 11);
-
-			str = "Number of cycles= ";
+			std::string str = "NCycles=";
 			str += std::to_string(N_cycles);
-			str += ", Board size= ";
-			plot.text(text_x_offset, -8, str + std::to_string(Y_buf.size() / N_cycles),
-				"blue", 11);
+			plot.text(text_x_offset, -8, str, "blue", 11);
+			
+			str = "Board size=";
+			str += std::to_string(Y_buf.size() / N_cycles);
+			
+			if (Board_SIZE > Board_size) str = str + ", shrunken to ";
+			else if (Board_SIZE < Board_size) str = str + ", grown to ";
+			else str = str + ", size stayed the same=";
+			str += to_string_with_precision(R(Board_size), 0);
+			
+			str += ", ratio="; 
+			if (Board_SIZE > Board_size)
+				str += to_string_with_precision(R(Board_SIZE) / Board_size, 1);
+			else if (Board_SIZE < Board_size)
+				str += to_string_with_precision(Board_size / R(Board_SIZE), 1);
+			else
+				str += to_string_with_precision(R(Board_SIZE), 1);
+			plot.text(text_x_offset, -13, str, "purple", 11);
 
-			str = "Shannon entropy= ";
-			auto entropy = to_string_with_precision(ShannonEntropy(Y_buf), 8);
+			str = "RNMag=";
+			str += to_string_with_precision(R(std::get<R>(tuple)), 0);
+			plot.text(text_x_offset, -18, str, "green", 11);
+			
+			str = "Entropy=";
+			auto entropy = to_string_with_precision(ShannonEntropy(Y_buf), 4);
 			str += entropy;
-			plot.text(text_x_offset, -28, str, "black", 11);
-
+			str += ", RMS=";
+			str += std::to_string(rms);
+			plot.text(text_x_offset, -23, str, "black", 11);
+			
 			std::cout << " Max Entropy log2(" << N_Bins << ") = " <<
 				to_string_with_precision(std::log2(N_Bins), 8) << std::endl;
 			std::cout << " ShannonEntropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;

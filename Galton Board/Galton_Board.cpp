@@ -13,10 +13,10 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 100000000;
+	std::uint64_t N_Trials = 1000000000;
 
 	//Wave cycles or threads  
-	U N_cycles = 1000;
+	U N_cycles = 100;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -24,7 +24,8 @@ int main(int argc, char** argv)
 	if (N_Bins < 3 * N_cycles)//minimum 3 x N_cycles
 		N_Bins = 3 * N_cycles;
 	//Sinusoidal distribution or Normal distribution
-	B probability_wave = true;
+	B probability_wave = false;
+	U Binormal_Distribution_NBins = 2048;
 	//Entropy analysis
 	B Entropy = false;
 	//DFT Entropy analysis
@@ -51,9 +52,9 @@ int main(int argc, char** argv)
 
 	//Write twiddle factors to disk
 	B W_DFTCoeff = false;
-	if ((N_Bins != 2048) || (N_cycles != 1)) 
+	if ((N_Bins != 2048) || (N_cycles != 1))
 		W_DFTCoeff = false;
-	
+
 	/***************SETTINGS*****************/
 
 	if (wav) {
@@ -64,7 +65,7 @@ int main(int argc, char** argv)
 	}
 
 	U Board_SIZE = U(round(N_Bins / R(N_cycles)));
-	
+
 
 	/* get cmd args */
 	if (argc < 7) {
@@ -102,7 +103,7 @@ int main(int argc, char** argv)
 	}
 
 	else {
-		Board_SIZE = 2048;
+		Board_SIZE = Binormal_Distribution_NBins;
 		N_cycles = 1;
 		std::cout << " Trials         " << nameForNumber(N_Trials) << " (" << N_Trials << ")"
 			<< " x " << N_cycles << std::endl;
@@ -176,21 +177,22 @@ int main(int argc, char** argv)
 
 		plot.plot_somedata(X, Y, "", "Binomial-Normal Distribution", "blue");
 
-		std::string str = "Number of Balls : ";
+		std::string str = "NTrials : ";
 		str += nameForNumber(N_Trials);
 
 		auto max = *std::ranges::max_element(Y);
 
 		plot.text(0, max / 3, str, "green", 11);
 
-		auto entropy = to_string_with_precision(ShannonEntropy(Y), 8);
-		str = "Shannon entropy= ";
+		auto entropy = to_string_with_precision(ShannonEntropy(Y), 5);
+		str = "Entropy= ";
 		str += entropy;
 		plot.text(0, max / 4, str, "red", 11);
 
-		std::cout << " ShannonEntropy " << entropy << std::endl;
+		std::cout << " Entropy " << entropy << std::endl;
 
 		plot.set_xlabel("Boxes");
+		plot.set_ylabel("Frequency");
 		plot.grid_on();
 		plot.set_title(utf8_encode(title));
 		plot.show();
@@ -239,7 +241,7 @@ int main(int argc, char** argv)
 
 		if (((Y.size() <= 1000000) || pow2) && !DC && dft)
 		{
-			
+
 			if (pow2) {
 				if (Sliding_FFT) {
 					cx.resize(Y.size());
@@ -252,8 +254,8 @@ int main(int argc, char** argv)
 				}
 			}
 
-			else 	
-				
+			else
+
 				cx = doDFT(Y);
 
 			//wavepacket(Y, N_Trials, N_cycles, false);
@@ -285,16 +287,16 @@ int main(int argc, char** argv)
 			std::string str = "NCycles=";
 			str += std::to_string(N_cycles);
 			plot.text(text_x_offset, -8, str, "blue", 11);
-			
+
 			str = "Board size=";
 			str += std::to_string(Y_buf.size() / N_cycles);
-			
+
 			if (Board_SIZE > Board_size) str = str + ", shrunken to ";
 			else if (Board_SIZE < Board_size) str = str + ", grown to ";
 			else str = str + ", size stayed the same=";
 			str += to_string_with_precision(R(Board_size), 0);
-			
-			str += ", ratio="; 
+
+			str += ", ratio=";
 			if (Board_SIZE > Board_size)
 				str += to_string_with_precision(R(Board_SIZE) / Board_size, 1);
 			else if (Board_SIZE < Board_size)
@@ -306,17 +308,17 @@ int main(int argc, char** argv)
 			str = "RNMag=";
 			str += to_string_with_precision(R(std::get<R>(tuple)), 0);
 			plot.text(text_x_offset, -18, str, "green", 11);
-			
+
 			str = "Entropy=";
 			auto entropy = to_string_with_precision(ShannonEntropy(Y_buf), 4);
 			str += entropy;
 			str += ", RMS=";
 			str += std::to_string(rms);
 			plot.text(text_x_offset, -23, str, "black", 11);
-			
+
 			std::cout << " Max Entropy log2(" << N_Bins << ") = " <<
-				to_string_with_precision(std::log2(N_Bins), 8) << std::endl;
-			std::cout << " ShannonEntropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;
+				to_string_with_precision(std::log2(N_Bins), 6) << std::endl;
+			std::cout << " Entropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;
 
 			if (Entropy) {
 				count_duplicates(Y_buf);
@@ -341,7 +343,7 @@ int main(int argc, char** argv)
 					X.push_back(i);
 			}
 
-			std::string str = "Number of Trials: ";
+			std::string str = "NTrials: ";
 
 			str += nameForNumber(N_Trials);
 			str += " x ";
@@ -358,7 +360,7 @@ int main(int argc, char** argv)
 					auto entropy = to_string_with_precision(ShannonEntropy(Y), 8);
 					std::cout << " Max Entropy DFT log2(" << N_Bins << ") = " <<
 						to_string_with_precision(std::log2(N_Bins), 8) << std::endl;
-					std::cout << " ShannonEntropy DFT Cycles[1.." << N_cycles << "] " << entropy << std::endl;
+					std::cout << " Entropy DFT Cycles[1.." << N_cycles << "] " << entropy << std::endl;
 					count_duplicates(Y);
 					cout_ShannonEntropy(Y, Board_SIZE, N_cycles);
 				}
@@ -371,7 +373,7 @@ int main(int argc, char** argv)
 			plot.show();
 
 			///////////////////
-			str = "Number of Trials: ";
+			str = "NTrials: ";
 			str += nameForNumber(N_Trials);
 			str += " x ";
 			str += std::to_string(N_cycles);

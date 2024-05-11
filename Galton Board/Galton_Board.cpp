@@ -13,10 +13,10 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 1000000000;
+	std::uint64_t N_Trials = 100000000;
 
 	//Wave cycles or threads  
-	U N_cycles = 100;
+	U N_cycles = 17;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -24,8 +24,8 @@ int main(int argc, char** argv)
 	if (N_Bins < 3 * N_cycles)//minimum 3 x N_cycles
 		N_Bins = 3 * N_cycles;
 	//Sinusoidal distribution or Normal distribution
-	B probability_wave = false;
-	U Binormal_Distribution_NBins = 2048;
+	B probability_wave = true;
+	U Binormal_Distribution_NBins = 2000;
 	//Entropy analysis
 	B Entropy = false;
 	//DFT Entropy analysis
@@ -115,7 +115,7 @@ int main(int argc, char** argv)
 	}
 
 	N_Bins = Board_SIZE * N_cycles;
-	std::cout << " Bins           " << N_Bins << std::endl;
+	std::cout << " NBins           " << N_Bins << std::endl;
 
 	std::tuple<R, U> tuple;
 
@@ -313,7 +313,7 @@ int main(int argc, char** argv)
 			auto entropy = to_string_with_precision(ShannonEntropy(Y_buf), 4);
 			str += entropy;
 			str += ", RMS=";
-			str += std::to_string(rms);
+			str += to_string_with_precision(rms, 4);
 			plot.text(text_x_offset, -23, str, "black", 11);
 
 			std::cout << " Max Entropy log2(" << N_Bins << ") = " <<

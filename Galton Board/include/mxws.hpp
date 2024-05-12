@@ -412,7 +412,7 @@ public:
 	std::same_as<R, double>&&
 		std::integral<I>&&
 		std::same_as<L, std::uint64_t>
-		std::tuple<R, I> Probability_Wave(const I& Board_SIZE,
+		std::tuple<R, I, L> Probability_Wave(const I& Board_SIZE,
 			std::vector<L>& cycle, const L& TRIALS) {
 
 		I Board_size;
@@ -432,11 +432,8 @@ public:
 			
 		}
 
-	//std::cout << "Board_SIZE " << Board_SIZE << std::endl;
-	//std::cout << "Board_size " << Board_size << std::endl;
-	//std::cout << "rn_range " << rn_range << std::endl;
-
-		return std::make_tuple(rn_range, Board_size);
+		auto offset = *std::ranges::min_element(cycle) + std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
+		return std::make_tuple(rn_range, Board_size, offset);
 	}
 
 	template <typename I>

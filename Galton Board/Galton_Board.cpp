@@ -13,19 +13,19 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t N_Trials = 1000000000;
+	std::uint64_t Ntrials = 10000000;
 
 	//Wave cycles or threads  
-	U N_cycles = 17;
+	U Ncycles = 10;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
-	U N_Bins = 3000;
-	if (N_Bins < 3 * N_cycles)//minimum 3 x N_cycles
-		N_Bins = 3 * N_cycles;
+	U Nbins = 3000;
+	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
+		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
-	B probability_wave = true;
-	U Binormal_Distribution_NBins = 2000;
+	U Binormal_Distribution_Nbins = 2000;
+	B Probability_wave = true;
 	//Entropy analysis
 	B Entropy = false;
 	//DFT Entropy analysis
@@ -33,9 +33,9 @@ int main(int argc, char** argv)
 	//DC distribution
 	B DC = false;
 	//Enable Fourier transform
-	B dft = true;
-	//Enable sound to file (wav format)
-	B wav = false;
+	B DFT = true;
+	//Enable sound to file (WAV format)
+	B WAV = false;
 
 	//Console output
 	const B cout_gal = false;
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 
 	//Plot Fourier transform with probability wave twiddle factors
 	B doDFTr = true;
-	if (N_Bins != 2048)
+	if (Nbins != 2048)
 		doDFTr = false;
 
 	//Enable Sliding FFT
@@ -52,19 +52,19 @@ int main(int argc, char** argv)
 
 	//Write twiddle factors to disk
 	B W_DFTCoeff = false;
-	if ((N_Bins != 2048) || (N_cycles != 1))
+	if ((Nbins != 2048) || (Ncycles != 1))
 		W_DFTCoeff = false;
 
 	/***************SETTINGS*****************/
 
-	if (wav) {
-		N_Trials = 100000000;
-		N_Bins = 300000;
-		N_cycles = 1000;
-		dft = false;
+	if (WAV) {
+		Ntrials = 100000000;
+		Nbins = 300000;
+		Ncycles = 1000;
+		DFT = false;
 	}
 
-	U Board_SIZE = U(round(N_Bins / R(N_cycles)));
+	U Board_SIZE = U(round(Nbins / R(Ncycles)));
 
 
 	/* get cmd args */
@@ -76,61 +76,62 @@ int main(int argc, char** argv)
 	}
 
 	else {
-		N_Trials = atoi(argv[1]);
-		N_cycles = atoi(argv[2]);
-		probability_wave = atoi(argv[3]);
+		Ntrials = atoi(argv[1]);
+		Ncycles = atoi(argv[2]);
+		Probability_wave = atoi(argv[3]);
 		DC = atoi(argv[4]);
-		dft = atoi(argv[5]);
-		wav = atoi(argv[6]);
-		Board_SIZE = U(round(N_Bins / R(N_cycles)));
+		DFT = atoi(argv[5]);
+		WAV = atoi(argv[6]);
+		Board_SIZE = U(round(Nbins / R(Ncycles)));
 	}
 
 	std::u8string title = u8" Probability Wave Φ";
-	if (!probability_wave) title = u8" Galton Board";
+	if (!Probability_wave) title = u8" Galton Board";
 	std::cout << title << std::endl << std::endl;
 
 	auto N_Hthreads = std::thread::hardware_concurrency();
 	std::cout << " " << N_Hthreads << " concurrent cycles (threads) are supported."
 		<< std::endl << std::endl;
 
-	N_Trials *= N_Integrations;
+	Ntrials *= N_Integrations;
 
-	if (probability_wave) {
-		std::cout << " Trials         " << nameForNumber(N_Trials) << " (" << N_Trials << ")"
-			<< " x " << N_cycles << std::endl;
-		std::cout << " Cycles         " << N_cycles << std::endl;
+	if (Probability_wave) {
+		std::cout << " Trials         " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
+			<< " x " << Ncycles << std::endl;
+		std::cout << " Cycles         " << Ncycles << std::endl;
 		std::cout << " Board SIZE     " << Board_SIZE << "[Boxes]" << std::endl;
 	}
 
 	else {
-		Board_SIZE = Binormal_Distribution_NBins;
-		N_cycles = 1;
-		std::cout << " Trials         " << nameForNumber(N_Trials) << " (" << N_Trials << ")"
-			<< " x " << N_cycles << std::endl;
+		Board_SIZE = Binormal_Distribution_Nbins;
+		Ncycles = 1;
+		std::cout << " Trials         " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
+			<< " x " << Ncycles << std::endl;
 	}
 
 	if (doDFTr) {
-		if (Board_SIZE * N_cycles < N_Bins)
-			N_cycles += 1;
+		if (Board_SIZE * Ncycles < Nbins)
+			Ncycles += 1;
 	}
 
-	N_Bins = Board_SIZE * N_cycles;
-	std::cout << " NBins           " << N_Bins << std::endl;
+	Nbins = Board_SIZE * Ncycles;
+	std::cout << " NBins          " << Nbins << std::endl;
 
-	std::tuple<R, U> tuple;
+	typedef std::uint64_t L;
+	std::tuple<R, U, L> tuple;
 
 	std::vector < std::future <decltype(tuple)>> vecOfThreads;
 
 	std::vector<std::vector<std::vector<std::uint64_t>>>
 		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
-			(N_cycles, std::vector<std::uint64_t>(Board_SIZE, 0ull)));
+			(Ncycles, std::vector<std::uint64_t>(Board_SIZE, 0ull)));
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
 	for (U i = 0; i < N_Integrations; i++)
-		for (U k = 0; k < N_cycles; k++)
+		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton<R>(N_Trials / N_Integrations, Board_SIZE, N_cycles, galton_arr[i][k], probability_wave); }));
+			return Galton<R>(Ntrials / N_Integrations, Board_SIZE, Ncycles, galton_arr[i][k], Probability_wave); }));
 
 	for (auto& th : vecOfThreads)
 		tuple = th.get();
@@ -139,15 +140,19 @@ int main(int argc, char** argv)
 
 	U Board_size = std::get<U>(tuple);
 
-	if (probability_wave)
+	if (Probability_wave)
 	{
 		std::cout << std::endl << " RNG range      " << std::get<R>(tuple) << "[Boxes]" << std::endl;
+		auto offset = std::get<std::uint64_t>(tuple);
+		std::cout << " Offset         " << offset << std::endl;
+		std::cout << " Offset Calc.   " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles" 
+			<< std::endl << std::endl;
 	}
 
 	std::cout << " Board size     " << Board_size << "[Boxes]" << std::endl;
 
 	std::cout << std::endl << " Duration Ball  "
-		<< std::chrono::nanoseconds(end - begin).count() / N_Trials
+		<< std::chrono::nanoseconds(end - begin).count() / Ntrials
 		<< "[ns]" << std::endl << std::endl;
 
 	if (Board_SIZE <= 256 && cout_gal)
@@ -155,7 +160,7 @@ int main(int argc, char** argv)
 
 	std::vector<R> X, Y, Y_buf;
 
-	if (!probability_wave) {
+	if (!Probability_wave) {
 
 		for (auto i = 0; auto & k : std::span(galton_arr.front().front()))
 			X.push_back(i++);
@@ -177,14 +182,14 @@ int main(int argc, char** argv)
 
 		plot.plot_somedata(X, Y, "", "Binomial-Normal Distribution", "blue");
 
-		std::string str = "NTrials : ";
-		str += nameForNumber(N_Trials);
+		std::string str = "Ntrials= ";
+		str += nameForNumber(Ntrials);
 
 		auto max = *std::ranges::max_element(Y);
 
 		plot.text(0, max / 3, str, "green", 11);
 
-		auto entropy = to_string_with_precision(ShannonEntropy(Y), 5);
+		auto entropy = to_string_with_precision(ShannonEntropy(Y), 4);
 		str = "Entropy= ";
 		str += entropy;
 		plot.text(0, max / 4, str, "red", 11);
@@ -213,8 +218,8 @@ int main(int argc, char** argv)
 
 		Y_buf /= R(N_Integrations);
 
-		std::cout << " Avarage        " << avarage_vector(Y_buf) / N_cycles << std::endl;
-		std::cout << " AC Amplitude   " << ac_amplite_vector(Y_buf) / N_cycles << std::endl;
+		std::cout << " Avarage        " << avarage_vector(Y_buf) / Ncycles << std::endl;
+		std::cout << " AC Amplitude   " << ac_amplite_vector(Y_buf) / Ncycles << std::endl;
 
 		Y = Y_buf;
 
@@ -234,12 +239,12 @@ int main(int argc, char** argv)
 
 		B pow2 = ((Y.size() & (Y.size() - 1)) == 0);
 
-		if (wav)
+		if (WAV)
 			pow2 = false;
 
 		std::vector<MX0> cx;
 
-		if (((Y.size() <= 1000000) || pow2) && !DC && dft)
+		if (((Y.size() <= 1000000) || pow2) && !DC && DFT)
 		{
 
 			if (pow2) {
@@ -258,7 +263,7 @@ int main(int argc, char** argv)
 
 				cx = doDFT(Y);
 
-			//wavepacket(Y, N_Trials, N_cycles, false);
+			//wavepacket(Y, Ntrials, Ncycles, false);
 			//wave_packet(0, 40, 0.2);
 
 			X.clear();
@@ -282,14 +287,14 @@ int main(int argc, char** argv)
 
 			std::cout << " RMS	        " << rms << "[dB]" << std::endl << std::endl;
 
-			auto text_x_offset = N_Bins / 10; //210
+			auto text_x_offset = Nbins / 10; //210
 
 			std::string str = "NCycles=";
-			str += std::to_string(N_cycles);
+			str += std::to_string(Ncycles);
 			plot.text(text_x_offset, -8, str, "blue", 11);
 
 			str = "Board size=";
-			str += std::to_string(Y_buf.size() / N_cycles);
+			str += std::to_string(Y_buf.size() / Ncycles);
 
 			if (Board_SIZE > Board_size) str = str + ", shrunken to ";
 			else if (Board_SIZE < Board_size) str = str + ", grown to ";
@@ -316,13 +321,13 @@ int main(int argc, char** argv)
 			str += to_string_with_precision(rms, 4);
 			plot.text(text_x_offset, -23, str, "black", 11);
 
-			std::cout << " Max Entropy log2(" << N_Bins << ") = " <<
-				to_string_with_precision(std::log2(N_Bins), 6) << std::endl;
-			std::cout << " Entropy Cycles[1.." << N_cycles << "] " << entropy << std::endl << std::endl;
+			std::cout << " Max Entropy log2(" << Nbins << ") = " <<
+				to_string_with_precision(std::log2(Nbins), 6) << std::endl;
+			std::cout << " Entropy Cycles[1.." << Ncycles << "] " << entropy << std::endl << std::endl;
 
 			if (Entropy) {
 				count_duplicates(Y_buf);
-				cout_ShannonEntropy(Y_buf, Board_SIZE, N_cycles);
+				cout_ShannonEntropy(Y_buf, Board_SIZE, Ncycles);
 			}
 
 			X.clear();
@@ -335,9 +340,9 @@ int main(int argc, char** argv)
 
 		}
 
-		if (!wav)
+		if (!WAV)
 		{
-			if (!dft || DC) {
+			if (!DFT || DC) {
 				X.clear();
 				for (auto i = 0; i < Y_buf.size(); i++)
 					X.push_back(i);
@@ -345,9 +350,9 @@ int main(int argc, char** argv)
 
 			std::string str = "NTrials: ";
 
-			str += nameForNumber(N_Trials);
+			str += nameForNumber(Ntrials);
 			str += " x ";
-			str += std::to_string(N_cycles);
+			str += std::to_string(Ncycles);
 
 			plot.plot_somedata(X, Y_buf, "", str, "blue");
 
@@ -358,11 +363,11 @@ int main(int argc, char** argv)
 				auto Y = plot_doDFTr(Y_buf, true);
 				if (DFTEntropy) {
 					auto entropy = to_string_with_precision(ShannonEntropy(Y), 8);
-					std::cout << " Max Entropy DFT log2(" << N_Bins << ") = " <<
-						to_string_with_precision(std::log2(N_Bins), 8) << std::endl;
-					std::cout << " Entropy DFT Cycles[1.." << N_cycles << "] " << entropy << std::endl;
+					std::cout << " Max Entropy DFT log2(" << Nbins << ") = " <<
+						to_string_with_precision(std::log2(Nbins), 8) << std::endl;
+					std::cout << " Entropy DFT Cycles[1.." << Ncycles << "] " << entropy << std::endl;
 					count_duplicates(Y);
-					cout_ShannonEntropy(Y, Board_SIZE, N_cycles);
+					cout_ShannonEntropy(Y, Board_SIZE, Ncycles);
 				}
 			}
 
@@ -374,9 +379,9 @@ int main(int argc, char** argv)
 
 			///////////////////
 			str = "NTrials: ";
-			str += nameForNumber(N_Trials);
+			str += nameForNumber(Ntrials);
 			str += " x ";
-			str += std::to_string(N_cycles);
+			str += std::to_string(Ncycles);
 
 			double x = -std::numbers::pi;
 			X.clear();
@@ -390,7 +395,7 @@ int main(int argc, char** argv)
 			plot.Py_STR("ax = fig.add_subplot(projection = 'polar')");
 
 			plot.plot_polar(X, Y_buf, "", str, "red", 1.0);
-			std::ranges::rotate(Y_buf, Y_buf.begin() + Y_buf.size() / (2ull * N_cycles)); //Rotate left
+			std::ranges::rotate(Y_buf, Y_buf.begin() + Y_buf.size() / (2ull * Ncycles)); //Rotate left
 			plot.plot_polar(X, Y_buf, "", str, "blue", 1.0);
 
 			title = u8" Rose Curve Φ";

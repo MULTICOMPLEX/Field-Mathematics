@@ -406,7 +406,7 @@ public:
 	{
 		return std::numbers::sqrt2 * erf_inv(2 * p - 1);
 	}
-
+	
 	template <typename R, typename I, typename L>
 		requires
 	std::same_as<R, double>&&
@@ -431,9 +431,10 @@ public:
 			cycle[std::modulus()(random_walk * rn_range >> 32, Board_SIZE)]++;
 			
 		}
-
-		auto offset = *std::ranges::min_element(cycle) + std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
-		return std::make_tuple(rn_range, Board_size, offset);
+		auto Amplitude = std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
+		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
+		
+		return std::make_tuple(rn_range, Board_size, DC);
 	}
 
 	template <typename I>

@@ -71,6 +71,7 @@ std::tuple<R, I, A> Galton(
 	std::vector<A>& galton_arr,
 	B probability_wave)
 {
+	
 	mxws <uint32_t>RNG;
 
 	std::tuple<R, I, A> tuple;

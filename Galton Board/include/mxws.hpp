@@ -412,14 +412,14 @@ public:
 	std::same_as<R, double>&&
 		std::integral<I>&&
 		std::same_as<L, std::uint64_t>
-		std::tuple<R, I, L> Probability_Wave(const I& Board_SIZE,
+		std::tuple<R, I, L> Probability_Wave(const I& Initial_Board_size,
 			std::vector<L>& cycle, const L& TRIALS) {
 
 		I Board_size;
 		I rn_range;
 
-		Board_size = I(round(std::log(Board_SIZE * 6) * std::sqrt(std::numbers::pi)));
-		rn_range = I(round(Board_SIZE / std::sqrt(log2(Board_SIZE))));
+		Board_size = I(round(std::log(Initial_Board_size * 6) * std::sqrt(std::numbers::pi)));
+		rn_range = I(round(Initial_Board_size / std::sqrt(log2(Initial_Board_size))));
 
 		L random_walk = {};
 
@@ -428,13 +428,13 @@ public:
 			for (I j = 0; j < Board_size; j++)
 				random_walk += rng();
 
-			cycle[std::modulus()(random_walk * rn_range >> 32, Board_SIZE)]++;
+			cycle[std::modulus()(random_walk * rn_range >> 32, Initial_Board_size)]++;
 			
 		}
 		auto Amplitude = std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
 		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
 		
-		return std::make_tuple(rn_range, Board_size, DC);
+		return std::make_tuple(rn_range, Board_size, Amplitude);
 	}
 
 	template <typename I>
@@ -444,7 +444,7 @@ public:
 	{
 		typedef double T;
 
-		//const I Board_size = Board_SIZE;
+		//const I Board_size = Initial_Board_size;
 		//const T rn_range = std::sqrt(Board_size) + std::log(Board_size / 4));
 
 		const I board_size = I(round(log(board_SIZE * 6) * sqrt(std::numbers::pi)));

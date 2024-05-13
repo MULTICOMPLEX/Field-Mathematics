@@ -95,6 +95,8 @@ public:
 
 	void grid_off();
 	void grid_on();
+	void grid_settings(const std::vector<double>& X);
+
 	void line(const double x1 = 0, const double y1 = 0, const double x2 = 10, const double y2 = 10,
 		const std::string color = "black", const double linewidth = 2,
 		const std::string linestyle = "solid");
@@ -159,6 +161,29 @@ void plot_matplotlib::grid_on()
 void plot_matplotlib::grid_off()
 {
 	PyRun_SimpleStringStd("plt.grid(False)");
+}
+
+std::string plot_matplotlib::vector_data(const std::vector<double>& v)
+{
+	std::string vs = "";
+
+	if (v.size()) {
+		vs.reserve(v.size());
+
+		for (size_t i = 0; i < v.size(); i++) {
+			vs += std::to_string(v[i]);
+			vs += ",";
+		}
+	}
+	return vs;
+}
+
+void plot_matplotlib::grid_settings(const std::vector<double>& X)
+{
+	auto str = vector_data(X);
+	PyRun_SimpleStringStd("grid_points = np.array([" + str + "])");
+	PyRun_SimpleStringStd("ax = plt.gca()"); // to get current axis
+	PyRun_SimpleStringStd("ax.xaxis.set_ticks(grid_points)");
 }
 
 
@@ -265,20 +290,7 @@ void plot_matplotlib::show()
 	PyRun_SimpleStringStd("plt.show()");
 }
 
-std::string plot_matplotlib::vector_data(const std::vector<double>& v)
-{
-	std::string vs = "";
 
-	if (v.size()) {
-		vs.reserve(v.size());
-
-		for (size_t i = 0; i < v.size(); i++) {
-			vs += std::to_string(v[i]);
-			vs += ",";
-		}
-	}
-	return vs;
-}
 
 void plot_matplotlib::plot_somedata(const auto& X, const auto& Y,
 	std::string properties, std::string label, std::string color,

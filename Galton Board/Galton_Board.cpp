@@ -13,10 +13,10 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 10000000;
+	std::uint64_t Ntrials = 1000;//1000000000;
 
 	//Wave cycles or threads  
-	U Ncycles = 10;
+	U Ncycles = 22;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -36,6 +36,7 @@ int main(int argc, char** argv)
 	B DFT = true;
 	//Enable sound to file (WAV format)
 	B WAV = false;
+	
 
 	//Console output
 	const B cout_gal = false;
@@ -64,7 +65,7 @@ int main(int argc, char** argv)
 		DFT = false;
 	}
 
-	U Board_SIZE = U(round(Nbins / R(Ncycles)));
+	U Initial_Board_size = U(round(Nbins / R(Ncycles)));
 
 
 	/* get cmd args */
@@ -82,7 +83,7 @@ int main(int argc, char** argv)
 		DC = atoi(argv[4]);
 		DFT = atoi(argv[5]);
 		WAV = atoi(argv[6]);
-		Board_SIZE = U(round(Nbins / R(Ncycles)));
+		Initial_Board_size = U(round(Nbins / R(Ncycles)));
 	}
 
 	std::u8string title = u8" Probability Wave Φ";
@@ -96,26 +97,26 @@ int main(int argc, char** argv)
 	Ntrials *= N_Integrations;
 
 	if (Probability_wave) {
-		std::cout << " Trials         " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
+		std::cout << " Trials            " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
 			<< " x " << Ncycles << std::endl;
-		std::cout << " Cycles         " << Ncycles << std::endl;
-		std::cout << " Board SIZE     " << Board_SIZE << "[Boxes]" << std::endl;
+		std::cout << " Cycles            " << Ncycles << std::endl;
+		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
 	}
 
 	else {
-		Board_SIZE = Binormal_Distribution_Nbins;
+		Initial_Board_size = Binormal_Distribution_Nbins;
 		Ncycles = 1;
-		std::cout << " Trials         " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
+		std::cout << " Trials            " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
 			<< " x " << Ncycles << std::endl;
 	}
 
 	if (doDFTr) {
-		if (Board_SIZE * Ncycles < Nbins)
+		if (Initial_Board_size * Ncycles < Nbins)
 			Ncycles += 1;
 	}
 
-	Nbins = Board_SIZE * Ncycles;
-	std::cout << " NBins          " << Nbins << std::endl;
+	Nbins = Initial_Board_size * Ncycles;
+	std::cout << " NBins             " << Nbins << std::endl;
 
 	typedef std::uint64_t L;
 	std::tuple<R, U, L> tuple;
@@ -124,14 +125,14 @@ int main(int argc, char** argv)
 
 	std::vector<std::vector<std::vector<std::uint64_t>>>
 		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
-			(Ncycles, std::vector<std::uint64_t>(Board_SIZE, 0ull)));
+			(Ncycles, std::vector<std::uint64_t>(Initial_Board_size, 0ull)));
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
 	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton<R>(Ntrials / N_Integrations, Board_SIZE, Ncycles, galton_arr[i][k], Probability_wave); }));
+			return Galton<R>(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave); }));
 
 	for (auto& th : vecOfThreads)
 		tuple = th.get();
@@ -142,21 +143,22 @@ int main(int argc, char** argv)
 
 	if (Probability_wave)
 	{
-		std::cout << std::endl << " RNG range      " << std::get<R>(tuple) << "[Boxes]" << std::endl;
-		auto offset = std::get<std::uint64_t>(tuple);
-		std::cout << " Offset         " << offset << std::endl;
-		std::cout << " Offset Calc.   " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles" 
+		std::cout << std::endl << " RNG range         " << std::get<R>(tuple) << "[Boxes]" << std::endl;
+		auto Amplitude = std::get<std::uint64_t>(tuple);
+		std::cout << " Amplitude         " << Amplitude << std::endl;
+		std::cout << " Offset Calculated " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles" 
 			<< std::endl << std::endl;
 	}
 
-	std::cout << " Board size     " << Board_size << "[Boxes]" << std::endl;
+	std::cout << " Board size        " << Board_size << "[Boxes]" << std::endl;
 
-	std::cout << std::endl << " Duration Ball  "
+	std::cout << std::endl << " Duration Ball     "
 		<< std::chrono::nanoseconds(end - begin).count() / Ntrials
 		<< "[ns]" << std::endl << std::endl;
 
-	if (Board_SIZE <= 256 && cout_gal)
-		cout_galton(Board_SIZE, galton_arr[0][0]);
+	if (Initial_Board_size <= 256 && cout_gal)
+		cout_galton(Initial_Board_size, galton_arr[0][0]);
+
 
 	std::vector<R> X, Y, Y_buf;
 
@@ -218,8 +220,8 @@ int main(int argc, char** argv)
 
 		Y_buf /= R(N_Integrations);
 
-		std::cout << " Avarage        " << avarage_vector(Y_buf) / Ncycles << std::endl;
-		std::cout << " AC Amplitude   " << ac_amplite_vector(Y_buf) / Ncycles << std::endl;
+		std::cout << " Avarage           " << avarage_vector(Y_buf) / Ncycles << std::endl;
+		std::cout << " AC Amplitude      " << ac_amplite_vector(Y_buf) / Ncycles << std::endl;
 
 		Y = Y_buf;
 
@@ -285,7 +287,7 @@ int main(int argc, char** argv)
 
 			rms *= 1. / (cx.size()) * 2;
 
-			std::cout << " RMS	        " << rms << "[dB]" << std::endl << std::endl;
+			std::cout << " RMS	           " << rms << "[dB]" << std::endl << std::endl;
 
 			auto text_x_offset = Nbins / 10; //210
 
@@ -296,18 +298,18 @@ int main(int argc, char** argv)
 			str = "Board size=";
 			str += std::to_string(Y_buf.size() / Ncycles);
 
-			if (Board_SIZE > Board_size) str = str + ", shrunken to ";
-			else if (Board_SIZE < Board_size) str = str + ", grown to ";
+			if (Initial_Board_size > Board_size) str = str + ", shrunken to ";
+			else if (Initial_Board_size < Board_size) str = str + ", grown to ";
 			else str = str + ", size stayed the same=";
 			str += to_string_with_precision(R(Board_size), 0);
 
 			str += ", ratio=";
-			if (Board_SIZE > Board_size)
-				str += to_string_with_precision(R(Board_SIZE) / Board_size, 1);
-			else if (Board_SIZE < Board_size)
-				str += to_string_with_precision(Board_size / R(Board_SIZE), 1);
+			if (Initial_Board_size > Board_size)
+				str += to_string_with_precision(R(Initial_Board_size) / Board_size, 1);
+			else if (Initial_Board_size < Board_size)
+				str += to_string_with_precision(Board_size / R(Initial_Board_size), 1);
 			else
-				str += to_string_with_precision(R(Board_SIZE), 1);
+				str += to_string_with_precision(R(Initial_Board_size), 1);
 			plot.text(text_x_offset, -13, str, "purple", 11);
 
 			str = "RNMag=";
@@ -327,7 +329,7 @@ int main(int argc, char** argv)
 
 			if (Entropy) {
 				count_duplicates(Y_buf);
-				cout_ShannonEntropy(Y_buf, Board_SIZE, Ncycles);
+				cout_ShannonEntropy(Y_buf, Initial_Board_size, Ncycles);
 			}
 
 			X.clear();
@@ -367,7 +369,7 @@ int main(int argc, char** argv)
 						to_string_with_precision(std::log2(Nbins), 8) << std::endl;
 					std::cout << " Entropy DFT Cycles[1.." << Ncycles << "] " << entropy << std::endl;
 					count_duplicates(Y);
-					cout_ShannonEntropy(Y, Board_SIZE, Ncycles);
+					cout_ShannonEntropy(Y, Initial_Board_size, Ncycles);
 				}
 			}
 
@@ -401,6 +403,26 @@ int main(int argc, char** argv)
 			title = u8" Rose Curve Φ";
 			plot.set_title(utf8_encode(title));
 
+			plot.show();
+
+			X.clear();
+			Y.clear();
+
+			//Peak - to - Peak Values, Ntrials = 1000000000
+			Y = { 56698,102677, 155404, 183671, 206434, 279229, 303262, 328880, 422803, 434753, 465184,
+			472395, 519715, 516655, 553084, 714670, 740310, 760489, 781466, 745389, 811481, 797414, 808559 };
+
+			for (std::uint64_t i = 1; i <= Y.size(); i++)
+				X.push_back((double)i);
+
+			plot.plot_somedata_step(X, Y, "", "Peak-to-Peak Values", "blue");
+
+			plot.set_xlabel("Frequency");
+			plot.set_ylabel("Amplitude");
+			plot.grid_settings(X);
+			plot.grid_on();
+			auto d = "Peak-to-Peak Values, Ntrials = " + nameForNumber(1000000000);
+			plot.set_title(d);
 			plot.show();
 
 		}

@@ -61,10 +61,10 @@ auto Galton_Classic = []<typename L, typename K>
 	}
 };
 
-template <typename R, typename A, typename I, typename B>
+template <typename A, typename I, typename B>
 	requires std::integral<I>&&
 std::same_as<A, uint64_t>
-std::tuple<R, I, A> Galton(
+std::multiset<A> Galton(
 	const A& trials,
 	const I& Board_SIZE,
 	const I& N_cycles,
@@ -74,17 +74,11 @@ std::tuple<R, I, A> Galton(
 	
 	mxws <uint32_t>RNG;
 
-	std::tuple<R, I, A> tuple;
 
-	if (probability_wave)
-		tuple = RNG.Probability_Wave<R>(Board_SIZE, galton_arr, trials);
+	std::multiset<A> multiset = RNG.Probability_Wave(Board_SIZE, galton_arr, trials);
 
-	else {
-		Galton_Classic(trials, galton_arr, 1.0, Board_SIZE / 2.0, false);
-		tuple = std::make_tuple(0., Board_SIZE, Board_SIZE);
-	}
 
-	return tuple;
+	return multiset;
 }
 
 std::vector<std::string> ones{ "","one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };

@@ -11,6 +11,7 @@
 #include <numbers>
 #include <iostream>
 #include "../ziggurat.hpp"
+#include <set>
 
  
 template <typename RN>
@@ -407,12 +408,11 @@ public:
 		return std::numbers::sqrt2 * erf_inv(2 * p - 1);
 	}
 	
-	template <typename R, typename I, typename L>
+	template <typename I, typename L>
 		requires
-	std::same_as<R, double>&&
 		std::integral<I>&&
 		std::same_as<L, std::uint64_t>
-		std::tuple<R, I, L> Probability_Wave(const I& Initial_Board_size,
+		std::multiset<std::uint64_t> Probability_Wave(const I& Initial_Board_size,
 			std::vector<L>& cycle, const L& TRIALS) {
 
 		I Board_size;
@@ -431,10 +431,17 @@ public:
 			cycle[std::modulus()(random_walk * rn_range >> 32, Initial_Board_size)]++;
 			
 		}
-		auto Amplitude = std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
-		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle)) / 2.));
+		auto Amplitude = std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle))));
+		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude/2.0));
 		
-		return std::make_tuple(rn_range, Board_size, Amplitude);
+		std::multiset<L> multiset;
+
+		multiset.insert(rn_range);
+		multiset.insert(Board_size);
+		multiset.insert(Amplitude);
+		multiset.insert(DC);
+
+		return multiset;
 	}
 
 	template <typename I>

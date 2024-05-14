@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 1000000000;
+	std::uint64_t Ntrials = 10000000;
 
 	//Wave cycles or threads  
 	U Ncycles = 31;
@@ -119,9 +119,9 @@ int main(int argc, char** argv)
 	std::cout << " NBins             " << Nbins << std::endl << std::endl;
 
 	typedef std::uint64_t L;
-	std::tuple<R, U, L> tuple;
+	std::multiset<L> multiset = {};
 
-	std::vector < std::future <decltype(tuple)>> vecOfThreads;
+	std::vector < std::future <decltype(multiset)>> vecOfThreads;
 
 	std::vector<std::vector<std::vector<std::uint64_t>>>
 		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
@@ -132,26 +132,34 @@ int main(int argc, char** argv)
 	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton<R>(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave); }));
+			return Galton(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave); }));
 
 	for (auto& th : vecOfThreads)
-		tuple = th.get();
+		multiset = th.get();
 
 	auto end = std::chrono::high_resolution_clock::now();
 
-	U Board_size = {};
+	L Board_size = {};
+	std::vector<L> multiset_vec = {};
 
 	if (Probability_wave)
 	{
+		for (auto& num : multiset) {
+			multiset_vec.push_back(num);
+		} 
 
 		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
-		Board_size = std::get<U>(tuple);
-		std::cout << " Board size        " << Board_size << "[Boxes]" << std::endl;
-		std::cout << std::endl << " RNG range         " << std::get<R>(tuple) << "[Boxes]" << std::endl << std::endl;
+		
+		Board_size = multiset_vec[1];
+		std::cout              << " Board size        " << Board_size << "[Boxes]" << std::endl;
+		std::cout << std::endl << " RNMag             " << multiset_vec[0] << "[Boxes]" << std::endl << std::endl;
 
-		auto Amplitude = std::get<std::uint64_t>(tuple);
-		std::cout << " Amplitude         " << Amplitude << std::endl;
-		std::cout << " Offset Calculated " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
+		auto Amplitude = multiset_vec[2];
+		std::cout << " Amplitude         " << Amplitude << std::endl << std::endl;
+		auto DC = multiset_vec.back();
+		
+		std::cout << " DC                " << DC << std::endl;
+		std::cout << " DC Calculated     " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
 			<< std::endl << std::endl;
 	}
 
@@ -316,7 +324,8 @@ int main(int argc, char** argv)
 			plot.text(text_x_offset, -13, str, "purple", 11);
 
 			str = "RNMag=";
-			str += to_string_with_precision(R(std::get<R>(tuple)), 0);
+			auto rng_mag = multiset_vec.front();
+			str += to_string_with_precision(R(rng_mag), 0);
 			plot.text(text_x_offset, -18, str, "green", 11);
 
 			str = "Entropy=";

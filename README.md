@@ -19,4 +19,3 @@ C++20 implementation.
 ![Figure_2](https://user-images.githubusercontent.com/75379917/171993597-f36b8444-05ec-42f0-bc43-14d2e019fbb3.png)
 
 
-![Figure_9](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/87c13ec1-1e73-4c55-81ee-3c449c4238ef)

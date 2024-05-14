@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	std::uint64_t Ntrials = 1000000000;
 
 	//Wave cycles or threads  
-	U Ncycles = 2;
+	U Ncycles = 5;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -415,11 +415,9 @@ int main(int argc, char** argv)
 
 			X.clear();
 			Y.clear();
-
+			
 			//Peak - to - Peak Values, Ntrials = 1000000000
-			Y = { 56698, 102677, 155404, 183671, 206434, 279229, 303262, 328880, 422803, 434753, 465184,
-			472395, 519715, 516655, 553084, 714670, 740310, 760489, 781466, 745389, 811481,
-				797414, 808559, 852766, 786361, 831278, 797366, 1143894, 1091779, 1097404, 1102140 };
+			Y = { 333421, 204726, 310488, 367831, };
 
 			for (std::uint64_t i = 1; i <= Y.size(); i++)
 				X.push_back((double)i);

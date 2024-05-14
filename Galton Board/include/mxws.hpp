@@ -412,7 +412,7 @@ public:
 		requires
 		std::integral<I>&&
 		std::same_as<L, std::uint64_t>
-		std::multiset<std::uint64_t> Probability_Wave(const I& Initial_Board_size,
+			std::vector<std::uint64_t> Probability_Wave(const I& Initial_Board_size,
 			std::vector<L>& cycle, const L& TRIALS) {
 
 		I Board_size;
@@ -434,14 +434,9 @@ public:
 		auto Amplitude = std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle))));
 		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude/2.0));
 		
-		std::multiset<L> multiset;
+		std::vector<L> vec = { rn_range , Board_size , Amplitude , DC};
 
-		multiset.insert(rn_range);
-		multiset.insert(Board_size);
-		multiset.insert(Amplitude);
-		multiset.insert(DC);
-
-		return multiset;
+		return vec;
 	}
 
 	template <typename I>

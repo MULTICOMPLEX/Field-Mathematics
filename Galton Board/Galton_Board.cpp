@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	std::uint64_t Ntrials = 10000000;
 
 	//Wave cycles or threads  
-	U Ncycles = 31;
+	U Ncycles = 1;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -119,9 +119,9 @@ int main(int argc, char** argv)
 	std::cout << " NBins             " << Nbins << std::endl << std::endl;
 
 	typedef std::uint64_t L;
-	std::multiset<L> multiset = {};
+	std::vector<L> vec = {};
 
-	std::vector < std::future <decltype(multiset)>> vecOfThreads;
+	std::vector < std::future <decltype(vec)>> vecOfThreads;
 
 	std::vector<std::vector<std::vector<std::uint64_t>>>
 		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
@@ -135,28 +135,24 @@ int main(int argc, char** argv)
 			return Galton(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave); }));
 
 	for (auto& th : vecOfThreads)
-		multiset = th.get();
+		vec = th.get();
 
 	auto end = std::chrono::high_resolution_clock::now();
 
 	L Board_size = {};
-	std::vector<L> multiset_vec = {};
 
 	if (Probability_wave)
 	{
-		for (auto& num : multiset) {
-			multiset_vec.push_back(num);
-		} 
-
+		
 		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
 		
-		Board_size = multiset_vec[1];
+		Board_size = vec[1];
 		std::cout              << " Board size        " << Board_size << "[Boxes]" << std::endl;
-		std::cout << std::endl << " RNMag             " << multiset_vec[0] << "[Boxes]" << std::endl << std::endl;
+		std::cout << std::endl << " RNMag             " << vec[0] << "[Boxes]" << std::endl << std::endl;
 
-		auto Amplitude = multiset_vec[2];
+		auto Amplitude = vec[2];
 		std::cout << " Amplitude         " << Amplitude << std::endl << std::endl;
-		auto DC = multiset_vec.back();
+		auto DC = vec.back();
 		
 		std::cout << " DC                " << DC << std::endl;
 		std::cout << " DC Calculated     " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
@@ -324,7 +320,7 @@ int main(int argc, char** argv)
 			plot.text(text_x_offset, -13, str, "purple", 11);
 
 			str = "RNMag=";
-			auto rng_mag = multiset_vec.front();
+			auto rng_mag = vec.front();
 			str += to_string_with_precision(R(rng_mag), 0);
 			plot.text(text_x_offset, -18, str, "green", 11);
 

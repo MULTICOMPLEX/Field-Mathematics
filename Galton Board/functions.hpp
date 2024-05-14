@@ -64,19 +64,24 @@ auto Galton_Classic = []<typename L, typename K>
 template <typename A, typename I, typename B>
 	requires std::integral<I>&&
 std::same_as<A, uint64_t>
-std::multiset<A> Galton(
+std::vector<A> Galton(
 	const A& trials,
 	const I& Board_SIZE,
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
 	B probability_wave)
-{
-	
+{	
 	mxws <uint32_t>RNG;
 
+	std::vector<A> multiset;
 
-	std::multiset<A> multiset = RNG.Probability_Wave(Board_SIZE, galton_arr, trials);
+	if(probability_wave)
+		multiset = RNG.Probability_Wave(Board_SIZE, galton_arr, trials);
 
+	else {
+		multiset = { 0, Board_SIZE, Board_SIZE, Board_SIZE };
+		Galton_Classic(trials, galton_arr, 1.0, Board_SIZE / 2.0, false);
+	}
 
 	return multiset;
 }

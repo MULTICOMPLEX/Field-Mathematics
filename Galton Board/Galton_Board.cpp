@@ -13,10 +13,10 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 1000;//1000000000;
+	std::uint64_t Ntrials = 1000000000;
 
 	//Wave cycles or threads  
-	U Ncycles = 22;
+	U Ncycles = 31;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	B DFT = true;
 	//Enable sound to file (WAV format)
 	B WAV = false;
-	
+
 
 	//Console output
 	const B cout_gal = false;
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 		std::cout << " Trials            " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
 			<< " x " << Ncycles << std::endl;
 		std::cout << " Cycles            " << Ncycles << std::endl;
-		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
+
 	}
 
 	else {
@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 	}
 
 	Nbins = Initial_Board_size * Ncycles;
-	std::cout << " NBins             " << Nbins << std::endl;
+	std::cout << " NBins             " << Nbins << std::endl << std::endl;
 
 	typedef std::uint64_t L;
 	std::tuple<R, U, L> tuple;
@@ -139,18 +139,21 @@ int main(int argc, char** argv)
 
 	auto end = std::chrono::high_resolution_clock::now();
 
-	U Board_size = std::get<U>(tuple);
+	U Board_size = {};
 
 	if (Probability_wave)
 	{
-		std::cout << std::endl << " RNG range         " << std::get<R>(tuple) << "[Boxes]" << std::endl;
+
+		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
+		Board_size = std::get<U>(tuple);
+		std::cout << " Board size        " << Board_size << "[Boxes]" << std::endl;
+		std::cout << std::endl << " RNG range         " << std::get<R>(tuple) << "[Boxes]" << std::endl << std::endl;
+
 		auto Amplitude = std::get<std::uint64_t>(tuple);
 		std::cout << " Amplitude         " << Amplitude << std::endl;
-		std::cout << " Offset Calculated " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles" 
+		std::cout << " Offset Calculated " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
 			<< std::endl << std::endl;
 	}
-
-	std::cout << " Board size        " << Board_size << "[Boxes]" << std::endl;
 
 	std::cout << std::endl << " Duration Ball     "
 		<< std::chrono::nanoseconds(end - begin).count() / Ntrials
@@ -409,8 +412,9 @@ int main(int argc, char** argv)
 			Y.clear();
 
 			//Peak - to - Peak Values, Ntrials = 1000000000
-			Y = { 56698,102677, 155404, 183671, 206434, 279229, 303262, 328880, 422803, 434753, 465184,
-			472395, 519715, 516655, 553084, 714670, 740310, 760489, 781466, 745389, 811481, 797414, 808559 };
+			Y = { 56698, 102677, 155404, 183671, 206434, 279229, 303262, 328880, 422803, 434753, 465184,
+			472395, 519715, 516655, 553084, 714670, 740310, 760489, 781466, 745389, 811481,
+				797414, 808559, 852766, 786361, 831278, 797366, 1143894, 1091779, 1097404, 1102140 };
 
 			for (std::uint64_t i = 1; i <= Y.size(); i++)
 				X.push_back((double)i);

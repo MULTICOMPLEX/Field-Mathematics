@@ -8,7 +8,7 @@
 #include "MULTICOMPLEX.hpp"
 //typedef std::complex<double> Complex;
 typedef MX0 Complex;
- 
+
 //#include "coroutine.hpp"
 #include "matplotlib.hpp"
 #include "number_theory.hpp"
@@ -17,7 +17,7 @@ typedef MX0 Complex;
 #include "constants.hpp"
 #include "vector_operators.hpp"
 #include "fft.hpp"
- 
+
 
 plot_matplotlib plot;
 
@@ -70,12 +70,12 @@ std::vector<A> Galton(
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
 	B probability_wave)
-{	
+{
 	mxws <uint32_t>RNG;
 
 	std::vector<A> multiset;
 
-	if(probability_wave)
+	if (probability_wave)
 		multiset = RNG.Probability_Wave(Board_SIZE, galton_arr, trials);
 
 	else {
@@ -464,11 +464,11 @@ long double ShannonEntropy(const std::vector<T>& data) {
 	auto elements = data.size();
 	std::map<T, std::size_t> frequencies;
 
-	std::ranges::for_each(data, [&](auto& n) {frequencies[n] ++; });
+	std::ranges::for_each(data, [&](auto& n) {frequencies[n]++; });
 
 	std::ranges::for_each(frequencies, [&](auto& p) {
 		auto p_x = (long double)p.second / elements;
-	entropy -= p_x * log2(p_x); });
+		entropy -= p_x * log2(p_x); });
 
 	return entropy;
 }
@@ -582,7 +582,7 @@ void count_duplicates(const std::vector<T>& nums)
 		}
 	}
 	for (const auto& i : duplicate) {
-		duplicate2[i.second + 1] ++;
+		duplicate2[i.second + 1]++;
 		std::cout << std::setprecision(8) << std::setw(14) << i.first << " :: " << i.second + 1 << std::endl;
 	}
 	for (const auto& i : duplicate2) {

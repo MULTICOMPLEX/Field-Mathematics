@@ -13,10 +13,10 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 10000000;
+	std::uint64_t Ntrials = 1000000000;
 
 	//Wave cycles or threads  
-	U Ncycles = 1;
+	U Ncycles = 2;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -143,17 +143,17 @@ int main(int argc, char** argv)
 
 	if (Probability_wave)
 	{
-		
+
 		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
-		
+
 		Board_size = vec[1];
-		std::cout              << " Board size        " << Board_size << "[Boxes]" << std::endl;
+		std::cout << " Board size        " << Board_size << "[Boxes]" << std::endl;
 		std::cout << std::endl << " RNMag             " << vec[0] << "[Boxes]" << std::endl << std::endl;
 
 		auto Amplitude = vec[2];
 		std::cout << " Amplitude         " << Amplitude << std::endl << std::endl;
 		auto DC = vec.back();
-		
+
 		std::cout << " DC                " << DC << std::endl;
 		std::cout << " DC Calculated     " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
 			<< std::endl << std::endl;

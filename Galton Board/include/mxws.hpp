@@ -13,7 +13,7 @@
 #include "../ziggurat.hpp"
 #include <set>
 
- 
+
 template <typename RN>
 	requires
 std::same_as<RN, uint32_t> ||
@@ -407,12 +407,12 @@ public:
 	{
 		return std::numbers::sqrt2 * erf_inv(2 * p - 1);
 	}
-	
+
 	template <typename I, typename L>
 		requires
-		std::integral<I>&&
+	std::integral<I>&&
 		std::same_as<L, std::uint64_t>
-			std::vector<std::uint64_t> Probability_Wave(const I& Initial_Board_size,
+		std::vector<std::uint64_t> Probability_Wave(const I& Initial_Board_size,
 			std::vector<L>& cycle, const L& TRIALS) {
 
 		I Board_size;
@@ -429,12 +429,12 @@ public:
 				random_walk += rng();
 
 			cycle[std::modulus()(random_walk * rn_range >> 32, Initial_Board_size)]++;
-			
+
 		}
 		auto Amplitude = std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle))));
-		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude/2.0));
-		
-		std::vector<L> vec = { rn_range , Board_size , Amplitude , DC};
+		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude / 2.0));
+
+		std::vector<L> vec = { rn_range , Board_size , Amplitude , DC };
 
 		return vec;
 	}
@@ -619,8 +619,8 @@ public:
 	//https://arxiv.org/abs/1704.00358
 	std::uint64_t xw = 0, ww = 0, sw = 0xb5ad4eceda1ce2a9;
 	inline std::uint32_t msws32() {
-		xw *= xw; 
-		xw += (ww += sw); 
+		xw *= xw;
+		xw += (ww += sw);
 		xw = (xw >> 32) | (xw << 32);
 		return std::uint32_t(xw);
 	}

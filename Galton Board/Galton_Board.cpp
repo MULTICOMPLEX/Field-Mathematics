@@ -435,7 +435,7 @@ int main(int argc, char** argv)
 			plot.set_ylabel("Amplitude");
 			plot.grid_settings(X);
 			plot.grid_on();
-			auto d = "Peak-to-Peak Values, Ntrials = " + nameForNumber(1000000000);
+			auto d = "Probability Cycles Amplitude, Ntrials = " + nameForNumber(1000000000);
 			plot.set_title(d);
 			plot.show();
 

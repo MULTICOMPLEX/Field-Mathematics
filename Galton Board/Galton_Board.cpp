@@ -21,9 +21,9 @@ int main(int argc, char** argv)
 	U N_Integrations = 1;
 	//Initial number of bins
 	U Nbins = 3000;
-	//Nbins = 100 * Ncycles; //for fixed Amplitude
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
+	
 	//Sinusoidal distribution or Normal distribution
 	U Binormal_Distribution_Nbins = 2000;
 	B Probability_wave = true;
@@ -37,7 +37,8 @@ int main(int argc, char** argv)
 	B DFT = true;
 	//Enable sound to file (WAV format)
 	B WAV = false;
-
+	// Seed for rng's
+	U Seed = 10;
 
 	//Console output
 	const B cout_gal = false;
@@ -127,13 +128,13 @@ int main(int argc, char** argv)
 	std::vector<std::vector<std::vector<std::uint64_t>>>
 		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
 			(Ncycles, std::vector<std::uint64_t>(Initial_Board_size, 0ull)));
-
+	
 	auto begin = std::chrono::high_resolution_clock::now();
 
 	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave); }));
+			return Galton(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave, k + Seed); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();

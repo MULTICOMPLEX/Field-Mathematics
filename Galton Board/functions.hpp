@@ -69,21 +69,24 @@ std::vector<A> Galton(
 	const I& Board_SIZE,
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
-	B probability_wave)
+	B probability_wave, I seed)
 {
+	
 	mxws <uint32_t>RNG;
+	RNG.seed(seed);
+	//std::cout << RNG.x << " " << RNG.w << std::endl;
 
-	std::vector<A> multiset;
-
+	std::vector<A> vec;
+	
 	if (probability_wave)
-		multiset = RNG.Probability_Wave(Board_SIZE, galton_arr, trials);
+		vec = RNG.Probability_Wave(Board_SIZE, galton_arr, trials);
 
 	else {
-		multiset = { 0, Board_SIZE, Board_SIZE, Board_SIZE };
+		vec = { 0, Board_SIZE, Board_SIZE, Board_SIZE };
 		Galton_Classic(trials, galton_arr, 1.0, Board_SIZE / 2.0, false);
 	}
 
-	return multiset;
+	return vec;
 }
 
 std::vector<std::string> ones{ "","one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };

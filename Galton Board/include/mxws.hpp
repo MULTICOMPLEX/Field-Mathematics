@@ -40,7 +40,9 @@ public:
 
 	void seed(uint64_t x)
 	{
-		w = x;
+		std::mt19937_64 rng(x);
+		w = rng();
+
 		x = 1;
 		w1 = w;
 		w2 = w1 + 1;
@@ -51,10 +53,10 @@ public:
 		requires	std::same_as<T, std::seed_seq>
 	mxws(const T& seq)
 	{
-		if (seq.size() == 2)
+		if (seq.size() > 2)
 		{
-			std::vector<uint32_t> seeds(seq.size());
-			seq.param(seeds.rbegin());
+			std::vector<uint32_t> seeds(2);
+			seq.generate(seeds.begin(), seeds.end());
 			w = (uint64_t(seeds[1]) << 32) | seeds[0];
 			x = 1;
 

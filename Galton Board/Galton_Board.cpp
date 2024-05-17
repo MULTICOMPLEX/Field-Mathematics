@@ -16,11 +16,12 @@ int main(int argc, char** argv)
 	std::uint64_t Ntrials = 1000000000;
 
 	//Wave cycles or threads  
-	U Ncycles = 46;
+	U Ncycles = 50;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
 	U Nbins = 3000;
+	//Nbins = 100 * Ncycles; //for fixed Amplitude
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
@@ -416,13 +417,16 @@ int main(int argc, char** argv)
 			X.clear();
 			Y.clear();
 
-			//Peak - to - Peak Values, Ntrials = 1000000000
+			//Peak - to - Peak Values, Ntrials = 1000000000, Nbins = 3000
 			Y = { 0, 
 				112668, 204726, 310488, 367831, 414387, 557552, 608150, 656886, 846702, 869743, 
 				931300, 950429, 1041416, 1033746, 1102301, 1426354, 1485941, 1515106, 1560377, 1491921, 
 				1628712, 1594170, 1614400, 1703989, 1576429, 1663523, 1583594, 2274436, 2186246, 2194360, 
 				2205265, 2208681, 2193307, 2205733, 2341946, 2340540, 2490952, 2672206, 2324625, 2498827, 
-				2678834, 2291373, 2665569, 2266402, 2653406, 2871623 };
+				2678834, 2291373, 2665569, 2266402, 2653406, 2871623, 2638974, 2392984, 3476214 };
+
+			//Peak - to - Peak Values, Ntrials = 1000000000, Nbins = 100 x Ncycles
+			//Y = { 0, 2196194, 2195200, 2196479, 2198552, 2196930, 2189720, 2194807 };
 
 			for (std::uint64_t i = 0; i <= Y.size(); i++)
 				X.push_back((double)i);

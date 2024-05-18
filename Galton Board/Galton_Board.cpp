@@ -16,14 +16,13 @@ int main(int argc, char** argv)
 	std::uint64_t Ntrials = 1000000000;
 
 	//Wave cycles or threads  
-	U Ncycles = 50;
+	U Ncycles = 4;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
 	U Nbins = 3000;
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
-	
 	//Sinusoidal distribution or Normal distribution
 	U Binormal_Distribution_Nbins = 2000;
 	B Probability_wave = true;
@@ -161,7 +160,7 @@ int main(int argc, char** argv)
 			<< std::endl << std::endl;
 	}
 
-	std::cout << std::endl << " Duration Ball     "
+	std::cout << std::endl << " Duration Trial    "
 		<< std::chrono::nanoseconds(end - begin).count() / Ntrials
 		<< "[ns]" << std::endl << std::endl;
 
@@ -311,14 +310,13 @@ int main(int argc, char** argv)
 			else if (Initial_Board_size < Board_size) str = str + ", grown to ";
 			else str = str + ", size stayed the same=";
 			str += to_string_with_precision(R(Board_size), 0);
-
 			str += ", ratio=";
 			if (Initial_Board_size > Board_size)
 				str += to_string_with_precision(R(Initial_Board_size) / Board_size, 1);
 			else if (Initial_Board_size < Board_size)
 				str += to_string_with_precision(Board_size / R(Initial_Board_size), 1);
 			else
-				str += to_string_with_precision(R(Initial_Board_size), 1);
+				str += to_string_with_precision(R(1), 1);
 			plot.text(text_x_offset, -13, str, "purple", 11);
 
 			str = "RNMag=";

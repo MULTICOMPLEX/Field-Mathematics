@@ -63,17 +63,19 @@ auto Galton_Classic = []<typename L, typename K>
 
 template <typename A, typename I, typename B>
 	requires std::integral<I>&&
-std::same_as<A, uint64_t>
+std::same_as<A, uint64_t>&&
+std::same_as<B, bool>
 std::vector<A> Galton(
 	const A& trials,
 	const I& Board_SIZE,
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
-	B probability_wave, I seed)
+	B probability_wave, I Seed, B Enable_Seed)
 {
 	
 	mxws <uint32_t>RNG;
-	RNG.seed(seed);
+	if(Enable_Seed)
+		RNG.seed(Seed);
 	//std::cout << RNG.x << " " << RNG.w << std::endl;
 
 	std::vector<A> vec;

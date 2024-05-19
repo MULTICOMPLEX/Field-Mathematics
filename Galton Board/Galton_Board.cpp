@@ -14,9 +14,8 @@ int main(int argc, char** argv)
 	/***************SETTINGS*****************/
 
 	std::uint64_t Ntrials = 1000000000;
-
 	//Wave cycles or threads  
-	U Ncycles = 4;
+	U Ncycles = 51;
 	//Number of integrations
 	U N_Integrations = 1;
 	//Initial number of bins
@@ -38,6 +37,7 @@ int main(int argc, char** argv)
 	B WAV = false;
 	// Seed for rng's
 	U Seed = 10;
+	B Enable_Seed = false;
 
 	//Console output
 	const B cout_gal = false;
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
 	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave, k + Seed); }));
+			return Galton(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave, k + Seed, Enable_Seed); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();
@@ -153,10 +153,10 @@ int main(int argc, char** argv)
 
 		auto Amplitude = vec[2];
 		std::cout << " Amplitude         " << Amplitude << std::endl << std::endl;
-		auto DC = vec.back();
 
+		auto DC = vec.back();
 		std::cout << " DC                " << DC << std::endl;
-		std::cout << " DC Calculated     " << std::uint64_t(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
+		std::cout << " DC Calculated     " << L(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
 			<< std::endl << std::endl;
 	}
 
@@ -425,6 +425,7 @@ int main(int argc, char** argv)
 				2678834, 2291373, 2665569, 2266402, 2653406, 2871623, 2638974, 2392984, 3476214, 3187955 };
 
 			//Peak - to - Peak Values, Ntrials = 1000000000, Nbins = 100 x Ncycles
+			
 			//Y = { 0, 2196194, 2195200, 2196479, 2198552, 2196930, 2189720, 2194807 };
 
 			for (std::uint64_t i = 0; i <= Y.size(); i++)

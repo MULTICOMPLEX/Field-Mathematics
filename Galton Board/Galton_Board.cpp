@@ -15,9 +15,9 @@ int main(int argc, char** argv)
 
 	std::uint64_t Ntrials = 1000000000;
 	//Wave cycles or threads  
-	U Ncycles = 70;
+	U Ncycles = 40;
 	//Number of integrations
-	U N_Integrations = 1;
+	U N_Integrations = 10;
 	//Initial number of bins
 	U Nbins = 3000;
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
@@ -95,19 +95,16 @@ int main(int argc, char** argv)
 	std::cout << " " << N_Hthreads << " concurrent cycles (threads) are supported."
 		<< std::endl << std::endl;
 
-	Ntrials *= N_Integrations;
-
 	if (Probability_wave) {
-		std::cout << " Trials            " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
+		std::cout << " NTrials           " << nameForNumber(Ntrials * N_Integrations) << " (" << Ntrials * N_Integrations << ")"
 			<< " x " << Ncycles << std::endl;
-		std::cout << " Cycles            " << Ncycles << std::endl;
-
+		std::cout << " NCycles           " << Ncycles << std::endl;
 	}
 
 	else {
 		Initial_Board_size = Binormal_Distribution_Nbins;
 		Ncycles = 1;
-		std::cout << " Trials            " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
+		std::cout << " NTrials           " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
 			<< " x " << Ncycles << std::endl;
 	}
 
@@ -127,13 +124,18 @@ int main(int argc, char** argv)
 	std::vector<std::vector<std::vector<std::uint64_t>>>
 		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
 			(Ncycles, std::vector<std::uint64_t>(Initial_Board_size, 0ull)));
-	
+
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	for (U i = 0; i < N_Integrations; i++)
-		for (U k = 0; k < Ncycles; k++)
+	for (U i = 0; i < N_Integrations; i++) {
+		
+		for (U k = 0; k < Ncycles; k++) {
+
 			vecOfThreads.push_back(std::async([&, i, k] {
-			return Galton(Ntrials / N_Integrations, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave, k + Seed, Enable_Seed); }));
+				return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
+					i * Ncycles + k + Seed, Enable_Seed); }));
+		}
+	}
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();
@@ -159,9 +161,11 @@ int main(int argc, char** argv)
 		std::cout << " DC Calculated     " << L(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
 			<< std::endl << std::endl;
 	}
+	
+	Ntrials *= N_Integrations;
 
 	std::cout << std::endl << " Duration Trial    "
-		<< std::chrono::nanoseconds(end - begin).count() / Ntrials
+		<< std::chrono::nanoseconds(end - begin).count() / (Ntrials * Ncycles)
 		<< "[ns]" << std::endl << std::endl;
 
 	if (Initial_Board_size <= 256 && cout_gal)
@@ -417,18 +421,18 @@ int main(int argc, char** argv)
 			Y.clear();
 
 			//Peak - to - Peak Values, Ntrials = 1000000000, Nbins = 3000
-			Y = { 0, 
-				 112668,  204726,  310488,  367831,  414387,  557552,  608150,  656886,  846702,  869743, 
-				 931300,  950429, 1041416, 1033746, 1102301, 1426354, 1485941, 1515106, 1560377, 1491921, 
-				1628712, 1594170, 1614400, 1703989, 1576429, 1663523, 1583594, 2274436, 2186246, 2194360, 
-				2205265, 2208681, 2193307, 2205733, 2341946, 2340540, 2490952, 2672206, 2324625, 2498827, 
+			Y = { 0,
+				 112668,  204726,  310488,  367831,  414387,  557552,  608150,  656886,  846702,  869743,
+				 931300,  950429, 1041416, 1033746, 1102301, 1426354, 1485941, 1515106, 1560377, 1491921,
+				1628712, 1594170, 1614400, 1703989, 1576429, 1663523, 1583594, 2274436, 2186246, 2194360,
+				2205265, 2208681, 2193307, 2205733, 2341946, 2340540, 2490952, 2672206, 2324625, 2498827,
 				2678834, 2291373, 2665569, 2266402, 2653406, 2871623, 2638974, 2392984, 3476214, 3187955,
 				3773686, 3449427, 3140172, 3743962, 3396675, 3055826, 3699479, 3329488, 4055998, 3626021,
 				3240510, 3976278, 3981304, 3540152, 3114491, 3891122, 3896901, 3413799, 4328368, 4304966 };
 
 
 			//Peak - to - Peak Values, Ntrials = 1000000000, Nbins = 100 x Ncycles
-			
+
 			//Y = { 0, 2196194, 2195200, 2196479, 2198552, 2196930, 2189720, 2194807 };
 
 			for (std::uint64_t i = 0; i <= Y.size(); i++)

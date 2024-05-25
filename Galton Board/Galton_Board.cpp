@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 
 	std::uint64_t Ntrials = 1000000000;
 	//Wave cycles or threads  
-	U Ncycles = 40;
+	U Ncycles = 8;
 	//Number of integrations
 	U N_Integrations = 10;
 	//Initial number of bins
@@ -127,15 +127,11 @@ int main(int argc, char** argv)
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	for (U i = 0; i < N_Integrations; i++) {
-		
-		for (U k = 0; k < Ncycles; k++) {
-
+	for (U i = 0; i < N_Integrations; i++)
+		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
 				return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
 					i * Ncycles + k + Seed, Enable_Seed); }));
-		}
-	}
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();

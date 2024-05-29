@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 1000000000;
+	std::uint64_t Ntrials = 100000000;
 	//Wave cycles or threads  
 	U Ncycles = 8;
 	//Number of integrations
@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 	B WAV = false;
 	// Seed for rng's
 	U Seed = 10;
-	B Enable_Seed = false;
+	B Enable_Seed = true;
 
 	//Console output
 	const B cout_gal = false;

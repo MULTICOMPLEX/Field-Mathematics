@@ -77,7 +77,8 @@ public:
 		requires	std::same_as<T, uint64_t>
 	mxws(const T& seed)
 	{
-		init();
+		std::mt19937_64 rng(seed);
+		init(rng());
 	}
 
 	void init()

@@ -18,6 +18,17 @@ typedef MX0 Complex;
 #include "vector_operators.hpp"
 #include "fft.hpp"
 
+template <typename T, typename I>
+	requires std::floating_point<T>&&
+std::integral<I>
+I FP_digits(const T& var, const I& digits)
+{
+	T p;
+	std::modf(var, &p);
+	auto dec = std::pow(10, digits - 1);
+	T value = var * dec + .5;
+	return I(value);
+}
 
 plot_matplotlib plot;
 
@@ -72,14 +83,14 @@ std::vector<A> Galton(
 	std::vector<A>& galton_arr,
 	B probability_wave, I Seed, B Enable_Seed)
 {
-	
+
 	mxws <uint32_t>RNG;
-	if(Enable_Seed)
+	if (Enable_Seed)
 		RNG.seed(Seed);
 	//std::cout << RNG.x << " " << RNG.w << std::endl;
 
 	std::vector<A> vec;
-	
+
 	if (probability_wave)
 		vec = RNG.Probability_Wave(Board_SIZE, galton_arr, trials);
 

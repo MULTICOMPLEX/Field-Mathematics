@@ -15,11 +15,12 @@ int main(int argc, char** argv)
 
 	std::uint64_t Ntrials = 100000000;
 	//Wave cycles or threads  
-	U Ncycles = 8;
+	U Ncycles = 13;
 	//Number of integrations
 	U N_Integrations = 10;
 	//Initial number of bins
-	U Nbins = 3000;
+	//U Nbins = 3000;
+	U Nbins = Ncycles * FP_digits(std::numbers::pi, 3); //3, 31, 314, 3142, 31416 
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
@@ -67,7 +68,6 @@ int main(int argc, char** argv)
 	}
 
 	U Initial_Board_size = U(round(Nbins / R(Ncycles)));
-
 
 	/* get cmd args */
 	if (argc < 7) {
@@ -130,8 +130,8 @@ int main(int argc, char** argv)
 	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-				return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
-					i * Ncycles + k + Seed, Enable_Seed); }));
+			return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
+				i * Ncycles + k + Seed, Enable_Seed); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 
 	if (Probability_wave)
 	{
-
+	
 		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
 
 		Board_size = vec[1];
@@ -157,7 +157,7 @@ int main(int argc, char** argv)
 		std::cout << " DC Calculated     " << L(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
 			<< std::endl << std::endl;
 	}
-	
+
 	Ntrials *= N_Integrations;
 
 	std::cout << std::endl << " Duration Trial    "

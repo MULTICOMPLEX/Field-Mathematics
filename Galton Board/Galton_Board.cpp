@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 	U N_Integrations = 10;
 	//Initial number of bins
 	//U Nbins = 3000;
-	U Nbins = Ncycles * FP_digits(std::numbers::pi, 3); //3, 31, 314, 3142, 31416 
+	U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution

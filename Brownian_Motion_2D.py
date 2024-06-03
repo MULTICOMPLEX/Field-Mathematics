@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def simulate_brownian_motion_2d(num_terms=1000, interval=2 * np.pi):
+def simulate_brownian_motion_2d(num_terms=1000, interval=2 * np.pi,  spread = 0.001, seed = 10):
     """Simulates 2D Brownian motion using random Fourier series.
 
     Args:
@@ -11,26 +11,26 @@ def simulate_brownian_motion_2d(num_terms=1000, interval=2 * np.pi):
     Returns:
         numpy.ndarray: Time points, X-coordinates, and Y-coordinates.
     """
+    rng = np.random.default_rng(seed)
+    xi_x = rng.normal(0, 1, num_terms)  # Independent standard normal for X
+    xi_y = rng.normal(0, 1, num_terms)  # Independent standard normal for Y
+    
     t = np.linspace(0, interval, num_terms)
-    xi_x = np.random.normal(0, 1, num_terms)  # Independent standard normal for X
-    xi_y = np.random.normal(0, 1, num_terms)  # Independent standard normal for Y
-
-    s = np.sqrt(2) 
  
     # Calculate X-coordinates
     B_t_x = xi_x[0] * t
     for k in range(1, num_terms):
-        B_t_x += s* xi_x[k] * np.sin(k * np.pi * t / interval) / (k * np.pi / interval)
+        B_t_x += (1.0 / spread) * np.sqrt(2) * xi_x[k] * np.sin(k * np.pi * t / interval) / (k * np.pi / interval)
 
     # Calculate Y-coordinates
     B_t_y = xi_y[0] * t
     for k in range(1, num_terms):
-        B_t_y += s * xi_y[k] * np.sin(k * np.pi * t / interval) / (k * np.pi / interval)
+        B_t_y += (1.0 / spread) * np.sqrt(2) * xi_y[k] * np.sin(k * np.pi * t / interval) / (k * np.pi / interval)
 
-    return t, B_t_x, B_t_y
+    return t, B_t_x * spread, B_t_y * spread
 
 # Example usage
-t, B_t_x, B_t_y = simulate_brownian_motion_2d()
+t, B_t_x, B_t_y = simulate_brownian_motion_2d(spread = 0.001, seed = None)
 
 plt.figure(figsize=(8, 8))
 

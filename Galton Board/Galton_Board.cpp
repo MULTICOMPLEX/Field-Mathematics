@@ -13,14 +13,14 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 100000000;
+	std::uint64_t Ntrials = 1000000;
 	//Wave cycles or threads  
-	U Ncycles = 13;
+	U Ncycles = 123;
 	//Number of integrations
 	U N_Integrations = 10;
 	//Initial number of bins
-	//U Nbins = 3000;
-	U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
+	U Nbins = 3000;
+	//U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 	}
 
 	Nbins = Initial_Board_size * Ncycles;
-	std::cout << " NBins             " << Nbins << std::endl << std::endl;
+	std::cout << " NBins             " << Nbins << std::endl;
 
 	typedef std::uint64_t L;
 	std::vector<L> vec = {};
@@ -140,6 +140,13 @@ int main(int argc, char** argv)
 
 	L Board_size = {};
 
+
+	Ntrials *= N_Integrations;
+
+	std::cout << " Duration Trial    "
+		<< std::chrono::nanoseconds(end - begin).count() / (Ntrials * Ncycles)
+		<< "[ns]" << std::endl << std::endl << std::endl;
+
 	if (Probability_wave)
 	{
 	
@@ -150,7 +157,7 @@ int main(int argc, char** argv)
 		std::cout << std::endl << " RNMag             " << vec[0] << "[Boxes]" << std::endl << std::endl;
 
 		auto Amplitude = vec[2];
-		std::cout << " Amplitude         " << Amplitude << std::endl << std::endl;
+		std::cout << " AC Amplitude P-P  " << Amplitude << std::endl << std::endl;
 
 		auto DC = vec.back();
 		std::cout << " DC                " << DC << std::endl;
@@ -158,11 +165,7 @@ int main(int argc, char** argv)
 			<< std::endl << std::endl;
 	}
 
-	Ntrials *= N_Integrations;
 
-	std::cout << std::endl << " Duration Trial    "
-		<< std::chrono::nanoseconds(end - begin).count() / (Ntrials * Ncycles)
-		<< "[ns]" << std::endl << std::endl;
 
 	if (Initial_Board_size <= 256 && cout_gal)
 		cout_galton(Initial_Board_size, galton_arr[0][0]);
@@ -228,8 +231,9 @@ int main(int argc, char** argv)
 
 		Y_buf /= R(N_Integrations);
 
-		std::cout << " Avarage           " << avarage_vector(Y_buf) / Ncycles << std::endl;
-		std::cout << " AC Amplitude      " << ac_amplite_vector(Y_buf) / Ncycles << std::endl;
+		std::cout << " NIntegratons                   " << N_Integrations << std::endl;
+		std::cout << " Avarage                        " << avarage_vector(Y_buf) / Ncycles << std::endl;
+		std::cout << " AC Amplitude P-P all cycles    " << U(round(ac_amplite_vector(Y_buf))) << std::endl;
 
 		Y = Y_buf;
 
@@ -295,7 +299,7 @@ int main(int argc, char** argv)
 
 			rms *= 1. / (cx.size()) * 2;
 
-			std::cout << " RMS	           " << rms << "[dB]" << std::endl << std::endl;
+			std::cout << " RMS	                        " << rms << "[dB]" << std::endl << std::endl;
 
 			auto text_x_offset = Nbins / 10; //210
 
@@ -331,9 +335,13 @@ int main(int argc, char** argv)
 			str += to_string_with_precision(rms, 4);
 			plot.text(text_x_offset, -23, str, "black", 11);
 
-			std::cout << " Max Entropy log2(" << Nbins << ") = " <<
+			std::cout << " Max Entropy log2(" << Nbins << ")         " <<
 				to_string_with_precision(std::log2(Nbins), 6) << std::endl;
-			std::cout << " Entropy Cycles[1.." << Ncycles << "] " << entropy << std::endl << std::endl;
+			auto digit = int((std::log10(Ncycles) + 1));
+			str.clear();
+			for (int i = 0; i < 6 - digit; i++)
+				str += " ";
+			std::cout << " Entropy Cycles[1.." << Ncycles << "]      " + str << entropy << std::endl << std::endl;
 
 			if (Entropy) {
 				count_duplicates(Y_buf);

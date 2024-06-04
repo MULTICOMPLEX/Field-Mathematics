@@ -432,7 +432,10 @@ public:
 			cycle[std::modulus()(random_walk * rn_range >> 32, Initial_Board_size)]++;
 
 		}
-		auto Amplitude = std::uint64_t(round((*std::ranges::max_element(cycle) - *std::ranges::min_element(cycle))));
+		
+		auto k = std::ranges::minmax_element(cycle);
+		auto Amplitude = std::uint64_t(round(*k.max - *k.min));
+
 		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude / 2.0));
 
 		std::vector<L> vec = { rn_range , Board_size , Amplitude , DC };

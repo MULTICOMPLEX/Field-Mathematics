@@ -20,21 +20,21 @@ def simulate_brownian_motion_2d(num_terms=1000, spread = 0.001, seed = 10):
     xi_y = rng.normal(0, 1, num_terms)  # Independent standard normal for Y
     
     t = np.linspace(0, 2 * np.pi, num_terms)
- 
+    spread = 1 / spread
     # Calculate X-coordinates
-
+    
     B_t_x = xi_x[0] * t / np.sqrt(2 * np.pi)
-    B_t_x += sum((1.0 / spread) * np.sin(n * t)* xi_x[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
+    B_t_x += sum(np.sin(n * t / 2) * spread * xi_x[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
 
     # Calculate Y-coordinates
        
     B_t_y = xi_y[0] * t / np.sqrt(2 * np.pi)
-    B_t_y += sum((1.0 / spread) * np.sin(n * t / 2)* xi_y[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
+    B_t_y += sum(np.sin(n * t / 2) * spread * xi_y[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
 
-    return t, B_t_x * spread, B_t_y * spread
+    return t, B_t_x / spread, B_t_y / spread
 
 # Example usage
-t, B_t_x, B_t_y = simulate_brownian_motion_2d(spread = 0.001, seed = None)
+t, B_t_x, B_t_y = simulate_brownian_motion_2d(num_terms=10000, spread = 0.001, seed = None)
 
 plt.figure(figsize=(8, 8))
 
@@ -109,7 +109,7 @@ from scipy.stats import norm
 def W(t, N):
         z = np.random.normal(0, 1, N)
         s = z[0] * t / np.sqrt(2 * np.pi)
-        s += sum(1000 * np.sin(n * t / 2)*z[n] / n for n in range(1, N)) * 2 / np.sqrt(np.pi)
+        s += sum(1000 * np.sin(n * t / 2) * z[n] / n for n in range(1, N)) * 2 / np.sqrt(np.pi)
         return s  * (1 / 1000)
           
 N = 1000

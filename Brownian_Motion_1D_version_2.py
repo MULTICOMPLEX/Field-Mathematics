@@ -17,7 +17,7 @@ def simulate_brownian_motion(num_terms=1000, spread = 0.001, seed = 10):
     t = np.linspace(0, 2 * np.pi, num_terms)
     
     rng = np.random.default_rng(seed)
-    xi = rng.normal(0, 1, num_terms)  # Independent standard normal variables
+    xi = rng.uniform(-np.sqrt(np.pi), np.sqrt(np.pi), num_terms)  # Independent standard normal variables
 
     B_t = xi[0] * t / np.sqrt(2 * np.pi) * spread
     B_t += sum(np.sin(n * t / 2) * xi[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
@@ -30,7 +30,8 @@ plt.figure(figsize=(10, 6))
 for _ in range(10):
     t, B_t = simulate_brownian_motion(num_terms=1000, spread = 1, seed = None)
     plt.plot(t, B_t)
-    
+
+plt.plot(t, B_t)
 plt.title("Simulated Brownian Motion")
 plt.xlabel("Time")
 plt.ylabel("B(t)")

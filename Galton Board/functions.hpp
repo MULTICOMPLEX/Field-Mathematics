@@ -735,6 +735,7 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
 
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
+	auto pi = std::sqrt(std::numbers::pi);
 
 	for (int i = 0; i < num_terms; i++) {
 		xi[i] = rng.normalRandom(0., 1.);
@@ -747,14 +748,15 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
 	std::vector<T> B_t_x(num_terms, 0.0), B_t_y(num_terms, 0.0);
 
 	for (auto i = 0; i < num_terms; i++) {
-		B_t_x[i] = xi[0] * t[i] / std::sqrt(2 * std::numbers::pi);
-		B_t_y[i] = yi[0] * t[i] / std::sqrt(2 * std::numbers::pi);
+		B_t_x[i] = xi[0] * spread * t[i] * (1./ std::sqrt(2 * pi));
+		B_t_y[i] = yi[0] * spread * t[i] * (1./ std::sqrt(2 * pi));
 		for (auto n = 1; n < num_terms; n++) {
-			B_t_x[i] += spread * std::sin(n * t[i] / 2) * xi[n] / n;
-			B_t_y[i] += spread * std::sin(n * t[i] / 2) * yi[n] / n;
+			auto k = std::sin(n * t[i] / 2);
+			B_t_x[i] += k * xi[n] / n;
+			B_t_y[i] += k * yi[n] / n;
 		}
-		B_t_x[i] *= 2 / std::sqrt(std::numbers::pi) / spread;
-		B_t_y[i] *= 2 / std::sqrt(std::numbers::pi) / spread;
+		B_t_x[i] *= 2 / std::sqrt(pi);
+		B_t_y[i] *= 2 / std::sqrt(pi);
 	}
 
 	auto k1 = std::ranges::minmax_element(B_t_x);
@@ -766,7 +768,49 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
 	return std::make_pair(B_t_x, B_t_y);
 }
 
+// Function to simulate Brownian motion
+template<typename T, typename K>
+std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion2(
+	K num_terms = 1000, T spread = 1, K seed = 10) {
 
+	// Time points
+	std::vector<T> t = linspace(0., 2 * std::numbers::pi, num_terms);
+
+	// Random number generation
+	mxws<uint64_t> rng;
+
+	// Generate independent standard normal variables
+	std::vector<T> xi(num_terms), yi(num_terms);
+	auto pi = std::sqrt(std::numbers::pi);
+
+	for (int i = 0; i < num_terms; i++) {
+		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+	}
+
+	// Brownian motion calculation
+	std::vector<T> B_t_x(num_terms, 0.0), B_t_y(num_terms, 0.0);
+
+	for (auto i = 0; i < num_terms; i++) {
+		B_t_x[i] = xi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
+		B_t_y[i] = yi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
+		for (auto n = 1; n < num_terms; n++) {
+			auto k = std::sin(n * t[i] / 2);
+			B_t_x[i] += k * xi[n] / n;
+			B_t_y[i] += k * yi[n] / n;
+		}
+		B_t_x[i] *= 2 / std::sqrt(pi);
+		B_t_y[i] *= 2 / std::sqrt(pi);
+	}
+
+	auto k1 = std::ranges::minmax_element(B_t_x);
+	auto Amplitude_x = *k1.max - *k1.min;
+	auto k2 = std::ranges::minmax_element(B_t_y);
+	auto Amplitude_y = *k2.max - *k2.min;
+	std::cout << Amplitude_x << "  " << Amplitude_y << std::endl;
+
+	return std::make_pair(B_t_x, B_t_y);
+}
 
 #endif // FUNCTIONS
 

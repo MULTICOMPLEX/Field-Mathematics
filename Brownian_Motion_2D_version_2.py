@@ -16,25 +16,25 @@ def simulate_brownian_motion_2d(num_terms=1000, spread = 0.001, seed = 10):
         numpy.ndarray: Time points, X-coordinates, and Y-coordinates.
     """
     rng = np.random.default_rng(seed)
-    xi_x = rng.normal(0, 1, num_terms)  # Independent standard normal for X
-    xi_y = rng.normal(0, 1, num_terms)  # Independent standard normal for Y
+    xi_x = rng.uniform(-2, 2, num_terms)  # Independent standard normal for X
+    xi_y = rng.uniform(-2, 2, num_terms)  # Independent standard normal for Y
     
     t = np.linspace(0, 2 * np.pi, num_terms)
     
     # Calculate X-coordinates
     
     B_t_x = xi_x[0] * t / np.sqrt(2 * np.pi) * spread
-    B_t_x += sum(np.sin(n * t / 2) * xi_x[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
+    B_t_x += sum(np.sin(n * t / 2) * xi_x[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi) 
 
     # Calculate Y-coordinates
        
     B_t_y = xi_y[0] * t / np.sqrt(2 * np.pi) * spread
-    B_t_y += sum(np.sin(n * t / 2) * xi_y[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
+    B_t_y += sum(np.sin(n * t / 2) * xi_y[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi) 
 
-    return t, B_t_x, B_t_y 
+    return t, B_t_x, B_t_y
 
 # Example usage
-t, B_t_x, B_t_y = simulate_brownian_motion_2d(num_terms=5000, spread = 1/10000, seed = None)
+t, B_t_x, B_t_y = simulate_brownian_motion_2d(num_terms=5000, spread = 0.01, seed = None)
 
 plt.figure(figsize=(8, 8))
 
@@ -102,30 +102,3 @@ plt.ylabel("Variance")
 plt.show()  # Should be approximately linear
 
 # 4. Visual inspection of the path (already done in the simulation code)
-
-from statsmodels.api import qqplot
-from scipy.stats import norm
-
-def W(t, N):
-        z = np.random.uniform(-np.sqrt(np.pi), np.sqrt(np.pi), N)
-        s = z[0] * t / np.sqrt(2 * np.pi)
-        s += sum(np.sin(n * t / 2) * z[n] / n for n in range(1, N)) * 2 / np.sqrt(np.pi) 
-        return s 
-          
-N = 1000
-t = np.linspace(0, 2*np.pi, N)
-    
-diff1 = np.zeros(N)
-diff2 = np.zeros(N)
-x = np.array([0.3, 0.5, 1, 7**0.5])
-for n in range(N):
-        w = W(x, N)
-        diff1[n] = w[1] - w[0]
-        diff2[n] = w[3] - w[2] 
-
-from statsmodels.api import qqplot
-from scipy.stats import norm
-
-print(f"diff1 mean = {diff1.mean()}, var = {diff1.var()}.")
-qqplot(diff1, norm(0, 0.2**0.5), line='45')
-plt.savefig("qqplot.png")

@@ -34,7 +34,7 @@ def simulate_brownian_motion_2d(num_terms=1000, spread = 0.001, seed = 10):
     return t, B_t_x / spread, B_t_y / spread
 
 # Example usage
-t, B_t_x, B_t_y = simulate_brownian_motion_2d(num_terms=10000, spread = 0.001, seed = None)
+t, B_t_x, B_t_y = simulate_brownian_motion_2d(num_terms=1000, spread = 1/10000, seed = None)
 
 plt.figure(figsize=(8, 8))
 
@@ -48,7 +48,7 @@ start_marker = 's'  # Square
 end_marker = '*'    # Star
 
 
-# Plot the path (excluding start and end points)
+# Plot the path 
 plt.plot(B_t_x, B_t_y, marker='o', markersize=2, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
 
 # Plot the start point (green)

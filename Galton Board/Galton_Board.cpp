@@ -1,7 +1,8 @@
 ﻿
 #include "functions.hpp"
-
+#include <mxws.hpp>
 /*1D Galton Board simulation with normal and sinusoidal distribution*/
+
 
 int main(int argc, char** argv)
 {
@@ -11,11 +12,40 @@ int main(int argc, char** argv)
 	typedef double R;
 	typedef bool B;
 
+	{
+		auto [B_t_X, B_t_Y] = simulate_brownian_motion(100000, 0.001, 10);
+
+		plot.run_customcommand("figure(figsize = (8, 8))");
+		plot.plot_somedata(B_t_X, B_t_Y, "o-", "BrownianMotion", "gray", 0.5, 2);
+
+		std::vector<double> btx, bty;
+		btx.push_back(B_t_X.front());
+		bty.push_back(B_t_Y.front());
+		plot.plot_somedata(btx, bty, "o-", "Start", "blue", 0.5, 8);
+		btx.clear();
+		bty.clear();
+		btx.push_back(B_t_X.back());
+		bty.push_back(B_t_Y.back());
+		plot.plot_somedata(btx, bty, "o-", "End", "orange", 0.5, 8);
+
+		std::u8string title = u8"Simulate Brownian Motion";
+
+		plot.set_xlabel("B_t_X");
+		plot.set_ylabel("B_t_Y");
+
+		plot.run_customcommand("grid(alpha = 0.4)");
+		plot.run_customcommand("axis('equal')");
+
+		plot.grid_on();
+		plot.set_title(utf8_encode(title));
+		plot.show();
+	}
+	
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 1000000;
+	std::uint64_t Ntrials = 100000000;
 	//Wave cycles or threads  
-	U Ncycles = 123;
+	U Ncycles = 1;
 	//Number of integrations
 	U N_Integrations = 10;
 	//Initial number of bins
@@ -480,7 +510,7 @@ int main(int argc, char** argv)
 			}
 		}
 	}
-
 	return 0;
 }
+
 

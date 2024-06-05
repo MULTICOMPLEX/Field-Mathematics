@@ -691,7 +691,8 @@ std::vector<T> arange(T start, T stop, T step = 1) {
 }
 
 template<typename T>
-std::vector<double> linspace(T start_in, T end_in, size_t num_in)
+	requires std::floating_point<T>
+std::vector<double> linspace(T start_in, T end_in, std::uint64_t num_in)
 {
 	std::vector<double> linspaced;
 
@@ -716,6 +717,48 @@ std::vector<double> linspace(T start_in, T end_in, size_t num_in)
 	// are exactly the same as the input
 	return linspaced;
 }
+
+// Function to simulate Brownian motion
+template<typename T, typename K>
+std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
+	K num_terms = 1000, T spread = 1, K seed = 10) {
+
+	spread = 1. / spread;
+
+	// Time points
+	std::vector<T> t = linspace(0., 2 * std::numbers::pi, num_terms);
+
+	// Random number generation
+	mxws<uint64_t> rng;
+
+	cxx::ziggurat_normal_distribution<double> normalRandomZ;
+
+	// Generate independent standard normal variables
+	std::vector<T> xi(num_terms), yi(num_terms);
+
+	for (int i = 0; i < num_terms; i++) {
+		xi[i] = rng.normalRandom(0., 1.);
+		yi[i] = rng.normalRandom(0., 1.);
+	}
+
+	// Brownian motion calculation
+	std::vector<T> B_t_x(num_terms, 0.0), B_t_y(num_terms, 0.0);
+
+	for (auto i = 0; i < num_terms; i++) {
+		B_t_x[i] = xi[0] * t[i] / std::sqrt(2 * std::numbers::pi);
+		B_t_y[i] = yi[0] * t[i] / std::sqrt(2 * std::numbers::pi);
+		for (auto n = 1; n < num_terms; n++) {
+			B_t_x[i] += spread * std::sin(n * t[i] / 2) * xi[n] / n;
+			B_t_y[i] += spread * std::sin(n * t[i] / 2) * yi[n] / n;
+		}
+		B_t_x[i] *= 2 / std::sqrt(std::numbers::pi) / spread;
+		B_t_y[i] *= 2 / std::sqrt(std::numbers::pi) / spread;
+	}
+
+	return std::make_pair(B_t_x, B_t_y);
+}
+
+
 
 #endif // FUNCTIONS
 

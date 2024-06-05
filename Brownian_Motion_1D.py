@@ -14,16 +14,16 @@ def simulate_brownian_motion(num_terms=1000, spread = 0.001, seed = 10):
     Returns:
         numpy.ndarray: Time points and corresponding Brownian motion values.
     """
-    
+    spread = 1.0 / spread
     t = np.linspace(0, 2 * np.pi, num_terms)
     
     rng = np.random.default_rng(seed)
     xi = rng.normal(0, 1, num_terms)  # Independent standard normal variables
 
     B_t = xi[0] * t / np.sqrt(2 * np.pi)
-    B_t += sum((1.0 / spread) * np.sin(n * t) * xi[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
+    B_t += sum(spread * np.sin(n * t / 2) * xi[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
 
-    return t, B_t * spread 
+    return t, B_t / spread 
 
 # Example usage
 t, B_t = simulate_brownian_motion(num_terms=1000, spread = 1)
@@ -35,3 +35,4 @@ plt.xlabel("Time")
 plt.ylabel("B(t)")
 plt.grid(alpha=0.4)
 plt.show()
+

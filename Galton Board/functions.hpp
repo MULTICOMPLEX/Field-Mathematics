@@ -737,8 +737,10 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
 	std::vector<T> xi(num_terms), yi(num_terms);
 
 	for (int i = 0; i < num_terms; i++) {
-		xi[i] = rng.normalRandom(0., 1.);
-		yi[i] = rng.normalRandom(0., 1.);
+		//xi[i] = rng.normalRandom(0., 1.);
+		//yi[i] = rng.normalRandom(0., 1.);
+		xi[i] = normalRandomZ(rng);
+		yi[i] = normalRandomZ(rng);
 	}
 
 	// Brownian motion calculation
@@ -751,8 +753,8 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
 			B_t_x[i] += spread * std::sin(n * t[i] / 2) * xi[n] / n;
 			B_t_y[i] += spread * std::sin(n * t[i] / 2) * yi[n] / n;
 		}
-		B_t_x[i] *= 2 / std::sqrt(std::numbers::pi) / spread;
-		B_t_y[i] *= 2 / std::sqrt(std::numbers::pi) / spread;
+		B_t_x[i] *= std::sqrt(std::numbers::pi) / spread;
+		B_t_y[i] *= std::sqrt(std::numbers::pi) / spread;
 	}
 
 	return std::make_pair(B_t_x, B_t_y);

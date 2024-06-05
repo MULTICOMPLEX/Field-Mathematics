@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	typedef bool B;
 
 	{
-		auto [B_t_X, B_t_Y] = simulate_brownian_motion(100000, 0.001, 10);
+		auto [B_t_X, B_t_Y] = simulate_brownian_motion(10000, 0.001, 10);
 
 		plot.run_customcommand("figure(figsize = (8, 8))");
 		plot.plot_somedata(B_t_X, B_t_Y, "o-", "BrownianMotion", "gray", 0.5, 2);

@@ -32,7 +32,7 @@ for _ in range(10):
     plt.plot(t, B_t)
 
 plt.plot(t, B_t)
-plt.title("Simulated Brownian Motion")
+plt.title("Simulated Brownian Motion, RNG Uniform")
 plt.xlabel("Time")
 plt.ylabel("B(t)")
 plt.grid(alpha=0.4)

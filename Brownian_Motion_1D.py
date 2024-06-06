@@ -31,7 +31,7 @@ for _ in range(10):
     t, B_t = simulate_brownian_motion(num_terms=1000, spread = 0.1, seed = None)
     plt.plot(t, B_t)
     
-plt.title("Simulated Brownian Motion")
+plt.title("Simulated Brownian Motion, RNG Normal")
 plt.xlabel("Time")
 plt.ylabel("B(t)")
 plt.grid(alpha=0.4)

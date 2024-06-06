@@ -14,13 +14,13 @@ int main(int argc, char** argv)
 
 
 	auto B_t = Simulate_Brownian_motion_RNGnormal(10000, 1., 10);
-	Plot_2D_Brownian_Motion(B_t[0], B_t[1]);
+	Plot_2D_Brownian_Motion(B_t[0], B_t[1], u8"Simulated Brownian Motion, RNG Normal");
 
 	B_t = Simulate_Brownian_motion_RNGuniform(10000, 1., 10);
-	Plot_2D_Brownian_Motion(B_t[0], B_t[1]);
-	
+	Plot_2D_Brownian_Motion(B_t[0], B_t[1], u8"Simulated Brownian Motion, RNG Uniform");
+
 	plot.show();
-	
+
 	/***************SETTINGS*****************/
 
 	std::uint64_t Ntrials = 100000000;
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 
 	if (Probability_wave)
 	{
-	
+
 		std::cout << " Inital Board size " << Initial_Board_size << "[Boxes]" << std::endl;
 
 		Board_size = vec[1];

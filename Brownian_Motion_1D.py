@@ -28,7 +28,7 @@ plt.figure(figsize=(10, 6))
 
 # Example usage
 for _ in range(10):
-    t, B_t = simulate_brownian_motion(num_terms=1000, spread = 1, seed = None)
+    t, B_t = simulate_brownian_motion(num_terms=1000, spread = 0.1, seed = None)
     plt.plot(t, B_t)
     
 plt.title("Simulated Brownian Motion")

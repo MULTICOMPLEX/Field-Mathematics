@@ -718,15 +718,44 @@ std::vector<double> linspace(T start_in, T end_in, std::uint64_t num_in)
 	return linspaced;
 }
 
+template<typename T>
+	requires std::floating_point<T>
+void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y)
+{
+	plot.run_customcommand("figure(figsize = (8, 8))");
+	plot.plot_somedata(B_t_X, B_t_Y, "o-", "BrownianMotion", "gray", 0.5, 2);
+
+	std::vector<T> btx, bty;
+	btx.push_back(B_t_X.front());
+	bty.push_back(B_t_Y.front());
+	plot.plot_somedata(btx, bty, "o-", "Start", "blue", 0.5, 8);
+	btx.clear();
+	bty.clear();
+	btx.push_back(B_t_X.back());
+	bty.push_back(B_t_Y.back());
+	plot.plot_somedata(btx, bty, "o-", "End", "orange", 0.5, 8);
+
+	std::u8string title = u8"Simulate Brownian Motion";
+
+	plot.set_xlabel("B_t_X");
+	plot.set_ylabel("B_t_Y");
+
+	plot.run_customcommand("grid(alpha = 0.4)");
+	plot.run_customcommand("axis('equal')");
+
+	plot.grid_on();
+	plot.set_title(utf8_encode(title));
+}
+
 // Function to simulate Brownian motion
 template<typename T, typename K>
-std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
+std::vector<std::vector<double>> Simulate_Brownian_motion_RNGnormal(
 	K num_terms = 1000, T spread = 1, K seed = 10) {
 
-	spread = 1. / spread;
+	auto pi = std::sqrt(std::numbers::pi);
 
 	// Time points
-	std::vector<T> t = linspace(0., 2 * std::numbers::pi, num_terms);
+	std::vector<T> t = linspace(0., 2 * pi, num_terms);
 
 	// Random number generation
 	mxws<uint64_t> rng;
@@ -735,7 +764,6 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
 
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
-	auto pi = std::sqrt(std::numbers::pi);
 
 	for (int i = 0; i < num_terms; i++) {
 		xi[i] = rng.normalRandom(0., 1.);
@@ -765,23 +793,30 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion(
 	auto Amplitude_y = *k2.max - *k2.min;
 	std::cout << Amplitude_x << "  " << Amplitude_y << std::endl;
 
-	return std::make_pair(B_t_x, B_t_y);
+	
+	std::vector<std::vector<T>> result;
+	result.reserve(2); // Preallocate space for 2 rows
+	result.push_back(B_t_x);
+	result.push_back(B_t_y);
+
+	return result;
 }
 
 // Function to simulate Brownian motion
 template<typename T, typename K>
-std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion2(
+std::vector<std::vector<double>> Simulate_Brownian_motion_RNGuniform(
 	K num_terms = 1000, T spread = 1, K seed = 10) {
 
+	auto pi = std::sqrt(std::numbers::pi);
+
 	// Time points
-	std::vector<T> t = linspace(0., 2 * std::numbers::pi, num_terms);
+	std::vector<T> t = linspace(0., 2 * pi, num_terms);
 
 	// Random number generation
 	mxws<uint64_t> rng;
 
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
-	auto pi = std::sqrt(std::numbers::pi);
 
 	for (int i = 0; i < num_terms; i++) {
 		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
@@ -809,7 +844,12 @@ std::pair<std::vector<double>, std::vector<double>> simulate_brownian_motion2(
 	auto Amplitude_y = *k2.max - *k2.min;
 	std::cout << Amplitude_x << "  " << Amplitude_y << std::endl;
 
-	return std::make_pair(B_t_x, B_t_y);
+	std::vector<std::vector<T>> result;
+	result.reserve(2); // Preallocate space for 2 rows
+	result.push_back(B_t_x);
+	result.push_back(B_t_y);
+
+	return result;
 }
 
 #endif // FUNCTIONS

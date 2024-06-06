@@ -12,34 +12,14 @@ int main(int argc, char** argv)
 	typedef double R;
 	typedef bool B;
 
-	{
-		auto [B_t_X, B_t_Y] = simulate_brownian_motion2(10000, 1., 10);
 
-		plot.run_customcommand("figure(figsize = (8, 8))");
-		plot.plot_somedata(B_t_X, B_t_Y, "o-", "BrownianMotion", "gray", 0.5, 2);
+	auto B_t = Simulate_Brownian_motion_RNGnormal(10000, 1., 10);
+	Plot_2D_Brownian_Motion(B_t[0], B_t[1]);
 
-		std::vector<double> btx, bty;
-		btx.push_back(B_t_X.front());
-		bty.push_back(B_t_Y.front());
-		plot.plot_somedata(btx, bty, "o-", "Start", "blue", 0.5, 8);
-		btx.clear();
-		bty.clear();
-		btx.push_back(B_t_X.back());
-		bty.push_back(B_t_Y.back());
-		plot.plot_somedata(btx, bty, "o-", "End", "orange", 0.5, 8);
-
-		std::u8string title = u8"Simulate Brownian Motion";
-
-		plot.set_xlabel("B_t_X");
-		plot.set_ylabel("B_t_Y");
-
-		plot.run_customcommand("grid(alpha = 0.4)");
-		plot.run_customcommand("axis('equal')");
-
-		plot.grid_on();
-		plot.set_title(utf8_encode(title));
-		plot.show();
-	}
+	B_t = Simulate_Brownian_motion_RNGuniform(10000, 1., 10);
+	Plot_2D_Brownian_Motion(B_t[0], B_t[1]);
+	
+	plot.show();
 	
 	/***************SETTINGS*****************/
 

@@ -12,8 +12,8 @@ int main(int argc, char** argv)
 	typedef double R;
 	typedef bool B;
 
-	auto spread = 0.01;
-	auto Nsamples = 1000;
+	auto spread = 0.0001;
+	auto Nsamples = 10000; 
 
 	auto B_t = Simulate_Brownian_motion_RNGnormal(Nsamples, spread, 10);
 	Plot_2D_Brownian_Motion(B_t[0], B_t[1], u8"Simulated Brownian Motion, RNG Normal");

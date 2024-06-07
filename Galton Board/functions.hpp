@@ -828,11 +828,11 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 	}
 
-	auto nt = num_terms * 8;
+	auto nt = 1024;
 	std::vector<T> st(nt);
 
 	for (auto i = 0; i < nt; i++) {
-		auto angle = (i * 2 * pi) / T(nt - 1);
+		auto angle = i * 2 * pi / nt;
 		st[i] = std::sin(angle);
 	}
 
@@ -841,12 +841,11 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
-		B_t_x[i] = xi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
-		B_t_y[i] = yi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
+		B_t_x[i] = xi[0] * spread * t[i] / std::sqrt(2 * pi);
+		B_t_y[i] = yi[0] * spread * t[i] / std::sqrt(2 * pi);
 		for (auto n = 1; n < num_terms; n++) {
 			//auto k = std::sin(n * t[i] / 2);
-			auto p = K(fmod(n * t[i] * nt / pi / 4, nt));
-			auto k = st[p];
+			auto k = st[K(n * t[i] * nt / pi / 4) % nt];
 			B_t_x[i] += k * xi[n] / n;
 			B_t_y[i] += k * yi[n] / n;
 		}

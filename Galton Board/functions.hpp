@@ -751,7 +751,9 @@ template<typename T, typename K>
 std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 	K num_terms = 1000, T spread = 1, K seed = 10) {
 
-	auto pi = std::numbers::pi;
+	const auto pi = std::numbers::pi;
+	const auto pi2 = 2 / std::sqrt(pi);
+	const auto pi3 = 1 / std::sqrt(2 * pi);
 
 	// Time points
 	std::vector<T> t = linspace(0., 2 * pi, num_terms);
@@ -764,11 +766,15 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
 
-	for (int i = 0; i < num_terms; i++) {
-		xi[i] = rng.normalRandom(0., 1.);
-		yi[i] = rng.normalRandom(0., 1.);
-		//xi[i] = normalRandomZ(rng);
-		//yi[i] = normalRandomZ(rng);
+	for (auto n = 0; n < num_terms; n++) {
+		xi[n] = rng.normalRandom(0., 1.);
+		yi[n] = rng.normalRandom(0., 1.);
+		//xi[n] = normalRandomZ(rng);
+		//yi[n] = normalRandomZ(rng);
+		if (n > 0) {
+			xi[n] /= n;
+			yi[n] /= n;
+		}
 	}
 
 	// Brownian motion calculation
@@ -776,15 +782,15 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
-		B_t_x[i] = xi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
-		B_t_y[i] = yi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
+		B_t_x[i] = xi[0] * spread * t[i] * pi3;
+		B_t_y[i] = yi[0] * spread * t[i] * pi3;
 		for (auto n = 1; n < num_terms; n++) {
 			auto k = std::sin(n * t[i] / 2);
-			B_t_x[i] += k * xi[n] / n;
-			B_t_y[i] += k * yi[n] / n;
+			B_t_x[i] += k * xi[n];
+			B_t_y[i] += k * yi[n];
 		}
-		B_t_x[i] *= 2 / std::sqrt(pi);
-		B_t_y[i] *= 2 / std::sqrt(pi);
+		B_t_x[i] *= pi2;
+		B_t_y[i] *= pi2;
 	}
 
 	auto k1 = std::ranges::minmax_element(B_t_x);
@@ -812,7 +818,9 @@ template<typename T, typename K>
 std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 	K num_terms = 1000, T spread = 1, K seed = 10) {
 
-	auto pi = std::numbers::pi;
+	const auto pi = std::numbers::pi;
+	const auto pi2 = 2 / std::sqrt(pi);
+	const auto pi3 = 1 / std::sqrt(2 * pi);
 
 	// Time points
 	std::vector<T> t = linspace(0., 2 * pi, num_terms);
@@ -823,13 +831,19 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
 
-	for (int i = 0; i < num_terms; i++) {
-		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
-		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+	for (auto n = 0; n < num_terms; n++) {
+		xi[n] = rng(-std::sqrt(pi), std::sqrt(pi));
+		yi[n] = rng(-std::sqrt(pi), std::sqrt(pi));
+		if (n > 0) {
+			xi[n] /= n;
+			yi[n] /= n;
+		}
 	}
 
-	auto nt = 1024;
-	std::vector<T> st(nt);
+	const auto nt = 1024;
+	const auto pi4 = nt / (pi * 4);
+
+	std::array<T, nt> st;
 
 	for (auto i = 0; i < nt; i++) {
 		auto angle = i * 2 * pi / nt;
@@ -841,16 +855,16 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
-		B_t_x[i] = xi[0] * spread * t[i] / std::sqrt(2 * pi);
-		B_t_y[i] = yi[0] * spread * t[i] / std::sqrt(2 * pi);
+		B_t_x[i] = xi[0] * spread * t[i] * pi3;
+		B_t_y[i] = yi[0] * spread * t[i] * pi3;
 		for (auto n = 1; n < num_terms; n++) {
 			//auto k = std::sin(n * t[i] / 2);
-			auto k = st[K(n * t[i] * nt / pi / 4) % nt];
-			B_t_x[i] += k * xi[n] / n;
-			B_t_y[i] += k * yi[n] / n;
+			auto k = st[K(n * t[i] * pi4) % nt];
+			B_t_x[i] += k * xi[n];
+			B_t_y[i] += k * yi[n];
 		}
-		B_t_x[i] *= 2 / std::sqrt(pi);
-		B_t_y[i] *= 2 / std::sqrt(pi);
+		B_t_x[i] *= pi2;
+		B_t_y[i] *= pi2;
 	}
 
 	auto k1 = std::ranges::minmax_element(B_t_x);

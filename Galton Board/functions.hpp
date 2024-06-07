@@ -746,10 +746,11 @@ void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::
 }
 
 // Function to simulate Brownian motion
-template<typename T, typename K>
-	requires std::floating_point<T>
-std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
-	K num_terms = 1000, T spread = 1, K seed = 10) {
+template<typename T, typename K, typename B>
+	requires std::floating_point<T>&&
+std::same_as<K, uint64_t>
+void Simulate_Brownian_motion_RNGnormal(
+	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
 	const auto pi = std::numbers::pi;
 	const auto pi2 = 2 / std::sqrt(pi);
@@ -760,6 +761,8 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 
 	// Random number generation
 	mxws<uint64_t> rng;
+	if (enable_seed)
+		rng.seed(seed);
 
 	cxx::ziggurat_normal_distribution<T> normalRandomZ;
 
@@ -778,8 +781,6 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 	}
 
 	// Brownian motion calculation
-	std::vector<T> B_t_x(num_terms, 0.0), B_t_y(num_terms, 0.0);
-
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
 		B_t_x[i] = xi[0] * spread * t[i] * pi3;
@@ -792,31 +793,14 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 		B_t_x[i] *= pi2;
 		B_t_y[i] *= pi2;
 	}
-
-	auto k1 = std::ranges::minmax_element(B_t_x);
-	auto Amplitude_x = *k1.max - *k1.min;
-	auto k2 = std::ranges::minmax_element(B_t_y);
-	auto Amplitude_y = *k2.max - *k2.min;
-	std::cout << std::setprecision(3) << "RNG Normal  Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
-
-	std::vector<std::vector<T>> result;
-	result.reserve(2);
-	result.push_back(B_t_x);
-	result.push_back(B_t_y);
-
-	return result;
 }
-
-double radiansToDegrees(double radians) {
-	return radians * (180.0 / std::sqrt(std::numbers::pi));
-}
-
 
 // Function to simulate Brownian motion
-template<typename T, typename K>
-	requires std::floating_point<T>
-std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
-	K num_terms = 1000, T spread = 1, K seed = 10) {
+template<typename T, typename K, typename B>
+	requires std::floating_point<T>&&
+std::same_as<K, uint64_t>
+void Simulate_Brownian_motion_RNGuniform(
+	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
 	const auto pi = std::numbers::pi;
 	const auto pi2 = 2 / std::sqrt(pi);
@@ -827,6 +811,8 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 
 	// Random number generation
 	mxws<uint64_t> rng;
+	if (enable_seed)
+		rng.seed(seed);
 
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
@@ -851,21 +837,34 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 	}
 
 	// Brownian motion calculation
-	std::vector<T> B_t_x(num_terms, 0.0), B_t_y(num_terms, 0.0);
-
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
 		B_t_x[i] = xi[0] * spread * t[i] * pi3;
 		B_t_y[i] = yi[0] * spread * t[i] * pi3;
 		for (auto n = 1; n < num_terms; n++) {
 			//auto k = std::sin(n * t[i] / 2);
-			auto k = st[K(n * t[i] * pi4) % nt];
+			auto k = st[uint64_t(n * t[i] * pi4) % nt];
 			B_t_x[i] += k * xi[n];
 			B_t_y[i] += k * yi[n];
 		}
 		B_t_x[i] *= pi2;
 		B_t_y[i] *= pi2;
 	}
+}
+
+void Red_Noise()
+{
+	const uint64_t Nsamples = 20000;
+	const auto spread = 0.0001;
+	const bool enable_seed = true;
+	const uint64_t seed = 10;
+	
+	std::vector<double> B_t_x(Nsamples, 0.0), B_t_y(Nsamples, 0.0);
+
+	auto begin = std::chrono::high_resolution_clock::now();
+	Simulate_Brownian_motion_RNGnormal(Nsamples, spread, enable_seed, seed, B_t_x, B_t_y);
+
+	auto end = std::chrono::high_resolution_clock::now();
 
 	auto k1 = std::ranges::minmax_element(B_t_x);
 	auto Amplitude_x = *k1.max - *k1.min;
@@ -873,12 +872,30 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 	auto Amplitude_y = *k2.max - *k2.min;
 	std::cout << std::setprecision(3) << "RNG Uniform Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
 
-	std::vector<std::vector<T>> result;
-	result.reserve(2);
-	result.push_back(B_t_x);
-	result.push_back(B_t_y);
+	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Normal");
 
-	return result;
+	std::cout << " Duration     "
+		<< std::chrono::nanoseconds(end - begin).count() / 1e9
+		<< "[ms]" << std::endl << std::endl << std::endl;
+
+	begin = std::chrono::high_resolution_clock::now();
+	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, enable_seed, seed, B_t_x, B_t_y);
+	end = std::chrono::high_resolution_clock::now();
+
+	k1 = std::ranges::minmax_element(B_t_x);
+	Amplitude_x = *k1.max - *k1.min;
+	k2 = std::ranges::minmax_element(B_t_y);
+	Amplitude_y = *k2.max - *k2.min;
+	std::cout << std::setprecision(3) << "RNG Uniform Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
+
+	std::cout << " Duration     "
+		<< std::chrono::nanoseconds(end - begin).count() / 1e9
+		<< "[ms]" << std::endl << std::endl << std::endl;
+
+	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform");
+
+	plot.show();
+
 }
 
 #endif // FUNCTIONS

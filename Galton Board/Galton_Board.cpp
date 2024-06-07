@@ -12,33 +12,7 @@ int main(int argc, char** argv)
 	typedef double R;
 	typedef bool B;
 
-	{
-		auto spread = 0.0001;
-		auto Nsamples = 20000;
-
-		auto begin = std::chrono::high_resolution_clock::now();
-		auto B_t = Simulate_Brownian_motion_RNGnormal(Nsamples, spread, 10);
-		auto end = std::chrono::high_resolution_clock::now();
-
-		Plot_2D_Brownian_Motion(B_t[0], B_t[1], u8"Simulated Brownian Motion, RNG Normal");
-		
-		std::cout << " Duration     "
-			<< std::chrono::nanoseconds(end - begin).count() / 1e9
-			<< "[ms]" << std::endl << std::endl << std::endl;
-
-		begin = std::chrono::high_resolution_clock::now();
-		B_t = Simulate_Brownian_motion_RNGuniform(Nsamples, spread, 10);
-		end = std::chrono::high_resolution_clock::now();
-		
-		std::cout << " Duration     "
-			<< std::chrono::nanoseconds(end - begin).count() / 1e9
-			<< "[ms]" << std::endl << std::endl << std::endl;
-
-		Plot_2D_Brownian_Motion(B_t[0], B_t[1], u8"Simulated Brownian Motion, RNG Uniform");
-
-		plot.show();
-
-	}
+	Red_Noise();
 
 	/***************SETTINGS*****************/
 

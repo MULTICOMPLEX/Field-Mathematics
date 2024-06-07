@@ -748,7 +748,8 @@ void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::
 // Function to simulate Brownian motion
 template<typename T, typename K, typename B>
 	requires std::floating_point<T>&&
-std::same_as<K, uint64_t>
+std::same_as<K, uint64_t>&&
+std::same_as<B, bool>
 void Simulate_Brownian_motion_RNGnormal(
 	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
@@ -768,7 +769,7 @@ void Simulate_Brownian_motion_RNGnormal(
 
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
-
+	
 	for (auto n = 0; n < num_terms; n++) {
 		xi[n] = rng.normalRandom(0., 1.);
 		yi[n] = rng.normalRandom(0., 1.);
@@ -798,7 +799,8 @@ void Simulate_Brownian_motion_RNGnormal(
 // Function to simulate Brownian motion
 template<typename T, typename K, typename B>
 	requires std::floating_point<T>&&
-std::same_as<K, uint64_t>
+std::same_as<K, uint64_t>&&
+std::same_as<B, bool>
 void Simulate_Brownian_motion_RNGuniform(
 	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
@@ -843,7 +845,7 @@ void Simulate_Brownian_motion_RNGuniform(
 		B_t_y[i] = yi[0] * spread * t[i] * pi3;
 		for (auto n = 1; n < num_terms; n++) {
 			//auto k = std::sin(n * t[i] / 2);
-			auto k = st[uint64_t(n * t[i] * pi4) % nt];
+			auto k = st[K(n * t[i] * pi4) % nt];
 			B_t_x[i] += k * xi[n];
 			B_t_y[i] += k * yi[n];
 		}
@@ -852,7 +854,7 @@ void Simulate_Brownian_motion_RNGuniform(
 	}
 }
 
-void Red_Noise()
+void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 20000;
 	const auto spread = 0.0001;

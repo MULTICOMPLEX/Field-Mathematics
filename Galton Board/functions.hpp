@@ -856,9 +856,9 @@ void Simulate_Brownian_motion_RNGuniform(
 
 void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
-	const uint64_t Nsamples = 20000;
+	const uint64_t Nsamples = 10000;
 	const auto spread = 0.0001;
-	const bool enable_seed = true;
+	const bool enable_seed = false;
 	const uint64_t seed = 10;
 	
 	std::vector<double> B_t_x(Nsamples, 0.0), B_t_y(Nsamples, 0.0);
@@ -878,7 +878,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	std::cout << " Duration     "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
-		<< "[ms]" << std::endl << std::endl << std::endl;
+		<< "[s]" << std::endl << std::endl << std::endl;
 
 	begin = std::chrono::high_resolution_clock::now();
 	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, enable_seed, seed, B_t_x, B_t_y);
@@ -892,7 +892,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	std::cout << " Duration     "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
-		<< "[ms]" << std::endl << std::endl << std::endl;
+		<< "[s]" << std::endl << std::endl << std::endl;
 
 	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform");
 

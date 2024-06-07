@@ -12,14 +12,17 @@ int main(int argc, char** argv)
 	typedef double R;
 	typedef bool B;
 
+	auto spread = 0.01;
+	auto Nsamples = 1000;
 
-	auto B_t = Simulate_Brownian_motion_RNGnormal(10000, 1., 10);
+	auto B_t = Simulate_Brownian_motion_RNGnormal(Nsamples, spread, 10);
 	Plot_2D_Brownian_Motion(B_t[0], B_t[1], u8"Simulated Brownian Motion, RNG Normal");
 
-	B_t = Simulate_Brownian_motion_RNGuniform(10000, 1., 10);
+	B_t = Simulate_Brownian_motion_RNGuniform(Nsamples, spread, 10);
 	Plot_2D_Brownian_Motion(B_t[0], B_t[1], u8"Simulated Brownian Motion, RNG Uniform");
 
 	plot.show();
+
 
 	/***************SETTINGS*****************/
 

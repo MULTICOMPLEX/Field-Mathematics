@@ -751,7 +751,7 @@ template<typename T, typename K>
 std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 	K num_terms = 1000, T spread = 1, K seed = 10) {
 
-	auto pi = std::sqrt(std::numbers::pi);
+	auto pi = std::numbers::pi;
 
 	// Time points
 	std::vector<T> t = linspace(0., 2 * pi, num_terms);
@@ -774,6 +774,7 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 	// Brownian motion calculation
 	std::vector<T> B_t_x(num_terms, 0.0), B_t_y(num_terms, 0.0);
 
+#pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
 		B_t_x[i] = xi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
 		B_t_y[i] = yi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
@@ -790,7 +791,7 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 	auto Amplitude_x = *k1.max - *k1.min;
 	auto k2 = std::ranges::minmax_element(B_t_y);
 	auto Amplitude_y = *k2.max - *k2.min;
-	std::cout << "RNG Normal  Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
+	std::cout << std::setprecision(3) << "RNG Normal  Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
 
 	std::vector<std::vector<T>> result;
 	result.reserve(2);
@@ -800,13 +801,18 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGnormal(
 	return result;
 }
 
+double radiansToDegrees(double radians) {
+	return radians * (180.0 / std::sqrt(std::numbers::pi));
+}
+
+
 // Function to simulate Brownian motion
 template<typename T, typename K>
 	requires std::floating_point<T>
 std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 	K num_terms = 1000, T spread = 1, K seed = 10) {
 
-	auto pi = std::sqrt(std::numbers::pi);
+	auto pi = std::numbers::pi;
 
 	// Time points
 	std::vector<T> t = linspace(0., 2 * pi, num_terms);
@@ -822,14 +828,25 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 	}
 
+	auto nt = num_terms * 8;
+	std::vector<T> st(nt);
+
+	for (auto i = 0; i < nt; i++) {
+		auto angle = (i * 2 * pi) / T(nt - 1);
+		st[i] = std::sin(angle);
+	}
+
 	// Brownian motion calculation
 	std::vector<T> B_t_x(num_terms, 0.0), B_t_y(num_terms, 0.0);
 
+#pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
 		B_t_x[i] = xi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
 		B_t_y[i] = yi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
 		for (auto n = 1; n < num_terms; n++) {
-			auto k = std::sin(n * t[i] / 2);
+			//auto k = std::sin(n * t[i] / 2);
+			auto p = K(fmod(n * t[i] * nt / pi / 4, nt));
+			auto k = st[p];
 			B_t_x[i] += k * xi[n] / n;
 			B_t_y[i] += k * yi[n] / n;
 		}
@@ -841,7 +858,7 @@ std::vector<std::vector<T>> Simulate_Brownian_motion_RNGuniform(
 	auto Amplitude_x = *k1.max - *k1.min;
 	auto k2 = std::ranges::minmax_element(B_t_y);
 	auto Amplitude_y = *k2.max - *k2.min;
-	std::cout << "RNG Uniform Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
+	std::cout << std::setprecision(3) << "RNG Uniform Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
 
 	std::vector<std::vector<T>> result;
 	result.reserve(2);

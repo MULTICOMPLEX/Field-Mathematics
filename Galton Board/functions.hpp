@@ -769,7 +769,7 @@ void Simulate_Brownian_motion_RNGnormal(
 
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
-	
+
 	for (auto n = 0; n < num_terms; n++) {
 		xi[n] = rng.normalRandom(0., 1.);
 		yi[n] = rng.normalRandom(0., 1.);
@@ -816,7 +816,7 @@ void Simulate_Brownian_motion_RNGuniform(
 	if (enable_seed)
 		rng.seed(seed);
 
-	// Generate independent standard normal variables
+	// Generate independent standard uniform variables
 	std::vector<T> xi(num_terms), yi(num_terms);
 
 	for (auto n = 0; n < num_terms; n++) {
@@ -860,7 +860,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	const auto spread = 0.0001;
 	const bool enable_seed = false;
 	const uint64_t seed = 10;
-	
+
 	std::vector<double> B_t_x(Nsamples, 0.0), B_t_y(Nsamples, 0.0);
 
 	auto begin = std::chrono::high_resolution_clock::now();

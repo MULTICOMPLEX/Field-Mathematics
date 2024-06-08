@@ -826,7 +826,7 @@ void Simulate_Brownian_motion_RNGuniform(
 	std::array<T, nt> st;
 
 	for (auto i = 0; i < nt; i++) {
-		auto angle = i * 2 * pi / nt / 2;
+		auto angle = i * 2 * pi / nt;
 		st[i] = std::sin(angle);
 	}
 
@@ -859,7 +859,7 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 	// Random number generation
 	mxws<uint64_t> rng1, rng2;
 	rng1.seed(seed);
-	rng2.seed(seed + 1);
+	rng2.seed(seed+1);
 
 	const auto nt = 1024;
 
@@ -870,7 +870,7 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 	std::array<T, nt> st;
 
 	for (auto i = 0; i < nt; i++) {
-		auto angle = i * 2 * pi / nt / 2;
+		auto angle = i * 2 * pi / nt;
 		st[i] = std::sin(angle);
 	}
 
@@ -910,7 +910,7 @@ void plot_fft(std::vector<double>& B_t_x, std::u8string title)
 		Y.push_back(std::log10(std::sqrt(d.norm()) / (cx.size() / 2.)));
 		i++;
 	}
-
+	
 	plot.run_customcommand("figure(figsize = (8, 8))");
 	plot.set_xlabel("Frequency");
 	plot.run_customcommand("grid(alpha = 0.4)");
@@ -950,10 +950,10 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< "[s]" << std::endl << std::endl << std::endl;
 
 	//plot_fft(B_t_x, u8"RNG Normal");
-
+		
 	begin = std::chrono::high_resolution_clock::now();
-	//Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
-	Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
+	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
+	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 
 	k1 = std::ranges::minmax_element(B_t_x);
@@ -971,7 +971,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	plot_fft(B_t_x, u8"RNG Uniform");
 
 	plot.show();
-
+	
 }
 
 #endif // FUNCTIONS

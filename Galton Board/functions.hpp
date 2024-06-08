@@ -81,7 +81,7 @@ std::vector<A> Galton(
 	const I& Board_SIZE,
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
-	B probability_wave, I Seed, B Enable_Seed)
+	B probability_wave, A Seed, B Enable_Seed)
 {
 
 	mxws <uint32_t>RNG;
@@ -746,12 +746,11 @@ void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::
 }
 
 // Function to simulate Brownian motion
-template<typename T, typename K, typename B>
+template<typename T, typename K>
 	requires std::floating_point<T>&&
-std::same_as<K, uint64_t>&&
-std::same_as<B, bool>
+std::same_as<K, uint64_t>
 void Simulate_Brownian_motion_RNGnormal(
-	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
+	K num_terms, T spread, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
 	const auto pi = std::numbers::pi;
 	const auto pi2 = 2 / std::sqrt(pi);
@@ -762,8 +761,7 @@ void Simulate_Brownian_motion_RNGnormal(
 
 	// Random number generation
 	mxws<uint64_t> rng;
-	if (enable_seed)
-		rng.seed(seed);
+	rng.seed(seed);
 
 	cxx::ziggurat_normal_distribution<T> normalRandomZ;
 
@@ -796,20 +794,19 @@ void Simulate_Brownian_motion_RNGnormal(
 	}
 }
 
+
 // Function to simulate Brownian motion
-template<typename T, typename K, typename B>
+template<typename T, typename K>
 	requires std::floating_point<T>&&
-std::same_as<K, uint64_t>&&
-std::same_as<B, bool>
+std::same_as<K, uint64_t>
 void Simulate_Brownian_motion_RNGuniform(
-	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
+	K num_terms, T spread, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
 	const auto pi = std::numbers::pi;
 
 	// Random number generation
 	mxws<uint64_t> rng;
-	if (enable_seed)
-		rng.seed(seed);
+	rng.seed(seed);
 
 	// Generate independent standard uniform variables
 	std::vector<T> xi(num_terms), yi(num_terms);
@@ -848,18 +845,68 @@ void Simulate_Brownian_motion_RNGuniform(
 	}
 }
 
+
+// Function to simulate Brownian motion
+template<typename T, typename K>
+	requires std::floating_point<T>&&
+std::same_as<K, uint64_t>
+void Simulate_Brownian_motion_RNGuniform_no_global_storage(
+	K num_terms, T spread, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
+
+	const auto pi = std::numbers::pi;
+
+	// Random number generation
+	mxws<uint64_t> rng1, rng2;
+	rng1.seed(seed);
+
+	const auto nt = 1024;
+
+	auto v = std::sqrt(2) * pi * spread / (num_terms - 1);
+	auto spread_x = rng1(-v, v);
+	auto spread_y = rng1(-v, v);
+
+	std::array<T, nt> st;
+
+	for (auto i = 0; i < nt; i++) {
+		auto angle = i * 2 * pi / nt;
+		st[i] = std::sin(angle);
+	}
+
+	auto delta = nt / (2.0 * (num_terms - 1));
+
+	// Brownian motion calculation
+	for (auto i = 0; i < num_terms; i++) {
+		auto j = delta * i;
+		B_t_x[i] = spread_x * i;
+		B_t_y[i] = spread_y * i;
+
+		rng1.seed(seed + 1);
+		rng2.seed(seed + 2);
+
+		for (auto n = 1; n < num_terms; n++) {
+			auto k = st[K(n * j) % nt];
+			auto v = 2. / n;
+			B_t_x[i] += k * rng1(-v, v);
+			B_t_y[i] += k * rng2(-v, v);
+		}
+	}
+}
+
 void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 10000;
 	const auto spread = 0.0001;
-	const bool enable_seed = true;
-	const uint64_t seed = 10;
+	const bool enable_random_seed = true;
+	uint64_t seed = 10;
+
+	std::random_device r;
+	if (enable_random_seed)
+		seed = (uint64_t(r()) << 32) | r();
 
 	std::vector<double> B_t_x(Nsamples, 0.0), B_t_y(Nsamples, 0.0);
 
 	auto begin = std::chrono::high_resolution_clock::now();
-	Simulate_Brownian_motion_RNGnormal(Nsamples, spread, enable_seed, seed, B_t_x, B_t_y);
-
+	Simulate_Brownian_motion_RNGnormal(Nsamples, spread, seed, B_t_x, B_t_y);
 	auto end = std::chrono::high_resolution_clock::now();
 
 	auto k1 = std::ranges::minmax_element(B_t_x);
@@ -875,7 +922,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< "[s]" << std::endl << std::endl << std::endl;
 
 	begin = std::chrono::high_resolution_clock::now();
-	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, enable_seed, seed, B_t_x, B_t_y);
+	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
+	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 
 	k1 = std::ranges::minmax_element(B_t_x);

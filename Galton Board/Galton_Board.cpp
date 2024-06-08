@@ -16,9 +16,9 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 100000000;
+	std::uint64_t Ntrials = 10000000;
 	//Wave cycles or threads  
-	U Ncycles = 1;
+	U Ncycles = 40;
 	//Number of integrations
 	U N_Integrations = 10;
 	//Initial number of bins
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	B WAV = false;
 	// Seed for rng's
 	U Seed = 10;
-	B Enable_Seed = true;
+	B Enable_Random_Seed = true;
 
 	//Console output
 	const B cout_gal = false;
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
 			return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
-				i * Ncycles + k + Seed, Enable_Seed); }));
+				uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();

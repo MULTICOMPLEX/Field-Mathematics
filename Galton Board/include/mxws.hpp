@@ -38,11 +38,11 @@ public:
 		x1 = x2 = 1;
 	}
 
-	void seed(uint64_t x)
+	template <typename T>
+		requires	std::same_as<T, uint64_t>
+	void inline seed(const T& k)
 	{
-		std::mt19937_64 rng(x);
-		w = rng();
-
+		w = k ^ 0x1010101010101010;
 		x = 1;
 		w1 = w;
 		w2 = w1 + 1;
@@ -77,8 +77,7 @@ public:
 		requires	std::same_as<T, uint64_t>
 	mxws(const T& seed)
 	{
-		std::mt19937_64 rng(seed);
-		init(rng());
+		init(seed ^ 0x1010101010101010);
 	}
 
 	void init()

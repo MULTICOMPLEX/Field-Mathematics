@@ -743,6 +743,7 @@ void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::
 
 	plot.grid_on();
 	plot.set_title(utf8_encode(title));
+
 }
 
 // Function to simulate Brownian motion
@@ -825,7 +826,7 @@ void Simulate_Brownian_motion_RNGuniform(
 	std::array<T, nt> st;
 
 	for (auto i = 0; i < nt; i++) {
-		auto angle = i * 2 * pi / nt;
+		auto angle = i * 2 * pi / nt / 2;
 		st[i] = std::sin(angle);
 	}
 
@@ -858,17 +859,18 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 	// Random number generation
 	mxws<uint64_t> rng1, rng2;
 	rng1.seed(seed);
+	rng2.seed(seed + 1);
 
 	const auto nt = 1024;
 
 	auto v = std::sqrt(2) * pi * spread / (num_terms - 1);
 	auto spread_x = rng1(-v, v);
-	auto spread_y = rng1(-v, v);
+	auto spread_y = rng2(-v, v);
 
 	std::array<T, nt> st;
 
 	for (auto i = 0; i < nt; i++) {
-		auto angle = i * 2 * pi / nt;
+		auto angle = i * 2 * pi / nt / 2;
 		st[i] = std::sin(angle);
 	}
 
@@ -880,8 +882,8 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 		B_t_x[i] = spread_x * i;
 		B_t_y[i] = spread_y * i;
 
-		rng1.seed(seed + 1);
-		rng2.seed(seed + 2);
+		rng1.seed(seed + 2);
+		rng2.seed(seed + 3);
 
 		for (auto n = 1; n < num_terms; n++) {
 			auto k = st[K(n * j) % nt];
@@ -890,11 +892,37 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 			B_t_y[i] += k * rng2(-v, v);
 		}
 	}
+
+}
+
+void plot_fft(std::vector<double>& B_t_x, std::u8string title)
+{
+	std::vector<MX0> cx;
+	std::vector<double> X, Y;
+
+	std::ranges::transform(B_t_x, std::back_inserter(cx),
+		[](auto& c) {return c; });
+	cx = FFT(cx);
+
+	for (auto i = 0.; auto & d : std::span(cx).subspan(0, cx.size() / 2))
+	{
+		X.push_back(std::log10(i + 1));
+		Y.push_back(std::log10(std::sqrt(d.norm()) / (cx.size() / 2.)));
+		i++;
+	}
+
+	plot.run_customcommand("figure(figsize = (8, 8))");
+	plot.set_xlabel("Frequency");
+	plot.run_customcommand("grid(alpha = 0.4)");
+	plot.grid_on();
+	plot.set_title(utf8_encode(title));
+	plot.set_ylabel("dB");
+	plot.plot_somedata(X, Y, "", "Fourier Transform", "red");
 }
 
 void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
-	const uint64_t Nsamples = 10000;
+	const uint64_t Nsamples = 8192;
 	const auto spread = 0.0001;
 	const bool enable_random_seed = true;
 	uint64_t seed = 10;
@@ -921,9 +949,11 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl << std::endl << std::endl;
 
+	//plot_fft(B_t_x, u8"RNG Normal");
+
 	begin = std::chrono::high_resolution_clock::now();
-	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
-	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
+	//Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
+	Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 
 	k1 = std::ranges::minmax_element(B_t_x);
@@ -937,6 +967,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< "[s]" << std::endl << std::endl << std::endl;
 
 	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform");
+
+	plot_fft(B_t_x, u8"RNG Uniform");
 
 	plot.show();
 

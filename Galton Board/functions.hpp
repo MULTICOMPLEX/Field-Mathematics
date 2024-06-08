@@ -816,9 +816,11 @@ void Simulate_Brownian_motion_RNGuniform(
 
 	const auto nt = 1024;
 
-	auto delta = nt / (2.0 * (num_terms - 1));
+	auto v = std::sqrt(2) * pi * spread / (num_terms - 1);
+	auto spread_x = rng(-v, v);
+	auto spread_y = rng(-v, v);
 
-	for (auto n = 0; n < num_terms; n++) {
+	for (auto n = 1; n < num_terms; n++) {
 		xi[n] = rng(-2. / n, 2. / n);
 		yi[n] = rng(-2. / n, 2. / n);
 	}
@@ -830,9 +832,7 @@ void Simulate_Brownian_motion_RNGuniform(
 		st[i] = std::sin(angle);
 	}
 
-	auto v = std::sqrt(2) * pi * spread / (num_terms - 1);
-	auto spread_x = rng(-v, v);
-	auto spread_y = rng(-v, v);
+	auto delta = nt / (2.0 * (num_terms - 1));
 
 	// Brownian motion calculation
 #pragma omp parallel for
@@ -841,7 +841,6 @@ void Simulate_Brownian_motion_RNGuniform(
 		B_t_x[i] = spread_x * i;
 		B_t_y[i] = spread_y * i;
 		for (auto n = 1; n < num_terms; n++) {
-			//auto k = std::sin(n * t[i] / 2);
 			auto k = st[K(n * j) % nt];
 			B_t_x[i] += k * xi[n];
 			B_t_y[i] += k * yi[n];
@@ -853,7 +852,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 10000;
 	const auto spread = 0.0001;
-	const bool enable_seed = 1;
+	const bool enable_seed = true;
 	const uint64_t seed = 10;
 
 	std::vector<double> B_t_x(Nsamples, 0.0), B_t_y(Nsamples, 0.0);

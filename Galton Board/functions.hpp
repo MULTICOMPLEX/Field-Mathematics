@@ -815,10 +815,9 @@ void Simulate_Brownian_motion_RNGuniform(
 	// Generate independent standard uniform variables
 	std::vector<T> xi(num_terms), yi(num_terms);
 
-
 	const auto nt = 1024;
 
-	auto delta = (2 * pi / (num_terms - 1)) * nt / (pi * 4);
+	auto delta = nt / (2.0 * (num_terms - 1));
 
 	for (auto n = 0; n < num_terms; n++) {
 		xi[n] = rng(-std::sqrt(pi), std::sqrt(pi)) / n * pi2;

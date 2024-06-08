@@ -804,48 +804,49 @@ std::same_as<B, bool>
 void Simulate_Brownian_motion_RNGuniform(
 	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
-	const auto pi = std::numbers::pi;
-	const auto pi2 = 2 / std::sqrt(pi);
-	const auto pi3 = 1 / std::sqrt(2 * pi);
-
-	// Time points
-	std::vector<T> t = linspace(0., 2 * pi, num_terms);
+	const T pi = std::numbers::pi;
 
 	// Random number generation
 	mxws<uint64_t> rng;
 	if (enable_seed)
 		rng.seed(seed);
 
-	// Generate independent standard uniform variables
-	std::vector<T> xi(num_terms), yi(num_terms);
+	std::vector<T> xi(num_terms), yi(num_terms), t(num_terms);
 
+	const auto nt = 1024;
+
+	auto delta = 0.5 * nt / (num_terms - 1);
+
+	// Generate independent standard uniform variables and Time points
 	for (auto n = 0; n < num_terms; n++) {
-		xi[n] = rng(-std::sqrt(pi), std::sqrt(pi));
-		yi[n] = rng(-std::sqrt(pi), std::sqrt(pi));
+		xi[n] = rng(-sqrt(pi), sqrt(pi));
+		yi[n] = rng(-sqrt(pi), sqrt(pi));
 		if (n > 0) {
 			xi[n] /= n;
 			yi[n] /= n;
 		}
+		t[n] = n * delta;
 	}
-
-	const auto nt = 1024;
-	const auto pi4 = nt / (pi * 4);
 
 	std::array<T, nt> st;
-
 	for (auto i = 0; i < nt; i++) {
 		auto angle = i * 2 * pi / nt;
-		st[i] = std::sin(angle);
+		st[i] = sin(angle);
 	}
+	
+	auto spread_x = spread * xi[0] / (sqrt(2.0 * pi) * (nt / (4 * pi)));
+	auto spread_y = spread * yi[0] / (sqrt(2.0 * pi) * (nt / (4 * pi)));
+	
+	const T pi2 = 2 / sqrt(pi);
 
 	// Brownian motion calculation
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
-		B_t_x[i] = xi[0] * spread * t[i] * pi3;
-		B_t_y[i] = yi[0] * spread * t[i] * pi3;
+		B_t_x[i] = spread_x * t[i];
+		B_t_y[i] = spread_y * t[i];
 		for (auto n = 1; n < num_terms; n++) {
 			//auto k = std::sin(n * t[i] / 2);
-			auto k = st[K(n * t[i] * pi4) % nt];
+			auto k = st[K(n * t[i]) % nt];
 			B_t_x[i] += k * xi[n];
 			B_t_y[i] += k * yi[n];
 		}

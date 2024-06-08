@@ -805,7 +805,6 @@ void Simulate_Brownian_motion_RNGuniform(
 	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
 	const auto pi = std::numbers::pi;
-	const auto pi2 = 2 / std::sqrt(pi);
 
 	// Random number generation
 	mxws<uint64_t> rng;
@@ -820,8 +819,8 @@ void Simulate_Brownian_motion_RNGuniform(
 	auto delta = nt / (2.0 * (num_terms - 1));
 
 	for (auto n = 0; n < num_terms; n++) {
-		xi[n] = rng(-std::sqrt(pi), std::sqrt(pi)) / n * pi2;
-		yi[n] = rng(-std::sqrt(pi), std::sqrt(pi)) / n * pi2;
+		xi[n] = rng(-2. / n, 2. / n);
+		yi[n] = rng(-2. / n, 2. / n);
 	}
 
 	std::array<T, nt> st;
@@ -831,7 +830,7 @@ void Simulate_Brownian_motion_RNGuniform(
 		st[i] = std::sin(angle);
 	}
 
-	auto v = spread * std::sqrt(2) * pi / (num_terms - 1);
+	auto v = std::sqrt(2) * pi * spread / (num_terms - 1);
 	auto spread_x = rng(-v, v);
 	auto spread_y = rng(-v, v);
 

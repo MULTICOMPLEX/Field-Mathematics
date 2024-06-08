@@ -804,54 +804,50 @@ std::same_as<B, bool>
 void Simulate_Brownian_motion_RNGuniform(
 	K num_terms, T spread, B enable_seed, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
 
-	const T pi = std::numbers::pi;
+	const auto pi = std::numbers::pi;
+	const auto pi2 = 2 / std::sqrt(pi);
 
 	// Random number generation
 	mxws<uint64_t> rng;
 	if (enable_seed)
 		rng.seed(seed);
 
-	std::vector<T> xi(num_terms), yi(num_terms), t(num_terms);
+	// Generate independent standard uniform variables
+	std::vector<T> xi(num_terms), yi(num_terms);
+
 
 	const auto nt = 1024;
 
-	auto delta = 0.5 * nt / (num_terms - 1);
+	auto delta = (2 * pi / (num_terms - 1)) * nt / (pi * 4);
 
-	// Generate independent standard uniform variables and Time points
 	for (auto n = 0; n < num_terms; n++) {
-		xi[n] = rng(-sqrt(pi), sqrt(pi));
-		yi[n] = rng(-sqrt(pi), sqrt(pi));
-		if (n > 0) {
-			xi[n] /= n;
-			yi[n] /= n;
-		}
-		t[n] = n * delta;
+		xi[n] = rng(-std::sqrt(pi), std::sqrt(pi)) / n * pi2;
+		yi[n] = rng(-std::sqrt(pi), std::sqrt(pi)) / n * pi2;
 	}
 
 	std::array<T, nt> st;
+
 	for (auto i = 0; i < nt; i++) {
 		auto angle = i * 2 * pi / nt;
-		st[i] = sin(angle);
+		st[i] = std::sin(angle);
 	}
-	
-	auto spread_x = spread * xi[0] / (sqrt(2.0 * pi) * (nt / (4 * pi)));
-	auto spread_y = spread * yi[0] / (sqrt(2.0 * pi) * (nt / (4 * pi)));
-	
-	const T pi2 = 2 / sqrt(pi);
+
+	auto v = spread * std::sqrt(2) * pi / (num_terms - 1);
+	auto spread_x = rng(-v, v);
+	auto spread_y = rng(-v, v);
 
 	// Brownian motion calculation
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
-		B_t_x[i] = spread_x * t[i];
-		B_t_y[i] = spread_y * t[i];
+		auto j = delta * i;
+		B_t_x[i] = spread_x * i;
+		B_t_y[i] = spread_y * i;
 		for (auto n = 1; n < num_terms; n++) {
 			//auto k = std::sin(n * t[i] / 2);
-			auto k = st[K(n * t[i]) % nt];
+			auto k = st[K(n * j) % nt];
 			B_t_x[i] += k * xi[n];
 			B_t_y[i] += k * yi[n];
 		}
-		B_t_x[i] *= pi2;
-		B_t_y[i] *= pi2;
 	}
 }
 
@@ -859,7 +855,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 10000;
 	const auto spread = 0.0001;
-	const bool enable_seed = false;
+	const bool enable_seed = 1;
 	const uint64_t seed = 10;
 
 	std::vector<double> B_t_x(Nsamples, 0.0), B_t_y(Nsamples, 0.0);

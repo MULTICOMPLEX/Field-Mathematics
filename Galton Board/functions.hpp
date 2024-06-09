@@ -963,7 +963,7 @@ void Simulate_test(
 
 	auto numHarmonics = 256;
 
-	double dutyCycle = 0.8; // Initial duty cycle (50%)
+	double dutyCycle = 0.92; // Initial duty cycle (50%)
 
 	// Generate PWM signal using Fourier series
 	for (int i = 0; i < nt; ++i) {
@@ -975,9 +975,9 @@ void Simulate_test(
 		st[i] -= 3;
 	}
 
-	bool default = 1;
+	bool sine_wave = 0;
 
-	if (default) {
+	if (sine_wave) {
 		for (auto i = 0; i < nt; i++) {
 			auto angle = i * 2 * pi / nt;
 			st[i] = std::sin(angle);

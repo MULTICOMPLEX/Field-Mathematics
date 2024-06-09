@@ -859,7 +859,7 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 	// Random number generation
 	mxws<uint64_t> rng1, rng2;
 	rng1.seed(seed);
-	rng2.seed(seed+1);
+	rng2.seed(seed + 1);
 
 	const auto nt = 1024;
 
@@ -910,7 +910,7 @@ void plot_fft(std::vector<double>& B_t_x, std::u8string title)
 		Y.push_back(std::log(std::sqrt(d.norm()) / (cx.size() / 2.)));
 		i++;
 	}
-	
+
 	plot.run_customcommand("figure(figsize = (8, 8))");
 	plot.set_xlabel("Frequency");
 	//plot.run_customcommand("axis('equal')");
@@ -933,7 +933,7 @@ double pwmCoefficient(int n, double dutyCycle) {
 }
 
 template<typename T, typename K>
-std::vector<T> generatePinkNoise(K numSamples, K numSources = 32) {
+std::vector<T> generatePinkNoise(K numSamples, int numSources = 32) {
 	std::vector<T> pinkNoise(numSamples);
 	std::vector<std::vector<T>> whiteNoise(numSamples, std::vector<T>(numSources));
 	std::vector<T> runningSum(numSources);
@@ -953,11 +953,12 @@ std::vector<T> generatePinkNoise(K numSamples, K numSources = 32) {
 				runningSum[j] += whiteNoise[i][j];
 			}
 		}
-		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / (numSources * numSamples);
+		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources;
 	}
 
 	return pinkNoise;
 }
+
 
 // Function to simulate Brownian motion
 template<typename T, typename K>
@@ -970,25 +971,42 @@ void Simulate_test(
 
 	// Random number generation
 	mxws<uint64_t> rng(seed);
+	mxws <uint64_t> gen(seed);
+
+	auto v = std::sqrt(pi);
+
+	std::weibull_distribution<T> dist;
 
 	// Generate independent standard uniform variables
 	std::vector<T> xi(num_terms), yi(num_terms);
 
 	const auto nt = 1024;
 
-	auto v = std::sqrt(2) * pi * spread / (num_terms - 1);
-	auto spread_x = rng(-v, v);
-	auto spread_y = rng(-v, v);
+	// Time points
+	std::vector<T> t = linspace(0., 2 * pi, num_terms);
 
-	//xi = generatePinkNoise<double>(num_terms);
-	//yi = generatePinkNoise<double>(num_terms);
-
-	
-	for (auto n = 1; n < num_terms; n++) {
-		xi[n] = rng(-2. / n, 2. / n);
-		yi[n] = rng(-2. / n, 2. / n);
+	/*
+	for (int i = 0; i < num_terms; i++) {
+		xi[i] = dist(gen);
+		yi[i] = dist(gen);
 	}
-	
+	*/
+
+	for (int i = 0; i < num_terms; i++) {
+
+		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+
+	}
+
+	xi = generatePinkNoise<double>(num_terms, 32);
+	yi = generatePinkNoise<double>(num_terms, 32);
+
+	plot.run_customcommand("figure(figsize = (8, 8))");
+	plot.run_customcommand("grid(alpha = 0.4)");
+	plot.grid_on();
+	plot.plot_somedata(t, xi, "", "xi", "red");
+
 
 	std::array<T, nt> st = {};
 
@@ -1017,29 +1035,22 @@ void Simulate_test(
 			st[i] -= 3;
 		}
 	}
-	
 
-	auto delta = nt / (2.0 * (num_terms - 1));
 
-	// Brownian motion calculation
 #pragma omp parallel for
 	for (auto i = 0; i < num_terms; i++) {
-		auto j = delta * i;
-		B_t_x[i] = spread_x * i;
-		B_t_y[i] = spread_y * i;
+		B_t_x[i] = xi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
+		B_t_y[i] = yi[0] * spread * t[i] * (1. / std::sqrt(2 * pi));
 		for (auto n = 1; n < num_terms; n++) {
-			auto k = st[K(n * j) % nt];
-			B_t_x[i] += k * xi[n];
-			B_t_y[i] += k * yi[n];
+			//auto k = std::sin(n * t[i] / 2);
+			auto p = K(fmod(n * t[i] * nt / pi / 4, nt));
+			auto k = st[p];
+			B_t_x[i] += k * xi[n] / n;
+			B_t_y[i] += k * yi[n] / n;
 		}
+		B_t_x[i] *= 2 / std::sqrt(pi);
+		B_t_y[i] *= 2 / std::sqrt(pi);
 	}
-
-	// Time points
-	std::vector<T> t = linspace(0., T(nt), nt);
-	plot.run_customcommand("figure(figsize = (8, 8))");
-	plot.run_customcommand("grid(alpha = 0.4)");
-	plot.grid_on();
-	plot.plot_somedata(t, st, "", "st", "red");
 
 }
 
@@ -1073,7 +1084,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< "[s]" << std::endl << std::endl << std::endl;
 
 	plot_fft(B_t_x, u8"RNG Normal");
-		
+
 	begin = std::chrono::high_resolution_clock::now();
 	Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
 	//Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
@@ -1095,7 +1106,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	plot_fft(B_t_x, u8"RNG Uniform");
 
 	plot.show();
-	
+
 }
 
 #endif // FUNCTIONS

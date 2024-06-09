@@ -906,18 +906,106 @@ void plot_fft(std::vector<double>& B_t_x, std::u8string title)
 
 	for (auto i = 0.; auto & d : std::span(cx).subspan(0, cx.size() / 2))
 	{
-		X.push_back(std::log10(i + 1));
-		Y.push_back(std::log10(std::sqrt(d.norm()) / (cx.size() / 2.)));
+		X.push_back(std::log(i + 1));
+		Y.push_back(std::log(std::sqrt(d.norm()) / (cx.size() / 2.)));
 		i++;
 	}
 	
 	plot.run_customcommand("figure(figsize = (8, 8))");
 	plot.set_xlabel("Frequency");
+	//plot.run_customcommand("axis('equal')");
 	plot.run_customcommand("grid(alpha = 0.4)");
 	plot.grid_on();
 	plot.set_title(utf8_encode(title));
 	plot.set_ylabel("dB");
 	plot.plot_somedata(X, Y, "", "Fourier Transform", "red");
+}
+
+
+// Function to calculate PWM Fourier coefficient
+double pwmCoefficient(int n, double dutyCycle) {
+	if (n == 0) {
+		return dutyCycle;
+	}
+	else {
+		return (2.0 / (n * pi)) * sin(n * pi * dutyCycle);
+	}
+}
+
+// Function to simulate Brownian motion
+template<typename T, typename K>
+	requires std::floating_point<T>&&
+std::same_as<K, uint64_t>
+void Simulate_test(
+	K num_terms, T spread, K seed, std::vector<T>& B_t_x, std::vector<T>& B_t_y) {
+
+	const auto pi = std::numbers::pi;
+
+	// Random number generation
+	mxws<uint64_t> rng;
+	rng.seed(seed);
+
+	// Generate independent standard uniform variables
+	std::vector<T> xi(num_terms), yi(num_terms);
+
+	const auto nt = 1024;
+
+	auto v = std::sqrt(2) * pi * spread / (num_terms - 1);
+	auto spread_x = rng(-v, v);
+	auto spread_y = rng(-v, v);
+
+	for (auto n = 1; n < num_terms; n++) {
+		xi[n] = rng(-2. / n, 2. / n);
+		yi[n] = rng(-2. / n, 2. / n);
+	}
+
+	std::array<T, nt> st = {};
+
+	auto numHarmonics = 256;
+
+	double dutyCycle = 0.8; // Initial duty cycle (50%)
+
+	// Generate PWM signal using Fourier series
+	for (int i = 0; i < nt; ++i) {
+		double angle = i * 2.0 * pi / nt;	
+		for (int n = 0; n <= numHarmonics; n += 2) {  // Include DC component (n = 0)
+			st[i] += pwmCoefficient(n, dutyCycle) * cos(n * angle);
+		}
+		st[i] *= 4;
+		st[i] -= 3;
+	}
+
+	bool default = 1;
+
+	if (default) {
+		for (auto i = 0; i < nt; i++) {
+			auto angle = i * 2 * pi / nt;
+			st[i] = std::sin(angle);
+		}
+	}
+
+	auto delta = nt / (2.0 * (num_terms - 1));
+
+	// Brownian motion calculation
+#pragma omp parallel for
+	for (auto i = 0; i < num_terms; i++) {
+		auto j = delta * i;
+		B_t_x[i] = spread_x * i;
+		B_t_y[i] = spread_y * i;
+		for (auto n = 1; n < num_terms; n++) {
+			auto k = st[K(n * j) % nt];
+			B_t_x[i] += k * xi[n];
+			B_t_y[i] += k * yi[n];
+		}
+	}
+
+	// Time points
+	std::vector<T> t = linspace(0., T(nt), nt);
+	plot.run_customcommand("figure(figsize = (8, 8))");
+	plot.run_customcommand("grid(alpha = 0.4)");
+	plot.grid_on();
+	plot.plot_somedata(t, st, "", "st", "red");
+
 }
 
 void Red_Noise() //Brownian noise, also known as Brown noise or red noise
@@ -952,7 +1040,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	plot_fft(B_t_x, u8"RNG Normal");
 		
 	begin = std::chrono::high_resolution_clock::now();
-	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
+	Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
+	//Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
 	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 

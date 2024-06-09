@@ -1,4 +1,5 @@
 ﻿
+
 #include "functions.hpp"
 #include <mxws.hpp>
 /*1D Galton Board simulation with normal and sinusoidal distribution*/

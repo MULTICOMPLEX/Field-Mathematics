@@ -932,6 +932,33 @@ double pwmCoefficient(int n, double dutyCycle) {
 	}
 }
 
+template<typename T, typename K>
+std::vector<T> generatePinkNoise(K numSamples, K numSources = 32) {
+	std::vector<T> pinkNoise(numSamples);
+	std::vector<std::vector<T>> whiteNoise(numSamples, std::vector<T>(numSources));
+	std::vector<T> runningSum(numSources);
+
+	std::random_device rd;
+	mxws <uint64_t> gen(rd());
+	std::uniform_real_distribution<T> dist(-1.0, 1.0);
+
+	std::generate(whiteNoise.begin(), whiteNoise.end(), [&]() {
+		return std::vector<T>(numSources, dist(gen));
+		});
+
+
+	for (K i = 0; i < numSamples; ++i) {
+		for (K j = 0; j < numSources; ++j) {
+			if (i % K(std::pow(2, j)) == 0) {
+				runningSum[j] += whiteNoise[i][j];
+			}
+		}
+		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / (numSources * numSamples);
+	}
+
+	return pinkNoise;
+}
+
 // Function to simulate Brownian motion
 template<typename T, typename K>
 	requires std::floating_point<T>&&
@@ -942,8 +969,7 @@ void Simulate_test(
 	const auto pi = std::numbers::pi;
 
 	// Random number generation
-	mxws<uint64_t> rng;
-	rng.seed(seed);
+	mxws<uint64_t> rng(seed);
 
 	// Generate independent standard uniform variables
 	std::vector<T> xi(num_terms), yi(num_terms);
@@ -954,28 +980,20 @@ void Simulate_test(
 	auto spread_x = rng(-v, v);
 	auto spread_y = rng(-v, v);
 
+	//xi = generatePinkNoise<double>(num_terms);
+	//yi = generatePinkNoise<double>(num_terms);
+
+	
 	for (auto n = 1; n < num_terms; n++) {
 		xi[n] = rng(-2. / n, 2. / n);
 		yi[n] = rng(-2. / n, 2. / n);
 	}
+	
 
 	std::array<T, nt> st = {};
 
-	auto numHarmonics = 256;
 
-	double dutyCycle = 0.92; // Initial duty cycle (50%)
-
-	// Generate PWM signal using Fourier series
-	for (int i = 0; i < nt; ++i) {
-		double angle = i * 2.0 * pi / nt;	
-		for (int n = 0; n <= numHarmonics; n += 2) {  // Include DC component (n = 0)
-			st[i] += pwmCoefficient(n, dutyCycle) * cos(n * angle);
-		}
-		st[i] *= 4;
-		st[i] -= 3;
-	}
-
-	bool sine_wave = 0;
+	bool sine_wave = 1;
 
 	if (sine_wave) {
 		for (auto i = 0; i < nt; i++) {
@@ -983,6 +1001,23 @@ void Simulate_test(
 			st[i] = std::sin(angle);
 		}
 	}
+
+	else {
+
+		auto numHarmonics = 256;
+		double dutyCycle = 0.75; // Initial duty cycle (50%)
+
+		// Generate PWM signal using Fourier series
+		for (int i = 0; i < nt; ++i) {
+			double angle = i * 2.0 * pi / nt;
+			for (int n = 0; n <= numHarmonics; n += 2) {  // Include DC component (n = 0)
+				st[i] += pwmCoefficient(n, dutyCycle) * cos(n * angle);
+			}
+			st[i] *= 4;
+			st[i] -= 3;
+		}
+	}
+	
 
 	auto delta = nt / (2.0 * (num_terms - 1));
 

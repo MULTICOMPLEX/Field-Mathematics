@@ -74,8 +74,8 @@ public:
 	}
 
 	template <typename T>
-		requires	std::same_as<T, uint64_t>
-	mxws(const T& seed)
+		requires std::integral<T>
+	mxws(T seed)
 	{
 		init(seed ^ 0x1010101010101010);
 	}
@@ -96,7 +96,7 @@ public:
 	}
 
 	template <typename T>
-		requires	std::same_as<T, uint64_t>
+		requires std::integral<T>
 	void init(const T& seed)
 	{
 		w = seed;

@@ -762,8 +762,7 @@ void Simulate_Brownian_motion_RNGnormal(
 	std::vector<T> t = linspace(0., 2 * pi, num_terms);
 
 	// Random number generation
-	mxws<uint64_t> rng;
-	rng.seed(seed);
+	mxws<uint64_t> rng(seed);
 
 	cxx::ziggurat_normal_distribution<T> normalRandomZ;
 
@@ -807,8 +806,7 @@ void Simulate_Brownian_motion_RNGuniform(
 	const auto pi = std::numbers::pi;
 
 	// Random number generation
-	mxws<uint64_t> rng;
-	rng.seed(seed);
+	mxws<uint64_t> rng(seed);
 
 	// Generate independent standard uniform variables
 	std::vector<T> xi(num_terms), yi(num_terms);
@@ -1099,10 +1097,9 @@ std::vector<double> generateGreyNoise(K numSamples, double sampleRate, int numSo
 
 //Violet noise is essentially the derivative (or difference) of white noise
 template<typename K>
-std::vector<double> generateVioletNoise(K numSamples) {
+std::vector<double> generateVioletNoise(K numSamples, K Seed) {
 	std::vector<double> violetNoise(numSamples);
-	std::random_device rd;
-	mxws <uint64_t> gen(rd());
+	mxws <uint64_t> gen(Seed);
 	std::uniform_real_distribution<> dis(-1.0, 1.0);
 
 	for (K i = 1; i < numSamples; ++i) {
@@ -1146,15 +1143,15 @@ void Simulate_test(
 	*/
 
 	
-		//for (int i = 0; i < num_terms; i++) {
-		//	xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
-		//	yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
-		//}
+		for (int i = 0; i < num_terms; i++) {
+			xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+			yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+		}
 		
 		//xi = generatePinkNoise<double>(num_terms, 32, 1);
 		//yi = generatePinkNoise<double>(num_terms, 32, 1);
-		xi = generateVioletNoise(num_terms);
-		yi = generateVioletNoise(num_terms);
+
+
 	/*
 	std::vector<Point> samples = generateBlueNoise(num_terms);
 
@@ -1164,14 +1161,11 @@ void Simulate_test(
 	}
 	*/
 
-	//xi = generateVioletNoise(num_terms);
-	//yi = generateVioletNoise(num_terms);
 
 	plot.run_customcommand("figure(figsize = (8, 8))");
 	plot.run_customcommand("grid(alpha = 0.4)");
 	plot.grid_on();
 	plot.plot_somedata(t, xi, "", "xi", "red");
-
 
 
 	std::array<T, nt> st = {};
@@ -1224,7 +1218,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 8192;
 	const auto spread = 0.0001;
-	const bool enable_random_seed = true;
+	const bool enable_random_seed = 0;
 	uint64_t seed = 10;
 
 	std::random_device r;
@@ -1252,8 +1246,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	plot_fft(B_t_x, u8"RNG Normal");
 
 	begin = std::chrono::high_resolution_clock::now();
-	Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
-	//Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
+	//Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
+	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
 	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 

@@ -85,7 +85,7 @@ public:
 		requires std::integral<T>
 	mxws(T seed)
 	{
-		init(seed ^ 0x1010101010101010);
+		init(seed);
 	}
 
 	void init()
@@ -94,7 +94,7 @@ public:
 		x = 1;
 		w1 = w;
 		w2 = w1 + 1;
-		x1 = x2 = 1;
+		x1 = 0x1010101010101010, x2 = 1;
 
 		MT.seed(r());
 		PCG32.seed(seed_source);
@@ -107,11 +107,11 @@ public:
 		requires std::integral<T>
 	void init(const T& seed)
 	{
-		w = seed;
+		w = seed ^ 0x1010101010101010;
 		x = 1;
 		w1 = w;
 		w2 = w1 + 1;
-		x1 = seed, x2 = 1;
+		x1 = 0x1010101010101010, x2 = 1;
 
 		MT.seed(r());
 		PCG32.seed(seed_source);

@@ -1010,20 +1010,7 @@ std::vector<T> generatePinkNoise(uint64_t numSamples, int numSources = 32, uint6
 	std::ranges::generate(whiteNoise, [&]() {
 		return std::vector<T>(numSources, dist(gen));
 		});
-
-	/*
-
-	for (auto j = 0; j < numSources; ++j) {
-		V[j].seed(j);
-	for (auto i = 0; i < numSamples; ++i) {
-		//	if ((j % (1 << i)))
-			runningSum[j] += dist(V[j]);
-			pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources + 2;
-		}
-	}
-	*/
 	
-	/*
 	for (auto i = 0; i < numSamples; ++i) {
 		for (auto j = 0; j < numSources; ++j) {
 			
@@ -1032,34 +1019,7 @@ std::vector<T> generatePinkNoise(uint64_t numSamples, int numSources = 32, uint6
 		}
 		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources;
 	}
-	*/
 
-	for (auto j = 0; j < numSources; ++j) {
-		for (auto i = 0; i < numSamples; ++i) {
-			if (!(i % (1 << j)))
-				runningSum[j] += whiteNoise[i][j];
-		}
-	}
-
-	for (auto i = 0; i < numSamples; ++i) {
-		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources;
-	}
-	/*
-
-	for (auto j = 0; j < numSources; ++j) {
-		runningSum[j] = 0.0; // Reset running sum for each source
-
-		for (auto i = 0; i < numSamples; ++i) {
-			runningSum[j] += whiteNoise[i][j];
-			pinkNoise[i] += runningSum[j]; // Assuming brown_noise is initialized to 0
-		}
-
-		// If you still want the averaged brown noise:
-		for (auto i = 0; i < numSamples; ++i) {
-			pinkNoise[i] /= numSources;
-		}
-	}
-	*/
 	return pinkNoise;
 }
 

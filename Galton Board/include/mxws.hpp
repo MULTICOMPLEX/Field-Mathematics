@@ -45,7 +45,7 @@ public:
 	{
 		w1 = k ^ 0x1010101010101010;
 		w2 = w1 + 1;
-		x1 = x2 = 1;
+		x1 = 0x1010101010101010, x2 = 1;
 	}
 
 	template <typename T>
@@ -109,6 +109,9 @@ public:
 	{
 		w = seed;
 		x = 1;
+		w1 = w;
+		w2 = w1 + 1;
+		x1 = seed, x2 = 1;
 
 		MT.seed(r());
 		PCG32.seed(seed_source);

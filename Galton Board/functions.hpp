@@ -1151,8 +1151,10 @@ void Simulate_test(
 		//	yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 		//}
 		
-		xi = generatePinkNoise<double>(num_terms, 32, 1);
-		yi = generatePinkNoise<double>(num_terms, 32, 1);
+		//xi = generatePinkNoise<double>(num_terms, 32, 1);
+		//yi = generatePinkNoise<double>(num_terms, 32, 1);
+		xi = generateVioletNoise(num_terms);
+		yi = generateVioletNoise(num_terms);
 	/*
 	std::vector<Point> samples = generateBlueNoise(num_terms);
 

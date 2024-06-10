@@ -39,14 +39,22 @@ public:
 	}
 
 	template <typename T>
-		requires	std::same_as<T, uint64_t>
+		requires	std::same_as<RN, uint64_t>&&
+	std::integral<T>
+	void inline seed(const T& k)
+	{
+		w1 = k ^ 0x1010101010101010;
+		w2 = w1 + 1;
+		x1 = x2 = 1;
+	}
+
+	template <typename T>
+		requires	std::same_as<RN, uint32_t>&&
+	std::integral<T>
 	void inline seed(const T& k)
 	{
 		w = k ^ 0x1010101010101010;
 		x = 1;
-		w1 = w;
-		w2 = w1 + 1;
-		x1 = x2 = 1;
 	}
 
 	template <typename T>

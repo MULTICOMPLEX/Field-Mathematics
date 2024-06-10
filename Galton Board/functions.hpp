@@ -996,29 +996,72 @@ std::vector<Point> generateBlueNoise(size_t num_samples) {
 }
 
 //Voss-McCartney algorithm
-template<typename T, typename K>
-std::vector<T> generatePinkNoise(K numSamples, int numSources = 32) {
+template<typename T>
+std::vector<T> generatePinkNoise(uint64_t numSamples, int numSources = 32, uint64_t seed = 1) {
 	std::vector<T> pinkNoise(numSamples);
 	std::vector<std::vector<T>> whiteNoise(numSamples, std::vector<T>(numSources));
 	std::vector<T> runningSum(numSources);
 
 	std::random_device rd;
-	mxws <uint64_t> gen(rd());
+	mxws <uint32_t> gen(rd());
+
+	std::vector <mxws <uint32_t>> V(numSources);
+
 	std::uniform_real_distribution<T> dist(-1.0, 1.0);
 
-	std::generate(whiteNoise.begin(), whiteNoise.end(), [&]() {
+	std::ranges::generate(whiteNoise, [&]() {
 		return std::vector<T>(numSources, dist(gen));
 		});
 
-	for (K i = 0; i < numSamples; ++i) {
-		for (K j = 0; j < numSources; ++j) {
-			if (i % K(std::pow(2, j)) == 0) {
+	/*
+
+	for (auto j = 0; j < numSources; ++j) {
+		V[j].seed(j);
+	for (auto i = 0; i < numSamples; ++i) {
+		//	if ((j % (1 << i)))
+			runningSum[j] += dist(V[j]);
+			pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources + 2;
+		}
+	}
+	*/
+	
+	/*
+	for (auto i = 0; i < numSamples; ++i) {
+		for (auto j = 0; j < numSources; ++j) {
+			
+			if (!(i % (1 << j)))
 				runningSum[j] += whiteNoise[i][j];
-			}
 		}
 		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources;
 	}
+	*/
 
+	for (auto j = 0; j < numSources; ++j) {
+		for (auto i = 0; i < numSamples; ++i) {
+			if (!(i % (1 << j)))
+				runningSum[j] += whiteNoise[i][j];
+		}
+	}
+
+	for (auto i = 0; i < numSamples; ++i) {
+		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources;
+	}
+	/*
+
+	for (auto j = 0; j < numSources; ++j) {
+		runningSum[j] = 0.0; // Reset running sum for each source
+
+		for (auto i = 0; i < numSamples; ++i) {
+			runningSum[j] += whiteNoise[i][j];
+			pinkNoise[i] += runningSum[j]; // Assuming brown_noise is initialized to 0
+		}
+
+		// If you still want the averaged brown noise:
+		for (auto i = 0; i < numSamples; ++i) {
+			pinkNoise[i] /= numSources;
+		}
+	}
+	*/
 	return pinkNoise;
 }
 
@@ -1108,8 +1151,8 @@ void Simulate_test(
 		//	yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 		//}
 		
-		//xi = generatePinkNoise<double>(num_terms, 32);
-		//yi = generatePinkNoise<double>(num_terms, 32);
+		xi = generatePinkNoise<double>(num_terms, 32, 1);
+		yi = generatePinkNoise<double>(num_terms, 32, 1);
 	/*
 	std::vector<Point> samples = generateBlueNoise(num_terms);
 
@@ -1119,13 +1162,14 @@ void Simulate_test(
 	}
 	*/
 
-	xi = generateVioletNoise(num_terms);
-	yi = generateVioletNoise(num_terms);
+	//xi = generateVioletNoise(num_terms);
+	//yi = generateVioletNoise(num_terms);
 
 	plot.run_customcommand("figure(figsize = (8, 8))");
 	plot.run_customcommand("grid(alpha = 0.4)");
 	plot.grid_on();
 	plot.plot_somedata(t, xi, "", "xi", "red");
+
 
 
 	std::array<T, nt> st = {};

@@ -933,149 +933,6 @@ double pwmCoefficient(int n, double dutyCycle) {
 }
 
 
-// Structure to represent a 2D point
-struct Point {
-	double x;
-	double y;
-
-	double distance(const Point& other) const {
-		return std::sqrt((x - other.x) * (y - other.y));
-	}
-};
-
-// Function to generate a random point within the unit square
-Point random_point(mxws<uint64_t>& rng) {
-	std::uniform_real_distribution<double> dist(-1.0, 1.0);
-	return { dist(rng), dist(rng) };
-}
-
-// Mitchell's Best Candidate Algorithm
-std::vector<Point> generateBlueNoise(size_t num_samples) {
-	std::vector<Point> samples;
-	samples.reserve(num_samples);
-
-	std::random_device rd;
-	//std::mt19937 rng(rd());
-	mxws <uint64_t> rng(rd());
-
-	// Generate the first sample randomly
-	samples.push_back(random_point(rng));
-
-	// Generate the remaining samples
-	for (size_t i = 1; i < num_samples; ++i) {
-		size_t best_candidate_idx = 0;
-		double best_candidate_distance = std::numeric_limits<double>::lowest();
-		const size_t num_candidates = 10;
-
-		// Generate candidate points and find the best one
-		for (size_t j = 0; j < num_candidates; ++j) {
-			Point candidate = random_point(rng);
-
-
-			// Calculate the minimum distance from this candidate to all existing samples
-			for (const Point& sample : samples) {
-				double distance = candidate.distance(sample);
-				if (distance < min_distance) {
-					min_distance = distance;
-				}
-			}
-
-			// If this candidate is the best so far, remember it
-			if (min_distance > best_candidate_distance) {
-				best_candidate_distance = min_distance;
-				best_candidate_idx = j;
-			}
-		}
-
-		// Add the best candidate to the samples
-		samples.push_back(random_point(rng));
-	}
-
-	return samples;
-}
-
-//Voss-McCartney algorithm
-template<typename T>
-std::vector<T> generatePinkNoise(uint64_t numSamples, int numSources = 32, uint64_t seed = 1) {
-	std::vector<T> pinkNoise(numSamples);
-	std::vector<std::vector<T>> whiteNoise(numSamples, std::vector<T>(numSources));
-	std::vector<T> runningSum(numSources);
-
-	mxws <uint32_t> gen(seed);
-
-	std::uniform_real_distribution<T> dist(-1.0, 1.0);
-
-	std::ranges::generate(whiteNoise, [&]() {
-		return std::vector<T>(numSources, dist(gen));
-		});
-
-	
-	for (auto i = 0; i < numSamples; ++i) {
-		for (auto j = 0; j < numSources; ++j) {
-	
-			if (!(i % (1 << j)))
-				runningSum[j] += whiteNoise[i][j];
-
-		}
-		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0);
-	}
-	/*
-
-	
-	for (auto j = 0; j < numSources; ++j) {
-		gen.seed(seed + j);
-		double runningSum = 0.0;
-
-		for (auto i = 0; i < numSamples; ++i) {
-			if (!(i % (1 << j))) 
-				runningSum += dist(gen); // Generate new white noise
-			
-			pinkNoise[i] += runningSum;
-		}
-	}
-	*/
-
-	// Normalization
-	double normFactor = 1.0 / numSources / 2;
-	for (auto& sample : pinkNoise) {
-		sample *= normFactor;
-	}
-
-	return pinkNoise;
-}
-
-// A-weighting curve approximation (for equal loudness)
-double aWeighting(double freq) {
-	const double RA = pow(12194.0, 2);
-	const double RB = pow(20.6, 2);
-	const double RC = pow(107.7, 2);
-	const double RD = pow(737.9, 2);
-	const double f2 = freq * freq;
-
-	double num = RA * f2 * f2;
-	double denom = (f2 + RB) * sqrt((f2 + RC) * (f2 + RD)) * (f2 + RA);
-	return num / denom;
-}
-
-template<typename K>
-std::vector<double> generateGreyNoise(K numSamples, double sampleRate, int numSources = 32) {
-	auto pinkNoise = generatePinkNoise(numSamples, numSources);
-
-	// Apply A-weighting to each frequency bin
-	double df = sampleRate / numSamples; // Frequency bin width
-	for (int i = 0; i < numSamples / 2; ++i) { // Only up to Nyquist frequency
-		double freq = i * df;
-		double aWeight = aWeighting(freq);
-		pinkNoise[i] *= aWeight;
-		// Mirror for negative frequencies
-		if (i != 0) {
-			pinkNoise[numSamples - i] *= aWeight;
-		}
-	}
-
-	return pinkNoise;
-}
-
 //Violet noise is essentially the derivative (or difference) of white noise
 template<typename K>
 std::vector<double> generateVioletNoise(K numSamples, K Seed) {
@@ -1105,8 +962,6 @@ void Simulate_test(
 
 	auto v = std::sqrt(pi);
 
-	std::weibull_distribution<T> dist;
-
 	// Generate independent standard uniform variables
 	std::vector<T> xi(num_terms), yi(num_terms);
 
@@ -1115,21 +970,12 @@ void Simulate_test(
 	// Time points
 	std::vector<T> t = linspace(0., 2 * pi, num_terms);
 
-
 	for (int i = 0; i < num_terms; i++) {
 		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 	}
 
-	//xi = generatePinkNoise<double>(num_terms, 32, seed);
-	//yi = generatePinkNoise<double>(num_terms, 32, seed + 32);
-
-
-	//plot_fft(xi, u8"PinkNoise");
-
-
 	std::array<T, nt> st = {};
-
 
 	bool sine_wave = 1;
 
@@ -1208,8 +1054,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	begin = std::chrono::high_resolution_clock::now();
 	//Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
-	//Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
-	Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
+	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
+	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 
 	k1 = std::ranges::minmax_element(B_t_x);

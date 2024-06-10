@@ -903,10 +903,11 @@ void plot_fft(std::vector<double>& B_t_x, std::u8string title)
 		[](auto& c) {return c; });
 	cx = FFT(cx);
 
+
 	for (auto i = 0.; auto & d : std::span(cx).subspan(0, cx.size() / 2))
 	{
 		X.push_back(std::log(i + 1));
-		Y.push_back(std::log(std::sqrt(d.norm()) / (cx.size() / 2.)));
+		Y.push_back(std::log(std::sqrt(d.norm())));
 		i++;
 	}
 
@@ -1000,24 +1001,44 @@ std::vector<T> generatePinkNoise(uint64_t numSamples, int numSources = 32, uint6
 	std::vector<std::vector<T>> whiteNoise(numSamples, std::vector<T>(numSources));
 	std::vector<T> runningSum(numSources);
 
-	std::random_device rd;
-	mxws <uint32_t> gen(rd());
-
-	std::vector <mxws <uint32_t>> V(numSources);
+	mxws <uint32_t> gen(seed);
 
 	std::uniform_real_distribution<T> dist(-1.0, 1.0);
 
 	std::ranges::generate(whiteNoise, [&]() {
 		return std::vector<T>(numSources, dist(gen));
 		});
+
 	
 	for (auto i = 0; i < numSamples; ++i) {
 		for (auto j = 0; j < numSources; ++j) {
-			
+	
 			if (!(i % (1 << j)))
 				runningSum[j] += whiteNoise[i][j];
+
 		}
-		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0) / numSources;
+		pinkNoise[i] = std::accumulate(runningSum.begin(), runningSum.end(), 0.0);
+	}
+	/*
+
+	
+	for (auto j = 0; j < numSources; ++j) {
+		gen.seed(seed + j);
+		double runningSum = 0.0;
+
+		for (auto i = 0; i < numSamples; ++i) {
+			if (!(i % (1 << j))) 
+				runningSum += dist(gen); // Generate new white noise
+			
+			pinkNoise[i] += runningSum;
+		}
+	}
+	*/
+
+	// Normalization
+	double normFactor = 1.0 / numSources / 2;
+	for (auto& sample : pinkNoise) {
+		sample *= normFactor;
 	}
 
 	return pinkNoise;
@@ -1081,7 +1102,6 @@ void Simulate_test(
 
 	// Random number generation
 	mxws<uint64_t> rng(seed);
-	mxws <uint64_t> gen(seed);
 
 	auto v = std::sqrt(pi);
 
@@ -1095,37 +1115,17 @@ void Simulate_test(
 	// Time points
 	std::vector<T> t = linspace(0., 2 * pi, num_terms);
 
-	/*
-	for (int i = 0; i < num_terms; i++) {
-		xi[i] = dist(gen);
-		yi[i] = dist(gen);
-	}
-	*/
-
-	
-		for (int i = 0; i < num_terms; i++) {
-			xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
-			yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
-		}
-		
-		//xi = generatePinkNoise<double>(num_terms, 32, 1);
-		//yi = generatePinkNoise<double>(num_terms, 32, 1);
-
-
-	/*
-	std::vector<Point> samples = generateBlueNoise(num_terms);
 
 	for (int i = 0; i < num_terms; i++) {
-		xi[i] = samples[i].x;
-		yi[i] = samples[i].y;
+		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
+		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 	}
-	*/
+
+	//xi = generatePinkNoise<double>(num_terms, 32, seed);
+	//yi = generatePinkNoise<double>(num_terms, 32, seed + 32);
 
 
-	plot.run_customcommand("figure(figsize = (8, 8))");
-	plot.run_customcommand("grid(alpha = 0.4)");
-	plot.grid_on();
-	plot.plot_somedata(t, xi, "", "xi", "red");
+	//plot_fft(xi, u8"PinkNoise");
 
 
 	std::array<T, nt> st = {};
@@ -1141,14 +1141,14 @@ void Simulate_test(
 	}
 
 	else {
-
+		
 		auto numHarmonics = 256;
-		double dutyCycle = 0.75; // Initial duty cycle (50%)
+		double dutyCycle = 0.95; // Initial duty cycle (50%)
 
 		// Generate PWM signal using Fourier series
 		for (int i = 0; i < nt; ++i) {
 			double angle = i * 2.0 * pi / nt;
-			for (int n = 0; n <= numHarmonics; n += 2) {  // Include DC component (n = 0)
+			for (int n = 0; n <= numHarmonics; n ++) {  // Include DC component (n = 0)
 				st[i] += pwmCoefficient(n, dutyCycle) * cos(n * angle);
 			}
 			st[i] *= 4;
@@ -1178,7 +1178,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 8192;
 	const auto spread = 0.0001;
-	const bool enable_random_seed = 0;
+	const bool enable_random_seed = true;
 	uint64_t seed = 10;
 
 	std::random_device r;
@@ -1199,6 +1199,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Normal");
 
+
 	std::cout << " Duration     "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl << std::endl << std::endl;
@@ -1207,8 +1208,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	begin = std::chrono::high_resolution_clock::now();
 	//Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
-	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
-	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
+	//Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
+	Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 
 	k1 = std::ranges::minmax_element(B_t_x);

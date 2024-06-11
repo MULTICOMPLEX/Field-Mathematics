@@ -9,6 +9,7 @@ from numpy.fft import irfft, rfftfreq
 from numpy.random import default_rng, Generator, RandomState
 from numpy import sum as npsum
 
+import math
 
 def powerlaw_psd_gaussian(
         exponent: float, 
@@ -160,8 +161,8 @@ def _get_normal_distribution(random_state: Optional[Union[int, Generator, Random
     
     
 
-beta1 = 2.3 # the exponent
-beta2 = 2 # the exponent
+beta1 = 4 # the exponent
+beta2 = 4 # the exponent
 
 samples = 2**22 # number of samples to generate
 initial_n_bins = np.linspace(0, samples, samples) 
@@ -224,16 +225,13 @@ def simulate_brownian_motion(num_terms=1000, spread = 0.001, seed = 10):
 #plt.grid(True)
 
 
-print("Number of samples", samples)
-print("Δ Start-End      ", (y[0]-y2[0]) - (y[-1]-y2[-1]))
-print("Δ Start-End Calc. ", np.pi**2 / sqrt(samples))
-
 # Different colors
 start_color = 'blue'  
 end_color = 'orange'
 path_color = 'gray'
 
 plt.figure(figsize=(8, 8))
+
 
 
 # Plot the path 
@@ -252,6 +250,22 @@ plt.ylabel("Y")
 plt.legend()  # Show the legend for start/end points
 plt.grid(alpha=0.4)
 plt.axis('equal')
+
+
+exponent = math.log2(samples)
+text1 = "Number of samples " + f"{samples} = 2^{int(exponent)}"
+
+dif = (y[0]-y2[0]) - (y[-1]-y2[-1]) 
+text2 = "Δ Start-End              " + f"{dif:.6e}"
+
+ax = plt.gca()
+plt.text(0.025, 0.95, text1, fontsize=9, transform=ax.transAxes)
+plt.text(0.025, 0.93, text2, fontsize=9, transform=ax.transAxes)
+
+plt.legend(loc='upper right') 
+
+print(text1)
+print(text2)
 
 plt.show()
 

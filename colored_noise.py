@@ -223,6 +223,11 @@ def simulate_brownian_motion(num_terms=1000, spread = 0.001, seed = 10):
 #plt.title("Brownian motion using a random Fourier series.")
 #plt.grid(True)
 
+
+print("Number of samples", samples)
+print("Δ Start-End      ", (y[0]-y2[0]) - (y[-1]-y2[-1]))
+print("Δ Start-End Calc. ", np.pi**2 / sqrt(samples))
+
 # Different colors
 start_color = 'blue'  
 end_color = 'orange'
@@ -249,3 +254,4 @@ plt.grid(alpha=0.4)
 plt.axis('equal')
 
 plt.show()
+

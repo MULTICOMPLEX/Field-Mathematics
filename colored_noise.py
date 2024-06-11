@@ -160,7 +160,7 @@ def _get_normal_distribution(random_state: Optional[Union[int, Generator, Random
     
     
 
-beta1 = 2 # the exponent
+beta1 = 2.3 # the exponent
 beta2 = 2 # the exponent
 
 samples = 2**22 # number of samples to generate
@@ -168,7 +168,7 @@ initial_n_bins = np.linspace(0, samples, samples)
 
 y = powerlaw_psd_gaussian(beta1, samples)
 plt.figure(figsize=(10, 6))
-label = "beta "
+label = " (1/f)$\\beta$="
 label += str(beta1)
 plt.plot(initial_n_bins,  y, label=label)
 plt.legend()
@@ -177,12 +177,12 @@ plt.grid(True)
 plt.figure(figsize=(10, 6))
 s, f = mlab.psd(y, NFFT=2**13)
 plt.loglog(f,s)
-plt.title("FFT Colored Noise, beta " + str(beta1))
+plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
 y2 = powerlaw_psd_gaussian(beta2, samples)
 plt.figure(figsize=(10, 6))
-label = "beta "
+label = "(1/f)$\\beta$="
 label += str(beta2)
 plt.plot(initial_n_bins,  y2, label=label)
 plt.legend()
@@ -191,7 +191,7 @@ plt.grid(True)
 plt.figure(figsize=(10, 6))
 s, f = mlab.psd(y2, NFFT=2**13)
 plt.loglog(f,s)
-plt.title("FFT Colored Noise, beta " + str(beta2))
+plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2))
 plt.grid(True)
 
 def simulate_brownian_motion(num_terms=1000, spread = 0.001, seed = 10):
@@ -241,7 +241,7 @@ plt.plot(y[0], y2[0], marker='o', markersize=8, color=start_color, label='Start'
 # Plot the end point (red)
 plt.plot(y[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
 
-plt.title("Simulated 2D Brownian Motion")
+plt.title("Simulated 2D Colored Noise Motion "+ "(1/f)$\\beta$=" + str(beta1) + ", (1/f)$\\beta$=" + str(beta2) )
 plt.xlabel("X")
 plt.ylabel("Y")
 plt.legend()  # Show the legend for start/end points

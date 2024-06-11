@@ -161,8 +161,8 @@ def _get_normal_distribution(random_state: Optional[Union[int, Generator, Random
     
     
 
-beta1 = 4 # the exponent
-beta2 = 4 # the exponent
+beta1 = 2 # the exponent
+beta2 = 2 # the exponent
 
 samples = 2**22 # number of samples to generate
 initial_n_bins = np.linspace(0, samples, samples) 
@@ -259,8 +259,8 @@ dif = (y[0]-y2[0]) - (y[-1]-y2[-1])
 text2 = "Δ Start-End              " + f"{dif:.6e}"
 
 ax = plt.gca()
-plt.text(0.025, 0.95, text1, fontsize=9, transform=ax.transAxes)
-plt.text(0.025, 0.93, text2, fontsize=9, transform=ax.transAxes)
+plt.text(0.015, 0.97, text1, fontsize=9, transform=ax.transAxes)
+plt.text(0.015, 0.95, text2, fontsize=9, transform=ax.transAxes)
 
 plt.legend(loc='upper right') 
 

@@ -160,40 +160,38 @@ def _get_normal_distribution(random_state: Optional[Union[int, Generator, Random
     
     
 
-beta = 2.27 # the exponent
-samples = 2**21 # number of samples to generate
+beta1 = 2 # the exponent
+beta2 = 2 # the exponent
 
+samples = 2**22 # number of samples to generate
 initial_n_bins = np.linspace(0, samples, samples) 
 
-y = powerlaw_psd_gaussian(beta, samples)
-
-
+y = powerlaw_psd_gaussian(beta1, samples)
 plt.figure(figsize=(10, 6))
-plt.plot(initial_n_bins,  y, label='beta =1 = pink noise')
+label = "beta "
+label += str(beta1)
+plt.plot(initial_n_bins,  y, label=label)
 plt.legend()
 plt.grid(True)
-
-
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
 s, f = mlab.psd(y, NFFT=2**13)
 plt.loglog(f,s)
+plt.title("FFT Colored Noise, beta " + str(beta1))
 plt.grid(True)
 
-beta = 2.27 # the exponent
-y2 = powerlaw_psd_gaussian(beta, samples)
-
+y2 = powerlaw_psd_gaussian(beta2, samples)
 plt.figure(figsize=(10, 6))
-plt.plot(initial_n_bins,  y2, label='beta = 2 = red noise')
+label = "beta "
+label += str(beta2)
+plt.plot(initial_n_bins,  y2, label=label)
 plt.legend()
 plt.grid(True)
-
-
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
 s, f = mlab.psd(y2, NFFT=2**13)
 plt.loglog(f,s)
-plt.title("Colored Noise FFT")
+plt.title("FFT Colored Noise, beta " + str(beta2))
 plt.grid(True)
 
 def simulate_brownian_motion(num_terms=1000, spread = 0.001, seed = 10):
@@ -234,14 +232,14 @@ plt.figure(figsize=(8, 8))
 
 
 # Plot the path 
-n = 1024
-plt.plot(y2[::n], y[::n], marker='o', markersize=2, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
+n = 512
+plt.plot(y[::n], y2[::n], marker='o', markersize=2, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
 
 # Plot the start point (green)
-plt.plot(y2[0], y[0], marker='o', markersize=8, color=start_color, label='Start')
+plt.plot(y[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
 
 # Plot the end point (red)
-plt.plot(y2[-1], y[-1], marker='o', markersize=8, color=end_color, label='End')
+plt.plot(y[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
 
 plt.title("Simulated 2D Brownian Motion")
 plt.xlabel("X")

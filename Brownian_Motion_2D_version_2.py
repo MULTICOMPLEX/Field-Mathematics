@@ -20,7 +20,6 @@ def simulate_brownian_motion_2d(num_terms=1000, spread = 0.001, seed = 10):
     xi_y = rng.uniform(-np.sqrt(np.pi), np.sqrt(np.pi), num_terms)  # Independent standard uniform for Y
     
     t = np.linspace(0, 2 * np.pi, num_terms)
-    print(t)
     # Calculate X-coordinates
     
     B_t_x = xi_x[0] * t / np.sqrt(2 * np.pi) * spread
@@ -34,7 +33,7 @@ def simulate_brownian_motion_2d(num_terms=1000, spread = 0.001, seed = 10):
     return t, B_t_x, B_t_y
 
 # Example usage
-t, B_t_x, B_t_y = simulate_brownian_motion_2d(num_terms=10, spread = 0.001, seed = None)
+t, B_t_x, B_t_y = simulate_brownian_motion_2d(num_terms=10000, spread = 0.0001, seed = None)
 
 plt.figure(figsize=(8, 8))
 

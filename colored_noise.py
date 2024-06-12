@@ -161,11 +161,11 @@ def _get_normal_distribution(random_state: Optional[Union[int, Generator, Random
     
     
 
-beta1 = 2 # the exponent
-beta2 = 2 # the exponent
+beta1 = 3 # the exponent
+beta2 = 3 # the exponent
 
 samples = 2**22 # number of samples to generate
-return_to_beginning = 0
+return_to_beginning = 1
 
 if(return_to_beginning == 0):
     return_to_beginning = 2;

@@ -1,4 +1,3 @@
-import colorednoise as cn
 from matplotlib import mlab
 from matplotlib import pylab as plt
 import numpy as np

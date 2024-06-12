@@ -1,13 +1,13 @@
 ﻿
 #ifndef __FUNCTIONS_HPP__
 #define __FUNCTIONS_HPP__
-
+#define NOMINMAX
 #include <future>
 #include <numbers>
 #include <span>
 #include "MULTICOMPLEX.hpp"
 //typedef std::complex<double> Complex;
-typedef MX0 Complex;
+using Complex = std::complex<double>;
 double min_distance = std::numeric_limits<double>::max();
 
 //#include "coroutine.hpp"
@@ -1058,6 +1058,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform");
 
 	plot_fft(B_t_x, u8"Power spectral density RNG Uniform");
+
 
 	plot.show();
 

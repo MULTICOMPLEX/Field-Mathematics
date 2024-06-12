@@ -14,8 +14,7 @@ import math
 def powerlaw_psd_gaussian(
         exponent: float, 
         size: Union[int, Iterable[int]], 
-        fmin: float = 0.0, 
-        random_state: Optional[Union[int, Generator, RandomState]] = None
+        fmin: float = 0.0
     ):
     """Gaussian (1/f)**beta noise.
 
@@ -55,13 +54,6 @@ def powerlaw_psd_gaussian(
         since 1/samples is the lowest possible finite frequency in the
         sample. The largest possible value is fmin = 0.5, the Nyquist
         frequency. The output for this value is white noise.
-
-    random_state :  int, numpy.integer, numpy.random.Generator, numpy.random.RandomState, 
-                    optional
-        Optionally sets the state of NumPy's underlying random number generator.
-        Integer-compatible values or None are passed to np.random.default_rng.
-        np.random.RandomState or np.random.Generator are used directly.
-        Default: None.
 
     Returns
     -------
@@ -118,13 +110,13 @@ def powerlaw_psd_gaussian(
     dims_to_add = len(size) - 1
     s_scale     = s_scale[(newaxis,) * dims_to_add + (Ellipsis,)]
     
-    # prepare random number generator
-    normal_dist = _get_normal_distribution(random_state)
-
-    # Generate scaled random power + phase
-    sr = normal_dist(scale=s_scale, size=size)
-    si = normal_dist(scale=s_scale, size=size)
+    # prepare random number generator    
+    rng = np.random.default_rng()
     
+    # Generate scaled random power + phase
+    sr = rng.normal(scale=s_scale, size=size)  # Independent standard normal variables
+    si = rng.normal(scale=s_scale, size=size)  # Independent standard normal variables
+
     # If the signal length is even, frequencies +/- 0.5 are equal
     # so the coefficient must be real.
     if not (samples % 2):
@@ -142,21 +134,6 @@ def powerlaw_psd_gaussian(
     y = irfft(s, n=samples, axis=-1) / sigma
     
     return y
-
-
-def _get_normal_distribution(random_state: Optional[Union[int, Generator, RandomState]]):
-    normal_dist = None
-    if isinstance(random_state, (integer, int)) or random_state is None:
-        random_state = default_rng(random_state)
-        normal_dist = random_state.normal
-    elif isinstance(random_state, (Generator, RandomState)):
-        normal_dist = random_state.normal
-    else:
-        raise ValueError(
-            "random_state must be one of integer, numpy.random.Generator, "
-            "numpy.random.Randomstate"
-        )
-    return normal_dist
     
 
 beta1 = 3 # the exponent

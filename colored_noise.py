@@ -165,9 +165,14 @@ beta1 = 2 # the exponent
 beta2 = 2 # the exponent
 
 samples = 2**22 # number of samples to generate
-initial_n_bins = np.linspace(0, samples, samples) 
+return_to_beginning = 0
 
-y = powerlaw_psd_gaussian(beta1, samples)
+if(return_to_beginning == 0):
+    return_to_beginning = 2;
+
+initial_n_bins = np.linspace(0, samples, int(samples/return_to_beginning)) 
+
+y = powerlaw_psd_gaussian(beta1, samples)[:int(samples/return_to_beginning)]
 plt.figure(figsize=(10, 6))
 label = " (1/f)$\\beta$="
 label += str(beta1)
@@ -181,7 +186,7 @@ plt.loglog(f,s)
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
-y2 = powerlaw_psd_gaussian(beta2, samples)
+y2 = powerlaw_psd_gaussian(beta2, samples)[:int(samples/return_to_beginning)]
 plt.figure(figsize=(10, 6))
 label = "(1/f)$\\beta$="
 label += str(beta2)
@@ -255,7 +260,40 @@ plt.axis('equal')
 exponent = math.log2(samples)
 text1 = "Number of samples " + f"{samples} = 2^{int(exponent)}"
 
-dif = (y[0]-y2[0]) - (y[-1]-y2[-1]) 
+
+def onclick(event):
+    global points, annotation
+
+    if event.inaxes is not None:
+        points.append((event.xdata, event.ydata))
+
+        if len(points) == 2:
+            x1, y1 = points[0]
+            x2, y2 = points[1]
+            distance = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+            
+            if annotation:
+                annotation.remove()
+
+            annotation = ax.annotate(
+                f'Distance: {distance:.2f}',
+                xy=((x1 + x2) / 2, (y1 + y2) / 2),
+                xytext=(0, 10),
+                textcoords="offset points",
+                ha="center", va="bottom",
+                bbox=dict(boxstyle="round", fc="w"),
+                arrowprops=dict(arrowstyle="->")
+            )
+
+            ax.plot([x1, x2], [y1, y2], 'ro-')
+            fig.canvas.draw()
+            points = []  # Reset points for the next measurement
+
+
+def distance(x1, y1, x2, y2):
+    return math.sqrt(math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2))
+
+dif = distance(y[0],y2[0],y[-1],y2[-1])
 text2 = "Δ Start-End              " + f"{dif:.6e}"
 
 ax = plt.gca()

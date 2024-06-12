@@ -158,8 +158,6 @@ def _get_normal_distribution(random_state: Optional[Union[int, Generator, Random
         )
     return normal_dist
     
-    
-    
 
 beta1 = 3 # the exponent
 beta2 = 3 # the exponent

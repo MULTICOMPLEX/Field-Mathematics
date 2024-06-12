@@ -110,6 +110,8 @@ public:
 	void imshow(const std::string& points, const std::string& cmap = "gray", double extent = 1.0);
 	std::string vector_data(const std::vector<double>& v);
 
+	void mlab_psd(const auto& X, const auto size);
+
 };
 
 
@@ -143,6 +145,7 @@ plot_matplotlib::plot_matplotlib() // Constructor
 	PyRun_SimpleStringStd("import matplotlib.ticker as ticker");
 	PyRun_SimpleStringStd("import numpy as np");
 	PyRun_SimpleStringStd("from mpl_toolkits.mplot3d import Axes3D");
+	PyRun_SimpleStringStd("from matplotlib import mlab");
 
 }
 
@@ -349,6 +352,35 @@ alpha=" + std::to_string(alpha) + ")");
 
 	if (label != "")PyRun_SimpleStringStd("plt.legend()");
 }
+
+
+void plot_matplotlib::mlab_psd(const auto& X, const auto size)
+{
+	// Plot Points:
+	std::string xpoints = "";
+	xpoints.reserve(2 * X.size());
+
+
+	for (size_t i = 0; i < X.size(); i++) {
+		// Add points
+		if (i > 0) {
+			xpoints += ",";
+		}
+		xpoints += std::to_string(X[i]);
+
+		// Set auto range
+		if (X[i] < _range_x1) {
+			_range_x1 = X[i];
+		}
+		if (X[i] > _range_x2) {
+			_range_x2 = X[i];
+		}
+	}
+
+	PyRun_SimpleStringStd("s, f = mlab.psd( np.array([" + xpoints + "]), " + std::to_string(size) + ")");
+	PyRun_SimpleStringStd("plt.loglog(f, s)");
+}
+
 
 void plot_matplotlib::plot_polar(const auto& X, const auto& Y,
 	std::string properties, std::string label, std::string color,

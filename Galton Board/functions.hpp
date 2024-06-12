@@ -894,31 +894,17 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 
 }
 
-void plot_fft(std::vector<double>& B_t_x, std::u8string title)
+void plot_fft(std::vector<double>& v, std::u8string title)
 {
-	std::vector<MX0> cx;
-	std::vector<double> X, Y;
-
-	std::ranges::transform(B_t_x, std::back_inserter(cx),
-		[](auto& c) {return c; });
-	cx = FFT(cx);
-
-
-	for (auto i = 0.; auto & d : std::span(cx).subspan(0, cx.size() / 2))
-	{
-		X.push_back(std::log(i + 1));
-		Y.push_back(std::log(std::sqrt(d.norm())));
-		i++;
-	}
-
 	plot.run_customcommand("figure(figsize = (8, 8))");
 	plot.set_xlabel("Frequency");
 	//plot.run_customcommand("axis('equal')");
 	plot.run_customcommand("grid(alpha = 0.4)");
 	plot.grid_on();
 	plot.set_title(utf8_encode(title));
+	plot.set_xlabel("dB");
 	plot.set_ylabel("dB");
-	plot.plot_somedata(X, Y, "", "Fourier Transform", "red");
+	plot.mlab_psd(v, v.size());	
 }
 
 
@@ -974,6 +960,7 @@ void Simulate_test(
 		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 	}
+	
 
 	std::array<T, nt> st = {};
 
@@ -1050,7 +1037,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl << std::endl << std::endl;
 
-	plot_fft(B_t_x, u8"RNG Normal");
+	plot_fft(B_t_x, u8"Power spectral density RNG Normal");
 
 	begin = std::chrono::high_resolution_clock::now();
 	//Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
@@ -1070,7 +1057,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform");
 
-	plot_fft(B_t_x, u8"RNG Uniform");
+	plot_fft(B_t_x, u8"Power spectral density RNG Uniform");
 
 	plot.show();
 

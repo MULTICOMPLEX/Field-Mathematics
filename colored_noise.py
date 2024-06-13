@@ -83,8 +83,9 @@ def powerlaw_psd_gaussian(
     rng = np.random.default_rng()
     
     # Generate scaled random power + phase
-    sr = rng.uniform(-1.,1.,size=len(f))  # Independent standard normal variables
-    si = rng.uniform(-1.,1.,size=len(f))   # Independent standard normal variables
+    v = np.sqrt(np.pi)
+    sr = rng.uniform(-v, v, size=len(f))  # Independent standard normal variables
+    si = rng.uniform(-v, v, size=len(f))   # Independent standard normal variables
     sr *= s_scale
     si *= s_scale   
     

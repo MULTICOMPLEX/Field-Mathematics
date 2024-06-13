@@ -83,24 +83,24 @@ def powerlaw_psd_gaussian(
     rng = np.random.default_rng()
     
     # Generate scaled random power + phase
-    sr = rng.normal(size=len(f))  # Independent standard normal variables
-    si = rng.normal(size=len(f))  # Independent standard normal variables
+    sr = rng.uniform(-1.,1.,size=len(f))  # Independent standard normal variables
+    si = rng.uniform(-1.,1.,size=len(f))   # Independent standard normal variables
     sr *= s_scale
-    si *= s_scale
+    si *= s_scale   
     
     # Combine power + corrected phase to Fourier components
     s  = sr + 1J * si
-    
+     
     # Transform to real time series & scale to unit variance
     y = irfft(s, n=samples) / sigma
     
     return y
 
 
-beta1 = 2 # the exponent
-beta2 = 2 # the exponent
+beta1 = 3 # the exponent
+beta2 = 3 # the exponent
 
-samples = 2**22# number of samples to generate
+samples = 2**21# number of samples to generate
 return_to_beginning = 1
 
 if(return_to_beginning == 0):

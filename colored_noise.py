@@ -95,8 +95,41 @@ def powerlaw_psd_gaussian(
     return y
 
 
-beta1 = 3 # the exponent
-beta2 = 3 # the exponent
+def powerlaw_psd_gaussian_normal(exponent, samples, fmin = 0.0):   
+    # Calculate Frequencies (we asume a sample rate of one)
+    # Use fft functions for real output (-> hermitian spectrum)
+    f = rfftfreq(samples) 
+    
+    # Build scaling factors for all frequencies
+    s_scale = f
+    s_scale[0] = 1
+    s_scale = np.power(f, -exponent / 2.0)
+    s_scale[0] = 0
+    
+    # Calculate theoretical output standard deviation from scaling
+    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
+      
+    # prepare random number generator    
+    rng = np.random.default_rng()
+    
+    # Generate scaled random power + phase
+
+    sr = rng.normal(size=len(f))  # Independent standard uniform variables
+    si = rng.normal(size=len(f))   # Independent standard uniform variables
+    sr *= s_scale
+    si *= s_scale   
+    
+    # Combine power + corrected phase to Fourier components
+    s  = sr + 1J * si
+     
+    # Transform to real time series & scale to unit variance
+    y = irfft(s, n=samples) / sigma
+    
+    return y
+
+
+beta1 = 2 # the exponent
+beta2 = 2 # the exponent
 
 samples = 2**21# number of samples to generate
 return_to_beginning = 1
@@ -120,7 +153,7 @@ plt.loglog(f,s)
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
-y2 = powerlaw_psd_gaussian(beta2, samples)[:int(samples/return_to_beginning)]
+y2 = powerlaw_psd_gaussian_normal(beta2, samples)[:int(samples/return_to_beginning)]
 plt.figure(figsize=(10, 6))
 label = "(1/f)$\\beta$="
 label += str(beta2)
@@ -131,37 +164,9 @@ plt.grid(True)
 plt.figure(figsize=(10, 6))
 s, f = mlab.psd(y2, NFFT=2**13)
 plt.loglog(f,s)
-plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2))
+plt.title("FFT Colored Noise Normal, (1/f)$\\beta$=" + str(beta2))
 plt.grid(True)
 
-def simulate_brownian_motion(num_terms=1000, spread = 0.001, seed = 10):
-    """Simulates Brownian motion using a random Fourier series.
-
-    Args:
-        num_terms (int): Number of terms in the Fourier series.
-        spread (float): difference between the start and end point.
-        seed (int): seed for the RNG. 
-
-    Returns:
-        numpy.ndarray: Time points and corresponding Brownian motion values.
-    """
-    t = np.linspace(0, 2 * np.pi, num_terms)
-    
-    rng = np.random.default_rng(seed)
-    xi = rng.uniform(-np.sqrt(np.pi), np.sqrt(np.pi), num_terms)  # Independent standard uniform variables
-
-    B_t = xi[0] * t / np.sqrt(2 * np.pi) * spread
-    B_t += sum(np.sin(n * t / 2) * xi[n] / n for n in range(1, num_terms)) * 2 / np.sqrt(np.pi)
-
-    return t, B_t 
-
-#t, B_t = simulate_brownian_motion(num_terms=8192,  spread = 0.0001, seed = None)
-
-#plt.figure(figsize=(10, 6))
-#s, f = mlab.psd(B_t, NFFT=2**13)
-#plt.loglog(f,s)
-#plt.title("Brownian motion using a random Fourier series.")
-#plt.grid(True)
 
 
 # Different colors

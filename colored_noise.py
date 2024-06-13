@@ -2,19 +2,16 @@ from matplotlib import mlab
 from matplotlib import pylab as plt
 import numpy as np
 
-from typing import Union, Iterable, Optional
-from numpy import sqrt, newaxis, integer
 from numpy.fft import irfft, rfftfreq
 from numpy.random import default_rng, Generator, RandomState
-from numpy import sum as npsum
 
 import math
 
 
 def powerlaw_psd_gaussian(
-        exponent: float, 
-        samples:int, 
-        fmin: float = 0.0
+        exponent, 
+        samples, 
+        fmin = 0.0
     ):
     """Gaussian (1/f)**beta noise.
 
@@ -71,21 +68,21 @@ def powerlaw_psd_gaussian(
     f = rfftfreq(samples) 
     
     # Build scaling factors for all frequencies
-    s_scale = f 
+    s_scale = f
     s_scale[0] = 1
     s_scale = np.power(f, -exponent / 2.0)
     s_scale[0] = 0
     
     # Calculate theoretical output standard deviation from scaling
-    sigma = 2 * sqrt(npsum(s_scale**2)) / samples
+    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
       
     # prepare random number generator    
     rng = np.random.default_rng()
     
     # Generate scaled random power + phase
     v = np.sqrt(np.pi)
-    sr = rng.uniform(-v, v, size=len(f))  # Independent standard normal variables
-    si = rng.uniform(-v, v, size=len(f))   # Independent standard normal variables
+    sr = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
+    si = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
     sr *= s_scale
     si *= s_scale   
     

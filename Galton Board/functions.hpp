@@ -1,7 +1,6 @@
 ﻿
 #ifndef __FUNCTIONS_HPP__
 #define __FUNCTIONS_HPP__
-#define NOMINMAX
 #include <future>
 #include <numbers>
 #include <span>
@@ -18,6 +17,7 @@ double min_distance = std::numeric_limits<double>::max();
 #include "constants.hpp"
 #include "vector_operators.hpp"
 #include "fft.hpp"
+#include "fftw3.h"
 
 template <typename T, typename I>
 	requires std::floating_point<T>&&
@@ -721,10 +721,18 @@ std::vector<double> linspace(T start_in, T end_in, std::uint64_t num_in)
 
 template<typename T>
 	requires std::floating_point<T>
-void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::u8string title)
+void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::u8string title, int n)
 {
+
+	std::vector<T> x, y;
+	for (auto k = 0; k < B_t_X.size(); k += n)
+	{
+		x.push_back(B_t_X[k]);
+		y.push_back(B_t_Y[k]);
+	}
+
 	plot.run_customcommand("figure(figsize = (8, 8))");
-	plot.plot_somedata(B_t_X, B_t_Y, "o-", "BrownianMotion", "gray", 0.5, 2);
+	plot.plot_somedata(x, y, "o-", "BrownianMotion", "gray", 0.5, 2);
 
 	std::vector<T> btx, bty;
 	btx.push_back(B_t_X.front());
@@ -904,7 +912,7 @@ void plot_fft(std::vector<double>& v, std::u8string title)
 	plot.set_title(utf8_encode(title));
 	plot.set_xlabel("dB");
 	plot.set_ylabel("dB");
-	plot.mlab_psd(v, v.size());	
+	plot.mlab_psd(v, v.size());
 }
 
 
@@ -960,7 +968,7 @@ void Simulate_test(
 		xi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 		yi[i] = rng(-std::sqrt(pi), std::sqrt(pi));
 	}
-	
+
 
 	std::array<T, nt> st = {};
 
@@ -974,14 +982,14 @@ void Simulate_test(
 	}
 
 	else {
-		
+
 		auto numHarmonics = 256;
 		double dutyCycle = 0.95; // Initial duty cycle (50%)
 
 		// Generate PWM signal using Fourier series
 		for (int i = 0; i < nt; ++i) {
 			double angle = i * 2.0 * pi / nt;
-			for (int n = 0; n <= numHarmonics; n ++) {  // Include DC component (n = 0)
+			for (int n = 0; n <= numHarmonics; n++) {  // Include DC component (n = 0)
 				st[i] += pwmCoefficient(n, dutyCycle) * cos(n * angle);
 			}
 			st[i] *= 4;
@@ -1007,6 +1015,89 @@ void Simulate_test(
 
 }
 
+// Function to calculate the rfftfreq
+std::vector<double> rfftfreq(uint64_t n, double d = 1.0) {
+	std::vector<double> result(n / 2 + 1);
+	for (auto i = 0; i <= n / 2; ++i) {
+		result[i] = i / (n * d);
+	}
+	return result;
+}
+
+// Main function to generate power-law PSD Gaussian noise
+std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples) {
+	// Calculate frequencies
+	auto f = rfftfreq(samples - 1);
+
+	// Build scaling factors for all frequencies
+	std::vector<double> s_scale(f.size());
+	for (size_t i = 1; i < f.size(); ++i) {
+		s_scale[i] = std::pow(f[i], -exponent / 2.0);
+	}
+	s_scale[0] = 0;
+
+	// Calculate theoretical output standard deviation from scaling
+	double sum_squares = 0;
+	for (double s : s_scale) {
+		sum_squares += s * s;
+	}
+	double sigma = 2 * std::sqrt(sum_squares) / samples;
+
+	// Prepare random number generator
+	std::random_device rd;
+	mxws<uint32_t> gen(rd());
+	std::uniform_real_distribution<> dis(-std::sqrt(std::numbers::pi), std::sqrt(std::numbers::pi));
+
+	// Generate scaled random power + phase
+	std::vector<double> sr(f.size()), si(f.size());
+	for (size_t i = 0; i < f.size(); ++i) {
+		sr[i] = dis(gen) * s_scale[i];
+		si[i] = dis(gen) * s_scale[i];
+	}
+
+	// Combine power + corrected phase to Fourier components
+	std::vector<std::complex<double>> s(f.size());
+	for (size_t i = 0; i < f.size(); ++i) {
+		s[i] = std::complex<double>(sr[i], si[i]);
+	}
+
+	std::vector<double> y(samples);
+	fftw_plan plan = fftw_plan_dft_c2r_1d(int(samples), reinterpret_cast<fftw_complex*>(s.data()), y.data(), FFTW_ESTIMATE);
+	fftw_execute(plan);
+	fftw_destroy_plan(plan);
+	// Transform to real time series & scale to unit variance
+	for (auto& value : y) {
+		value /= sigma * samples;
+	}
+	
+	/*
+	inverse_fft(s);
+	std::vector<double> y(samples / 2);
+	for (auto i = 0; i < y.size(); ++i) {
+		y[i] = s[i].real();
+	}
+	// Transform to real time series & scale to unit variance
+	for (auto& value : y) {
+		value /= sigma;
+	}
+	*/
+
+	return y;
+}
+
+// Define a structure to represent a point in 2D space
+struct Point {
+	double x;
+	double y;
+};
+
+// Function to compute the Euclidean distance between two points
+double euclidean_distance(const Point& p1, const Point& p2) {
+	double dx = p1.x - p2.x;
+	double dy = p1.y - p2.y;
+	return std::sqrt(dx * dx + dy * dy);
+}
+
 void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 8192;
@@ -1030,14 +1121,27 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	auto Amplitude_y = *k2.max - *k2.min;
 	std::cout << std::setprecision(3) << "RNG Normal Amplitude  P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
 
-	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Normal");
-
+	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Normal", 1);
 
 	std::cout << " Duration     "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl << std::endl << std::endl;
 
 	plot_fft(B_t_x, u8"Power spectral density RNG Normal");
+
+
+	///////////////
+	auto N = Nsamples * 512;
+	auto x = powerlaw_psd_gaussian(2.0, N);
+	auto y = powerlaw_psd_gaussian(2.0, N);
+	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 512);
+	Point point1 = { x.front(), y.front()};
+	Point point2 = { x.back(), y.back()};
+	auto distance = euclidean_distance(point1, point2);
+	std::cout << utf8_encode(u8"Δ Start-End= ") << std::scientific << std::setprecision(6) << distance << std::defaultfloat << std::endl << std::endl;
+	//plot_fft(x, u8"Powerlaw PSD FFT");
+	///////////////
+
 
 	begin = std::chrono::high_resolution_clock::now();
 	//Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
@@ -1055,7 +1159,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl << std::endl << std::endl;
 
-	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform");
+	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform", 1);
 
 	plot_fft(B_t_x, u8"Power spectral density RNG Uniform");
 

@@ -2,6 +2,47 @@
 #define __FFT_HPP__
 #include <vector>
 
+
+void inverse_fft(std::vector<std::complex<double>>& data) {
+	const std::size_t n = data.size();
+	if (n <= 1) return;
+
+	// Bit-reversal permutation
+	std::size_t j = 0;
+	for (std::size_t i = 1; i < n; ++i) {
+		std::size_t bit = n >> 1;
+		while (j >= bit) {
+			j -= bit;
+			bit >>= 1;
+		}
+		j += bit;
+		if (i < j) {
+			std::swap(data[i], data[j]);
+		}
+	}
+
+	// Cooley-Tukey iFFT
+	for (std::size_t len = 2; len <= n; len <<= 1) {
+		const double angle = -2.0 * std::numbers::pi / len;
+		std::complex<double> wlen(std::cos(angle), std::sin(angle));
+		for (std::size_t i = 0; i < n; i += len) {
+			std::complex<double> w(1);
+			for (std::size_t j = 0; j < len / 2; ++j) {
+				std::complex<double> u = data[i + j];
+				std::complex<double> v = data[i + j + len / 2] * w;
+				data[i + j] = u + v;
+				data[i + j + len / 2] = u - v;
+				w *= wlen;
+			}
+		}
+	}
+
+	// Normalize the result
+	for (auto& x : data) {
+		x /= double(n);
+	}
+}
+
 template <typename T>
 void Write_DFTCoeff(const std::vector<T>& v) {
 	std::fstream file;

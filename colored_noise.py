@@ -10,9 +10,10 @@ from numpy import sum as npsum
 
 import math
 
+
 def powerlaw_psd_gaussian(
         exponent: float, 
-        size: Union[int, Iterable[int]], 
+        samples:int, 
         fmin: float = 0.0
     ):
     """Gaussian (1/f)**beta noise.
@@ -38,10 +39,8 @@ def powerlaw_psd_gaussian(
         with gamma = 1 - beta for 0 < beta < 1.
         There may be finite-size issues for beta close to one.
 
-    shape : int or iterable
-        The output has the given shape, and the desired power spectrum in
-        the last coordinate. That is, the last dimension is taken as time,
-        and all other components are independent.
+    samples: int 
+        The number of samples in each time series
 
     fmin : float, optional
         Low-frequency cutoff.
@@ -64,81 +63,44 @@ def powerlaw_psd_gaussian(
     ---------
 
     # generate 1/f noise == pink noise == flicker noise
-    >>> import colorednoise as cn
-    >>> y = cn.powerlaw_psd_gaussian(1, 5)
+    >>> y = powerlaw_psd_gaussian(1, 5)
     """
-    
-    # Make sure size is a list so we can iterate it and assign to it.
-    if isinstance(size, (integer, int)):
-        size = [size]
-    elif isinstance(size, Iterable):
-        size = list(size)
-    else:
-        raise ValueError("Size must be of type int or Iterable[int]")
-    
-    # The number of samples in each time series
-    samples = size[-1]
-    
+   
     # Calculate Frequencies (we asume a sample rate of one)
     # Use fft functions for real output (-> hermitian spectrum)
-    f = rfftfreq(samples) # type: ignore # mypy 1.5.1 has problems here 
-    
-    # Validate / normalise fmin
-    if 0 <= fmin <= 0.5:
-        fmin = max(fmin, 1./samples) # Low frequency cutoff
-    else:
-        raise ValueError("fmin must be chosen between 0 and 0.5.")
+    f = rfftfreq(samples) 
     
     # Build scaling factors for all frequencies
-    s_scale = f    
-    ix   = npsum(s_scale < fmin)   # Index of the cutoff
-    if ix and ix < len(s_scale):
-        s_scale[:ix] = s_scale[ix]
-    s_scale = s_scale**(-exponent/2.)
+    s_scale = f 
+    s_scale[0] = 1
+    s_scale = np.power(f, -exponent / 2.0)
+    s_scale[0] = 0
     
     # Calculate theoretical output standard deviation from scaling
-    w      = s_scale[1:].copy()
-    w[-1] *= (1 + (samples % 2)) / 2. # correct f = +-0.5
-    sigma = 2 * sqrt(npsum(w**2)) / samples
-    
-    # Adjust size to generate one Fourier component per frequency
-    size[-1] = len(f)
-
-    # Add empty dimension(s) to broadcast s_scale along last
-    # dimension of generated random power + phase (below)
-    dims_to_add = len(size) - 1
-    s_scale     = s_scale[(newaxis,) * dims_to_add + (Ellipsis,)]
-    
+    sigma = 2 * sqrt(npsum(s_scale**2)) / samples
+      
     # prepare random number generator    
     rng = np.random.default_rng()
     
     # Generate scaled random power + phase
-    sr = rng.normal(scale=s_scale, size=size)  # Independent standard normal variables
-    si = rng.normal(scale=s_scale, size=size)  # Independent standard normal variables
-
-    # If the signal length is even, frequencies +/- 0.5 are equal
-    # so the coefficient must be real.
-    if not (samples % 2):
-        si[..., -1] = 0
-        sr[..., -1] *= sqrt(2)    # Fix magnitude
-    
-    # Regardless of signal length, the DC component must be real
-    si[..., 0] = 0
-    sr[..., 0] *= sqrt(2)    # Fix magnitude
+    sr = rng.normal(size=len(f))  # Independent standard normal variables
+    si = rng.normal(size=len(f))  # Independent standard normal variables
+    sr *= s_scale
+    si *= s_scale
     
     # Combine power + corrected phase to Fourier components
     s  = sr + 1J * si
     
     # Transform to real time series & scale to unit variance
-    y = irfft(s, n=samples, axis=-1) / sigma
+    y = irfft(s, n=samples) / sigma
     
     return y
-    
 
-beta1 = 3 # the exponent
-beta2 = 3 # the exponent
 
-samples = 2**22 # number of samples to generate
+beta1 = 2 # the exponent
+beta2 = 2 # the exponent
+
+samples = 2**22# number of samples to generate
 return_to_beginning = 1
 
 if(return_to_beginning == 0):
@@ -211,8 +173,6 @@ path_color = 'gray'
 
 plt.figure(figsize=(8, 8))
 
-
-
 # Plot the path 
 n = 512
 plt.plot(y[::n], y2[::n], marker='o', markersize=2, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
@@ -233,35 +193,6 @@ plt.axis('equal')
 
 exponent = math.log2(samples)
 text1 = "Number of samples " + f"{samples} = 2^{int(exponent)}"
-
-
-def onclick(event):
-    global points, annotation
-
-    if event.inaxes is not None:
-        points.append((event.xdata, event.ydata))
-
-        if len(points) == 2:
-            x1, y1 = points[0]
-            x2, y2 = points[1]
-            distance = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-            
-            if annotation:
-                annotation.remove()
-
-            annotation = ax.annotate(
-                f'Distance: {distance:.2f}',
-                xy=((x1 + x2) / 2, (y1 + y2) / 2),
-                xytext=(0, 10),
-                textcoords="offset points",
-                ha="center", va="bottom",
-                bbox=dict(boxstyle="round", fc="w"),
-                arrowprops=dict(arrowstyle="->")
-            )
-
-            ax.plot([x1, x2], [y1, y2], 'ro-')
-            fig.canvas.draw()
-            points = []  # Reset points for the next measurement
 
 
 def distance(x1, y1, x2, y2):

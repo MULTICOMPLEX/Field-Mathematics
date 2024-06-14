@@ -904,7 +904,7 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 
 void plot_fft(std::vector<double>& v, std::u8string title)
 {
-	plot.run_customcommand("figure(figsize = (8, 8))");
+	plot.run_customcommand("figure(figsize = (10, 6))");
 	plot.set_xlabel("Frequency");
 	//plot.run_customcommand("axis('equal')");
 	plot.run_customcommand("grid(alpha = 0.4)");
@@ -1014,16 +1014,6 @@ void Simulate_test(
 	}
 
 }
-
-// Function to calculate the rfftfreq
-std::vector<double> rfftfreq(uint64_t n, double d = 1.0) {
-	std::vector<double> result(n / 2 + 1);
-	for (auto i = 0; i <= n / 2; ++i) {
-		result[i] = i / (n * d);
-	}
-	return result;
-}
-
 
 template <typename T>
 T myMax(T a, T b) {

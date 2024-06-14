@@ -94,8 +94,10 @@ def powerlaw_psd_gaussian_normal(exponent, samples, fmin):
     return y
 
 
-beta1 = 2 # the exponent
-beta2 = 2 # the exponent
+beta1 = 3 # the exponent
+beta2 = 3 # the exponent
+
+fmin = 0.0;
 
 samples = 2**18 # number of samples to generate
 return_to_beginning = 1
@@ -105,7 +107,7 @@ if(return_to_beginning == 0):
 
 initial_n_bins = np.linspace(0, samples, int(samples/return_to_beginning)) 
 
-y = powerlaw_psd_gaussian(beta1, samples, 0.1)[:int(samples/return_to_beginning)]
+y = powerlaw_psd_gaussian(beta1, samples, fmin)[:int(samples/return_to_beginning)]
 plt.figure(figsize=(10, 6))
 label = " (1/f)$\\beta$="
 label += str(beta1)
@@ -114,12 +116,12 @@ plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
-s, f = mlab.psd(y, samples )
+s, f = mlab.psd(y, NFFT=2**13 )
 plt.loglog(f,s)
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
-y2 = powerlaw_psd_gaussian(beta2, samples, 0.1)[:int(samples/return_to_beginning)]
+y2 = powerlaw_psd_gaussian(beta2, samples, fmin)[:int(samples/return_to_beginning)]
 plt.figure(figsize=(10, 6))
 label = "(1/f)$\\beta$="
 label += str(beta2)
@@ -128,7 +130,7 @@ plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
-s, f = mlab.psd(y2, samples)
+s, f = mlab.psd(y2, NFFT=2**13)
 plt.loglog(f,s)
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2))
 plt.grid(True)

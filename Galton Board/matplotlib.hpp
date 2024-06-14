@@ -377,7 +377,9 @@ void plot_matplotlib::mlab_psd(const auto& X, const auto size)
 		}
 	}
 
-	PyRun_SimpleStringStd("s, f = mlab.psd( np.array([" + xpoints + "]), " + std::to_string(size) + ")");
+	PyRun_SimpleStringStd("s, f = mlab.psd( np.array([" + xpoints + "]), 	NFFT = 2**13)");
+	//PyRun_SimpleStringStd("s, f = mlab.psd( np.array([" + xpoints + "]), " + std::to_string(size) + ")");
+
 	PyRun_SimpleStringStd("plt.loglog(f, s)");
 }
 

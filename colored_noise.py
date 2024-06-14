@@ -10,18 +10,26 @@ import math
 
 def powerlaw_psd_gaussian(
         exponent, 
-        samples
+        samples,
+        fmin
     ):
    
     # Calculate Frequencies (we asume a sample rate of one)
     # Use fft functions for real output (-> hermitian spectrum)
     f = rfftfreq(samples) 
     
+        # Validate / normalise fmin
+    if 0 <= fmin <= 0.5:
+        fmin = max(fmin, 1./samples) # Low frequency cutoff
+    else:
+        raise ValueError("fmin must be chosen between 0 and 0.5.")
+    
     # Build scaling factors for all frequencies
-    s_scale = f
-    s_scale[0] = 1
-    s_scale = np.power(f, -exponent / 2.0)
-    s_scale[0] = 0
+    s_scale = f    
+    ix   = np.sum(s_scale < fmin)   # Index of the cutoff
+    if ix and ix < len(s_scale):
+        s_scale[:ix] = s_scale[ix]
+    s_scale = s_scale**(-exponent/2.)
     
     # Calculate theoretical output standard deviation from scaling
     sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
@@ -45,17 +53,24 @@ def powerlaw_psd_gaussian(
     return y
 
 
-def powerlaw_psd_gaussian_normal(exponent, samples):   
+def powerlaw_psd_gaussian_normal(exponent, samples, fmin):   
     # Calculate Frequencies (we asume a sample rate of one)
     # Use fft functions for real output (-> hermitian spectrum)
     f = rfftfreq(samples) 
     
-    print(f)
+            # Validate / normalise fmin
+    if 0 <= fmin <= 0.5:
+        fmin = max(fmin, 1./samples) # Low frequency cutoff
+    else:
+        raise ValueError("fmin must be chosen between 0 and 0.5.")
     
     # Build scaling factors for all frequencies
-    s_scale = f
-    s_scale = np.power(f[1::], -exponent / 2.0)
-    s_scale[0] = 0
+    s_scale = f    
+    ix   = np.sum(s_scale < fmin)   # Index of the cutoff
+    if ix and ix < len(s_scale):
+        s_scale[:ix] = s_scale[ix]
+    s_scale = s_scale**(-exponent/2.)
+    
     
     # Calculate theoretical output standard deviation from scaling
     sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
@@ -82,7 +97,7 @@ def powerlaw_psd_gaussian_normal(exponent, samples):
 beta1 = 2 # the exponent
 beta2 = 2 # the exponent
 
-samples = 2**21# number of samples to generate
+samples = 2**18 # number of samples to generate
 return_to_beginning = 1
 
 if(return_to_beginning == 0):
@@ -90,7 +105,7 @@ if(return_to_beginning == 0):
 
 initial_n_bins = np.linspace(0, samples, int(samples/return_to_beginning)) 
 
-y = powerlaw_psd_gaussian(beta1, samples)[:int(samples/return_to_beginning)]
+y = powerlaw_psd_gaussian(beta1, samples, 0.1)[:int(samples/return_to_beginning)]
 plt.figure(figsize=(10, 6))
 label = " (1/f)$\\beta$="
 label += str(beta1)
@@ -99,12 +114,12 @@ plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
-s, f = mlab.psd(y, NFFT=2**13)
+s, f = mlab.psd(y, samples )
 plt.loglog(f,s)
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
-y2 = powerlaw_psd_gaussian(beta2, samples)[:int(samples/return_to_beginning)]
+y2 = powerlaw_psd_gaussian(beta2, samples, 0.1)[:int(samples/return_to_beginning)]
 plt.figure(figsize=(10, 6))
 label = "(1/f)$\\beta$="
 label += str(beta2)
@@ -113,9 +128,9 @@ plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
-s, f = mlab.psd(y2, NFFT=2**13)
+s, f = mlab.psd(y2, samples)
 plt.loglog(f,s)
-plt.title("FFT Colored Noise Normal, (1/f)$\\beta$=" + str(beta2))
+plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2))
 plt.grid(True)
 
 

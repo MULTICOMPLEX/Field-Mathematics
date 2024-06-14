@@ -3,8 +3,53 @@
 #include <vector>
 
 
+template <typename T>
+void Write_DFTCoeff(const std::vector<T>& v) {
+	std::fstream file;
+	file.open("DFT_coeff.txt", std::ios_base::out);
+
+	for (const auto& content : v)
+		file << std::setprecision(15) << content << std::endl;
+	file.close();
+}
+
+template <typename T>
+void Read_DFTCoeff(std::vector<T>& v) {
+	std::fstream file;
+	file.open("DFT_coeff.txt", std::ios_base::in);
+
+	for (auto& content : v)
+		file >> content;
+	file.close();
+}
+
+template <typename T>
+const T rev
+(
+	T x,
+	T lgn
+) {
+	T res = 0;
+	while (lgn--) {
+		res = 2 * res + (x & 1);
+		x /= 2;
+	}
+	return res;
+}
+
+bool isPowerOfTwo(const size_t n)
+{
+	return std::ceil(std::log2(n)) == floor(std::log2(n));
+}
+
 void inverse_fft(std::vector<std::complex<double>>& data) {
 	const std::size_t n = data.size();
+
+	if (!isPowerOfTwo(n)) {
+		std::cout << "Input FFT is not a power of two! " << n;
+		exit(0);
+	}
+
 	if (n <= 1) return;
 
 	// Bit-reversal permutation
@@ -55,48 +100,8 @@ std::vector<double> extract_real_part(const std::vector<std::complex<double>>& d
 
 // Function to perform inverse FFT and return the real part
 std::vector<double> inverse_fft_real(std::vector<std::complex<double>>& data) {
-    inverse_fft(data);
-    return extract_real_part(data);
-}
-
-
-template <typename T>
-void Write_DFTCoeff(const std::vector<T>& v) {
-	std::fstream file;
-	file.open("DFT_coeff.txt", std::ios_base::out);
-
-	for (const auto& content : v)
-		file << std::setprecision(15) << content << std::endl;
-	file.close();
-}
-
-template <typename T>
-void Read_DFTCoeff(std::vector<T>& v) {
-	std::fstream file;
-	file.open("DFT_coeff.txt", std::ios_base::in);
-
-	for (auto& content : v)
-		file >> content;
-	file.close();
-}
-
-template <typename T>
-const T rev
-(
-	T x,
-	T lgn
-) {
-	T res = 0;
-	while (lgn--) {
-		res = 2 * res + (x & 1);
-		x /= 2;
-	}
-	return res;
-}
-
-bool isPowerOfTwo(const size_t n)
-{
-	return std::ceil(std::log2(n)) == floor(std::log2(n));
+	inverse_fft(data);
+	return extract_real_part(data);
 }
 
 template <typename T>

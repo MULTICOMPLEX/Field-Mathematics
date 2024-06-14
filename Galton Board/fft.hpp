@@ -38,10 +38,27 @@ void inverse_fft(std::vector<std::complex<double>>& data) {
 	}
 
 	// Normalize the result
-	for (auto& x : data) {
-		x /= double(n);
-	}
+	//for (auto& x : data) {
+		//x /= double(n);
+	//}
 }
+
+
+// Helper function to extract the real part of the complex data
+std::vector<double> extract_real_part(const std::vector<std::complex<double>>& data) {
+	std::vector<double> real_part(data.size());
+	for (std::size_t i = 0; i < data.size(); ++i) {
+		real_part[i] = data[i].real();
+	}
+	return real_part;
+}
+
+// Function to perform inverse FFT and return the real part
+std::vector<double> inverse_fft_real(std::vector<std::complex<double>>& data) {
+    inverse_fft(data);
+    return extract_real_part(data);
+}
+
 
 template <typename T>
 void Write_DFTCoeff(const std::vector<T>& v) {

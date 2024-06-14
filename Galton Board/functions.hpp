@@ -17,7 +17,7 @@ double min_distance = std::numeric_limits<double>::max();
 #include "constants.hpp"
 #include "vector_operators.hpp"
 #include "fft.hpp"
-#include "fftw3.h"
+//#include "fftw3.h"
 
 template <typename T, typename I>
 	requires std::floating_point<T>&&
@@ -1062,26 +1062,16 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples) {
 	}
 
 	std::vector<double> y(samples);
-	fftw_plan plan = fftw_plan_dft_c2r_1d(int(samples), reinterpret_cast<fftw_complex*>(s.data()), y.data(), FFTW_ESTIMATE);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
-	// Transform to real time series & scale to unit variance
-	for (auto& value : y) {
-		value /= sigma * samples;
-	}
 	
-	/*
-	inverse_fft(s);
-	std::vector<double> y(samples / 2);
-	for (auto i = 0; i < y.size(); ++i) {
-		y[i] = s[i].real();
-	}
+	//fftw_plan plan = fftw_plan_dft_c2r_1d(int(samples), reinterpret_cast<fftw_complex*>(s.data()), y.data(), FFTW_ESTIMATE);
+	//fftw_execute(plan);
+	//fftw_destroy_plan(plan);
+	
+	y = inverse_fft_real(s);
 	// Transform to real time series & scale to unit variance
-	for (auto& value : y) {
-		value /= sigma;
-	}
-	*/
-
+	for (auto& value : y) 
+		value /= sigma * samples;
+	
 	return y;
 }
 
@@ -1131,9 +1121,14 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 
 	///////////////
+	begin = std::chrono::high_resolution_clock::now();
 	auto N = Nsamples * 512;
 	auto x = powerlaw_psd_gaussian(2.0, N);
 	auto y = powerlaw_psd_gaussian(2.0, N);
+	end = std::chrono::high_resolution_clock::now();
+	std::cout << " Duration     "
+		<< std::chrono::nanoseconds(end - begin).count() / 1e9
+		<< "[s]" << std::endl;
 	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 512);
 	Point point1 = { x.front(), y.front()};
 	Point point2 = { x.back(), y.back()};
@@ -1149,15 +1144,17 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 
+	std::cout << " Duration     "
+		<< std::chrono::nanoseconds(end - begin).count() / 1e9
+		<< "[s]" << std::endl << std::endl << std::endl;
+
 	k1 = std::ranges::minmax_element(B_t_x);
 	Amplitude_x = *k1.max - *k1.min;
 	k2 = std::ranges::minmax_element(B_t_y);
 	Amplitude_y = *k2.max - *k2.min;
 	std::cout << std::setprecision(3) << "RNG Uniform Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
 
-	std::cout << " Duration     "
-		<< std::chrono::nanoseconds(end - begin).count() / 1e9
-		<< "[s]" << std::endl << std::endl << std::endl;
+
 
 	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform", 1);
 

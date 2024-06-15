@@ -926,13 +926,12 @@ double pwmCoefficient(int n, double dutyCycle) {
 }
 
 //Violet noise is essentially the derivative (or difference) of white noise
-template<typename K>
-std::vector<double> generateVioletNoise(K numSamples, K Seed) {
+std::vector<double> generateVioletNoise(uint64_t numSamples, uint64_t Seed) {
 	std::vector<double> violetNoise(numSamples);
 	mxws <uint64_t> gen(Seed);
-	std::uniform_real_distribution<> dis(-1.0, 1.0);
+	std::uniform_real_distribution<> dis(-std::sqrt(std::numbers::pi), std::sqrt(std::numbers::pi));
 
-	for (K i = 1; i < numSamples; ++i) {
+	for (auto i = 1; i < numSamples; ++i) {
 		double whiteNoise = dis(gen);
 		violetNoise[i] = whiteNoise - violetNoise[i - 1] / 100;
 	}
@@ -1103,7 +1102,11 @@ struct Point {
 };
 
 // Function to compute the Euclidean distance between two points
-double euclidean_distance(const Point& p1, const Point& p2) {
+double euclidean_distance(const double x1, const double y1, const double x2, const double y2) {
+
+	Point p1 = { x1, y1 };
+	Point p2 = { x2, y2 };
+
 	double dx = p1.x - p2.x;
 	double dy = p1.y - p2.y;
 	return std::sqrt(dx * dx + dy * dy);
@@ -1113,7 +1116,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 8192;
 	const auto spread = 0.0001;
-	const bool enable_random_seed = 0;
+	const bool enable_random_seed = 1;
 	uint64_t seed = 10;
 
 	std::random_device r;
@@ -1122,9 +1125,13 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	std::vector<double> B_t_x(Nsamples, 0.0), B_t_y(Nsamples, 0.0);
 
-	auto begin = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point begin;
+	std::chrono::high_resolution_clock::time_point end;
+	
+	/*
+	begin = std::chrono::high_resolution_clock::now();
 	Simulate_Brownian_motion_RNGnormal(Nsamples, spread, seed, B_t_x, B_t_y);
-	auto end = std::chrono::high_resolution_clock::now();
+	end = std::chrono::high_resolution_clock::now();
 
 	std::cout << "Duration     "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
@@ -1136,14 +1143,14 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	auto Amplitude_y = *k2.max - *k2.min;
 	std::cout << std::setprecision(3) << "RNG Normal Amplitude  P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl << std::endl;
 
-	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Normal", 1);
+	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Normal");
 	plot_fft(B_t_x, u8"Power spectral density RNG Normal");
-
+	*/
 
 	///////////////
 	begin = std::chrono::high_resolution_clock::now();
-	auto N = Nsamples * 16;
-	double beta = 3;
+	auto N = Nsamples * 8;
+	double beta = 3.5;
 	double fmin = 0;
 	auto x = powerlaw_psd_gaussian(beta, N, fmin, seed);
 	auto y = powerlaw_psd_gaussian(beta, N, fmin, seed + 1);
@@ -1152,17 +1159,14 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl;
 
+	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw");
 	plot_fft(x, u8"Power spectral density powerlaw_psd_gaussian");
 
-	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw");
-	Point point1 = { x.front(), y.front()};
-	Point point2 = { x.back(), y.back()};
-	auto distance = euclidean_distance(point1, point2);
+	auto distance = euclidean_distance(x.front(), y.front(), x.back(), y.back());
 	std::cout << utf8_encode(u8"Δ Start-End= ") << std::scientific << std::setprecision(6) << distance << std::defaultfloat << std::endl << std::endl;
-	//plot_fft(x, u8"Powerlaw PSD FFT");
 	///////////////
 
-
+	/*
 	begin = std::chrono::high_resolution_clock::now();
 	//Simulate_test(Nsamples, spread, seed, B_t_x, B_t_y);
 	Simulate_Brownian_motion_RNGuniform(Nsamples, spread, seed, B_t_x, B_t_y);
@@ -1179,11 +1183,9 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	Amplitude_y = *k2.max - *k2.min;
 	std::cout << std::setprecision(3) << "RNG Uniform Amplitude P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
 
-
-	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform", 1);
-
+	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Uniform");
 	plot_fft(B_t_x, u8"Power spectral density RNG Uniform");
-
+	*/
 
 	plot.show();
 

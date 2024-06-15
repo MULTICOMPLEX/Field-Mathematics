@@ -1112,6 +1112,7 @@ double euclidean_distance(const double x1, const double y1, const double x2, con
 	return std::sqrt(dx * dx + dy * dy);
 }
 
+
 void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 8192;

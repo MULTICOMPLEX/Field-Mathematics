@@ -11,6 +11,7 @@
 #include <numbers>
 #include <iostream>
 #include "../ziggurat.hpp"
+#include <numeric>
 
 template <typename RN>
 	requires
@@ -661,5 +662,192 @@ public:
 	}
 
 };
+
+
+// Example function to integrate
+double exampleFunction(double x) {
+	return x * x; // f(x) = x^2
+}
+
+//convergence rate of 1/sqrt(n)
+	double monteCarloIntegration(std::function<double(double)> func, double a, double b, uint64_t numSamples, uint64_t seed) {
+		mxws <uint32_t> generator(seed);
+		std::uniform_real_distribution<double> distribution(a, b);
+
+		double sum = 0.0;
+		for (auto i = 0; i < numSamples; ++i) {
+			double x = distribution(generator);
+			sum += func(x);
+		}
+
+		double result = (b - a) * sum / numSamples;
+		return result;
+	}
+
+	void test_monteCarloIntegration(uint64_t seed) {
+
+		double a = 0.0; // Lower bound of the interval
+		double b = 1.0; // Upper bound of the interval
+		int numSamples = 10000; // Number of random samples
+
+		double result = monteCarloIntegration(exampleFunction, a, b, numSamples, seed);
+		std::cout << "Estimated integral: " << result << std::endl;
+
+		// Demonstrating the convergence rate
+		for (int n = 1000; n <= 1000000; n *= 10) {
+			double estimate = monteCarloIntegration(exampleFunction, a, b, n, seed);
+			std::cout << "Samples: " << n << ", Estimated integral: " << estimate << ", Error: " << std::abs(estimate - 1.0 / 3.0) << std::endl;
+		}
+	}
+
+	// Function to compute the derivative of the diffusion term
+	double sigma_derivative(double x) {
+		return 0.2; // Assuming sigma'(x) is constant for simplicity
+	}
+
+	// Define the SDE: dX_t = mu * X_t * dt + sigma * X_t * dW_t
+	void eulerMaruyama(double mu, double sigma, double X0, double T, int N, std::vector<double>& path, uint64_t seed) {
+		double dt = T / N;
+		path.resize(N + 1);
+		path[0] = X0;
+
+		mxws <uint32_t> generator(seed);
+		std::normal_distribution<double> distribution(0.0, std::sqrt(dt));
+
+		for (int i = 1; i <= N; ++i) {
+			double dW = distribution(generator);
+			path[i] = path[i - 1] + mu * path[i - 1] * dt + sigma * path[i - 1] * dW;
+		}
+	}
+	
+	void test_eulerMaruyama(uint64_t seed) {
+		double mu = 0.1;       // Drift coefficient
+		double sigma = 0.2;    // Volatility coefficient
+		double X0 = 1.0;       // Initial value
+		double T = 1.0;        // Time period
+		int N = 1000;          // Number of steps
+
+		std::vector<double> path;
+		eulerMaruyama(mu, sigma, X0, T, N, path, seed);
+
+		// Output the path for verification
+		for (int i = 0; i <= N; ++i) {
+			std::cout << "X[" << i << "] = " << path[i] << std::endl;
+		}
+	}
+
+	// Function to perform Milstein Method
+	void milsteinMethod(double mu, double sigma, double X0, double T, int N, std::vector<double>& path, uint64_t seed) {
+		double dt = T / N;
+		path.resize(N + 1);
+		path[0] = X0;
+
+		mxws <uint32_t> generator(seed);
+		std::normal_distribution<double> distribution(0.0, std::sqrt(dt));
+
+		for (int i = 1; i <= N; ++i) {
+			double dW = distribution(generator);
+			double Xi = path[i - 1];
+			double drift = mu * Xi;
+			double diffusion = sigma * Xi;
+			double diffusion_derivative = sigma_derivative(Xi);
+
+			path[i] = Xi + drift * dt + diffusion * dW + 0.5 * diffusion * diffusion_derivative * (dW * dW - dt);
+		}
+	}
+
+	void test_milsteinMethod(uint64_t seed) {
+		double mu = 0.1;       // Drift coefficient
+		double sigma = 0.2;    // Volatility coefficient
+		double X0 = 1.0;       // Initial value
+		double T = 1.0;        // Time period
+		int N = 1000;          // Number of steps
+
+		std::vector<double> path;
+		milsteinMethod(mu, sigma, X0, T, N, path, seed);
+
+		// Output the path for verification
+		for (int i = 0; i <= N; ++i) {
+			std::cout << "X[" << i << "] = " << path[i] << std::endl;
+		}
+	}
+
+	// Target distribution: standard normal distribution
+	double targetDistribution(double x) {
+		return std::exp(-0.5 * x * x) / std::sqrt(2 * std::numbers::pi);
+	}
+
+	// Proposal distribution: normal distribution centered at the current state
+	double proposalDistribution(double x, mxws <uint32_t>& generator, std::normal_distribution<double>& distribution) {
+		return x + distribution(generator);
+	}
+
+	// Metropolis-Hastings algorithm
+	void metropolisHastings(int numSamples, double initialState, std::vector<double>& samples, uint64_t seed) {
+		mxws <uint32_t> generator(seed);
+		std::uniform_real_distribution<double> uniformDist(0.0, 1.0);
+		std::normal_distribution<double> proposalDist(0.0, 1.0);
+
+		double currentState = initialState;
+		samples.resize(numSamples);
+
+		for (int i = 0; i < numSamples; ++i) {
+			double proposedState = proposalDistribution(currentState, generator, proposalDist);
+
+			double acceptanceRatio = targetDistribution(proposedState) / targetDistribution(currentState);
+
+			if (uniformDist(generator) < acceptanceRatio) {
+				currentState = proposedState;
+			}
+
+			samples[i] = currentState;
+		}
+	}
+
+	// Calculate the mean of the samples
+	double calculateMean(const std::vector<double>& samples) {
+		double sum = std::accumulate(samples.begin(), samples.end(), 0.0);
+		return sum / samples.size();
+	}
+
+	// Calculate the variance of the samples
+	double calculateVariance(const std::vector<double>& samples, double mean) {
+		double sum = 0.0;
+		for (double sample : samples) {
+			sum += (sample - mean) * (sample - mean);
+		}
+		return sum / (samples.size() - 1);
+	}
+
+	void test_metropolisHastings(uint64_t seed) {
+		int numSamples = 10000;    // Number of samples to generate
+		double initialState = 0.0; // Initial state of the Markov chain
+
+		std::vector<double> samples;
+		metropolisHastings(numSamples, initialState, samples, seed);
+
+		// Calculate mean and variance
+		double mean = calculateMean(samples);
+		double variance = calculateVariance(samples, mean);
+
+		// True mean and variance for a standard normal distribution
+		double trueMean = 0.0;
+		double trueVariance = 1.0;
+
+		// Calculate errors
+		double meanError = std::abs(mean - trueMean);
+		double varianceError = std::abs(variance - trueVariance);
+
+		// Output the results
+		std::cout << "Estimated mean: " << mean << std::endl;
+		std::cout << "True mean: " << trueMean << std::endl;
+		std::cout << "Mean error: " << meanError << std::endl;
+
+		std::cout << "Estimated variance: " << variance << std::endl;
+		std::cout << "True variance: " << trueVariance << std::endl;
+		std::cout << "Variance error: " << varianceError << std::endl;
+
+	}
+
 
 #endif //__MXWS_HPP__ 

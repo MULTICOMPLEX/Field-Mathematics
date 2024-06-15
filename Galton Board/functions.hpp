@@ -5,9 +5,9 @@
 #include <numbers>
 #include <span>
 #include "MULTICOMPLEX.hpp"
-//typedef std::complex<double> Complex;
-using Complex = std::complex<double>;
-double min_distance = std::numeric_limits<double>::max();
+//using Complex = std::complex<double>;
+using Complex = MX0;
+
 
 //#include "coroutine.hpp"
 #include "matplotlib.hpp"
@@ -772,7 +772,7 @@ void Simulate_Brownian_motion_RNGnormal(
 	// Random number generation
 	mxws<uint64_t> rng(seed);
 
-	cxx::ziggurat_normal_distribution<T> normalRandomZ;
+	//cxx::ziggurat_normal_distribution<T> normalRandomZ;
 
 	// Generate independent standard normal variables
 	std::vector<T> xi(num_terms), yi(num_terms);
@@ -925,7 +925,6 @@ double pwmCoefficient(int n, double dutyCycle) {
 	}
 }
 
-
 //Violet noise is essentially the derivative (or difference) of white noise
 template<typename K>
 std::vector<double> generateVioletNoise(K numSamples, K Seed) {
@@ -1020,7 +1019,7 @@ T myMax(T a, T b) {
 }
 
 // Main function to generate power-law PSD Gaussian noise
-std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, auto fmin = 0.0) {
+std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, auto fmin = 0.0, uint64_t seed = 10) {
 	// Calculate frequencies
 	std::vector<double> f(samples / 2 + 1); // Frequencies (real FFT)
 
@@ -1053,14 +1052,13 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, aut
 
 	// Calculate theoretical output standard deviation from scaling
 	double sum_squares = 0;
-	for (double s : s_scale) {
+	for (const auto& s : s_scale) {
 		sum_squares += s * s;
 	}
 	double sigma = 2 * std::sqrt(sum_squares) / samples;
 
 	// Prepare random number generator
-	std::random_device rd;
-	mxws<uint32_t> gen(rd());
+	mxws<uint64_t> gen(seed);
 	std::uniform_real_distribution<> dis(-std::sqrt(std::numbers::pi), std::sqrt(std::numbers::pi));
 
 	// Generate scaled random power + phase
@@ -1069,6 +1067,15 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, aut
 		sr[i] = dis(gen) * s_scale[i];
 		si[i] = dis(gen) * s_scale[i];
 	}
+
+	if (samples % 2 == 0) {
+		si.back() = 0;
+		sr.back() *= std::sqrt(2); // Fix magnitude
+	}
+
+	// Regardless of signal length, the DC component must be real
+	si.front() = 0;
+	sr.front() *= std::sqrt(2); // Fix magnitude
 
 	// Combine power + corrected phase to Fourier components
 	std::vector<std::complex<double>> s(f.size());
@@ -1082,7 +1089,6 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, aut
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
 	
-	//y = inverse_fft_real(s);
 	// Transform to real time series & scale to unit variance
 	for (auto& value : y) 
 		value /= sigma * samples;
@@ -1107,7 +1113,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 {
 	const uint64_t Nsamples = 8192;
 	const auto spread = 0.0001;
-	const bool enable_random_seed = true;
+	const bool enable_random_seed = 0;
 	uint64_t seed = 10;
 
 	std::random_device r;
@@ -1139,8 +1145,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	auto N = Nsamples * 64;
 	double beta = 3;
 	double fmin = 0;
-	auto x = powerlaw_psd_gaussian(beta, N, fmin);
-	auto y = powerlaw_psd_gaussian(beta, N, fmin);
+	auto x = powerlaw_psd_gaussian(beta, N, fmin, seed);
+	auto y = powerlaw_psd_gaussian(beta, N, fmin, seed + 1);
 	end = std::chrono::high_resolution_clock::now();
 	std::cout << "Duration powerlaw_psd_gaussian "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9

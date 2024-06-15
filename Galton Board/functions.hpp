@@ -1017,6 +1017,39 @@ T myMax(T a, T b) {
 	return (a > b) ? a : b;
 }
 
+// Function to apply the A-weighting filter
+double a_weighting(double f) {
+	// Constants for A-weighting filter
+	double c1 = 12194.0 * 12194.0;
+	double c2 = 20.6 * 20.6;
+	double c3 = 107.7 * 107.7;
+	double c4 = 737.9 * 737.9;
+
+	double num = c1 * std::pow(f, 4);
+	double denom = (f * f + c2) * std::sqrt((f * f + c3) * (f * f + c4)) * (f * f + c1);
+
+	return num / denom;
+}
+
+// Function to generate grey noise
+std::vector<double> generate_grey_noise(uint64_t samples) {
+	std::vector<double> grey_noise(samples);
+	std::vector<double> frequencies(samples);
+
+	// Calculate frequencies
+	for (auto i = 0; i < samples; ++i) {
+		frequencies[i] = i / 2.;
+	}
+
+	// Apply A-weighting to the frequencies
+	for (int i = 0; i < samples; ++i) {
+		double amplitude = a_weighting(frequencies[i]);
+		grey_noise[i] = amplitude;
+	}
+
+	return grey_noise;
+}
+
 // Main function to generate power-law PSD Gaussian noise
 std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, auto fmin = 0.0, uint64_t seed = 10) {
 	// Calculate frequencies
@@ -1035,8 +1068,12 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, aut
 		f[i] = double(i) / samples; // Calculate frequencies
 	}
 
+	// Function to generate grey noise
+	//std::vector<double> s_scale = generate_grey_noise(f.size());
+	
 	// Build scaling factors
 	std::vector<double> s_scale = f; // Initialize with frequencies
+	
 	auto ix = std::ranges::count_if(s_scale,
 		[fmin](double freq) { return freq < fmin; }); // Count frequencies below fmin
 
@@ -1166,6 +1203,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	auto distance = euclidean_distance(x.front(), y.front(), x.back(), y.back());
 	std::cout << utf8_encode(u8"Δ Start-End= ") << std::scientific << std::setprecision(6) << distance << std::defaultfloat << std::endl << std::endl;
 	///////////////
+
 
 	/*
 	begin = std::chrono::high_resolution_clock::now();

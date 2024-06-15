@@ -906,7 +906,6 @@ void plot_fft(std::vector<double>& v, std::u8string title)
 {
 	plot.run_customcommand("figure(figsize = (10, 6))");
 	plot.set_xlabel("Frequency");
-	//plot.run_customcommand("axis('equal')");
 	plot.run_customcommand("grid(alpha = 0.4)");
 	plot.grid_on();
 	plot.set_title(utf8_encode(title));

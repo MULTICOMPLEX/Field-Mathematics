@@ -721,7 +721,7 @@ std::vector<double> linspace(T start_in, T end_in, std::uint64_t num_in)
 
 template<typename T>
 	requires std::floating_point<T>
-void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::u8string title, int n)
+void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::u8string title, int n = 1)
 {
 
 	std::vector<T> x, y;
@@ -1058,7 +1058,7 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, aut
 	double sigma = 2 * std::sqrt(sum_squares) / samples;
 
 	// Prepare random number generator
-	mxws<uint64_t> gen(seed);
+	mxws<uint32_t> gen(seed);
 	std::uniform_real_distribution<> dis(-std::sqrt(std::numbers::pi), std::sqrt(std::numbers::pi));
 
 	// Generate scaled random power + phase
@@ -1142,7 +1142,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	///////////////
 	begin = std::chrono::high_resolution_clock::now();
-	auto N = Nsamples * 64;
+	auto N = Nsamples * 16;
 	double beta = 3;
 	double fmin = 0;
 	auto x = powerlaw_psd_gaussian(beta, N, fmin, seed);
@@ -1154,7 +1154,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	plot_fft(x, u8"Power spectral density powerlaw_psd_gaussian");
 
-	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 32);
+	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw");
 	Point point1 = { x.front(), y.front()};
 	Point point2 = { x.back(), y.back()};
 	auto distance = euclidean_distance(point1, point2);

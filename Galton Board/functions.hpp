@@ -1120,30 +1120,29 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	Simulate_Brownian_motion_RNGnormal(Nsamples, spread, seed, B_t_x, B_t_y);
 	auto end = std::chrono::high_resolution_clock::now();
 
+	std::cout << "Duration     "
+		<< std::chrono::nanoseconds(end - begin).count() / 1e9
+		<< "[s]" << std::endl;
+
 	auto k1 = std::ranges::minmax_element(B_t_x);
 	auto Amplitude_x = *k1.max - *k1.min;
 	auto k2 = std::ranges::minmax_element(B_t_y);
 	auto Amplitude_y = *k2.max - *k2.min;
-	std::cout << std::setprecision(3) << "RNG Normal Amplitude  P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl;
+	std::cout << std::setprecision(3) << "RNG Normal Amplitude  P-P: " << "X{" << Amplitude_x << "}, Y{" << Amplitude_y << "}" << std::endl << std::endl;
 
 	Plot_2D_Brownian_Motion(B_t_x, B_t_y, u8"Simulated Brownian Motion, RNG Normal", 1);
-
-	std::cout << " Duration     "
-		<< std::chrono::nanoseconds(end - begin).count() / 1e9
-		<< "[s]" << std::endl << std::endl << std::endl;
-
 	plot_fft(B_t_x, u8"Power spectral density RNG Normal");
 
 
 	///////////////
 	begin = std::chrono::high_resolution_clock::now();
-	auto N = Nsamples * 32;
+	auto N = Nsamples * 64;
 	double beta = 3;
 	double fmin = 0;
 	auto x = powerlaw_psd_gaussian(beta, N, fmin);
 	auto y = powerlaw_psd_gaussian(beta, N, fmin);
 	end = std::chrono::high_resolution_clock::now();
-	std::cout << " Duration     "
+	std::cout << "Duration powerlaw_psd_gaussian "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl;
 
@@ -1164,9 +1163,9 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	//Simulate_Brownian_motion_RNGuniform_no_global_storage(Nsamples, spread, seed, B_t_x, B_t_y);
 	end = std::chrono::high_resolution_clock::now();
 
-	std::cout << " Duration     "
+	std::cout << "Duration     "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
-		<< "[s]" << std::endl << std::endl << std::endl;
+		<< "[s]" << std::endl;
 
 	k1 = std::ranges::minmax_element(B_t_x);
 	Amplitude_x = *k1.max - *k1.min;

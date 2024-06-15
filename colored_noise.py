@@ -94,13 +94,11 @@ def powerlaw_psd_gaussian_normal(exponent, samples, fmin):
     return y
 
 
+samples = 2**19 # number of samples to generate
+return_to_beginning = 1
 beta1 = 3 # the exponent
 beta2 = 3 # the exponent
-
 fmin = 0.0;
-
-samples = 2**18 # number of samples to generate
-return_to_beginning = 1
 
 if(return_to_beginning == 0):
     return_to_beginning = 2;

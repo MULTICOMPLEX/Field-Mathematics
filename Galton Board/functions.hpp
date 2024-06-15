@@ -1149,8 +1149,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	///////////////
 	begin = std::chrono::high_resolution_clock::now();
-	auto N = Nsamples * 8;
-	double beta = 3.5;
+	auto N = uint64_t(std::pow(2, 19));
+	double beta = 3;
 	double fmin = 0;
 	auto x = powerlaw_psd_gaussian(beta, N, fmin, seed);
 	auto y = powerlaw_psd_gaussian(beta, N, fmin, seed + 1);
@@ -1159,7 +1159,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl;
 
-	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw");
+	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 512);
 	plot_fft(x, u8"Power spectral density powerlaw_psd_gaussian");
 
 	auto distance = euclidean_distance(x.front(), y.front(), x.back(), y.back());

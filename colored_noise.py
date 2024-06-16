@@ -1,10 +1,9 @@
 from matplotlib import mlab
 from matplotlib import pylab as plt
 import numpy as np
-
 from numpy.fft import irfft, rfftfreq
 from numpy.random import default_rng, Generator, RandomState
-
+from matplotlib.ticker import ScalarFormatter
 import math
 
 
@@ -114,8 +113,17 @@ plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
-s, f = mlab.psd(y, NFFT=2**13 )
-plt.loglog(f,s)
+s, f = mlab.psd(y, NFFT=len(y))
+
+plt.loglog(f * len(f), s)
+formatter = ScalarFormatter()
+formatter.set_useOffset(False)
+plt.gca().xaxis.set_major_formatter(formatter)
+plt.xlim(right = len(f))
+plt.grid(True, which='both', alpha = 0.4)
+plt.xlabel('frequencies')
+plt.ylabel('Amplitude')
+
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
@@ -128,8 +136,17 @@ plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
-s, f = mlab.psd(y2, NFFT=2**13)
-plt.loglog(f,s)
+s, f = mlab.psd(y2, NFFT=len(y2))
+
+plt.loglog(f * len(f), s)
+formatter = ScalarFormatter()
+formatter.set_useOffset(False)
+plt.gca().xaxis.set_major_formatter(formatter)
+plt.xlim(right = len(f))
+plt.grid(True, which='both', alpha = 0.4)
+plt.xlabel('frequencies')
+plt.ylabel('Amplitude')
+
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2))
 plt.grid(True)
 

@@ -904,14 +904,9 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 
 void plot_fft(std::vector<double>& v, std::u8string title)
 {
-	plot.run_customcommand("figure(figsize = (10, 6))");
-	plot.set_xlabel("Frequency");
-	plot.run_customcommand("grid(alpha = 0.4)");
-	plot.grid_on();
 	plot.set_title(utf8_encode(title));
-	plot.set_xlabel("dB");
-	plot.set_ylabel("dB");
-	plot.mlab_psd(v, v.size());
+
+	plot.mlab_psd(v);
 }
 
 
@@ -1032,18 +1027,21 @@ double a_weighting(double f) {
 }
 
 // Function to generate grey noise
-std::vector<double> generate_grey_noise(uint64_t samples) {
-	std::vector<double> grey_noise(samples);
-	std::vector<double> frequencies(samples);
+std::vector<double> grey_noise_frequencies(uint64_t samples) {
 
+
+	std::vector<double> frequencies(samples / 2 + 1); // Frequencies (real FFT)
+	std::vector<double> grey_noise(samples / 2 + 1);
+	
 	// Calculate frequencies
-	for (auto i = 0; i < samples; ++i) {
-		frequencies[i] = i / 2.;
+	for (int i = 0; i < frequencies.size(); ++i) {
+		frequencies[i] = double(i) / 4;
 	}
 
 	// Apply A-weighting to the frequencies
-	for (int i = 0; i < samples; ++i) {
+	for (int i = 0; i < frequencies.size(); ++i) {
 		double amplitude = a_weighting(frequencies[i]);
+		//double amplitude = frequencies[i];
 		grey_noise[i] = amplitude;
 	}
 
@@ -1051,7 +1049,7 @@ std::vector<double> generate_grey_noise(uint64_t samples) {
 }
 
 // Main function to generate power-law PSD Gaussian noise
-std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, auto fmin = 0.0, uint64_t seed = 10) {
+std::vector<double> powerlaw_psd_gaussian(double beta, uint64_t samples, auto fmin = 0.0, uint64_t seed = 10) {
 	// Calculate frequencies
 	std::vector<double> f(samples / 2 + 1); // Frequencies (real FFT)
 
@@ -1069,10 +1067,10 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, aut
 	}
 
 	// Function to generate grey noise
-	//std::vector<double> s_scale = generate_grey_noise(f.size());
+	std::vector<double> s_scale = grey_noise_frequencies(samples);
 	
 	// Build scaling factors
-	std::vector<double> s_scale = f; // Initialize with frequencies
+	//std::vector<double> s_scale = f; // Initialize with frequencies
 	
 	auto ix = std::ranges::count_if(s_scale,
 		[fmin](double freq) { return freq < fmin; }); // Count frequencies below fmin
@@ -1081,9 +1079,9 @@ std::vector<double> powerlaw_psd_gaussian(double exponent, uint64_t samples, aut
 		std::fill(s_scale.begin(), s_scale.begin() + ix, s_scale[ix]); // Replace below-cutoff values
 	}
 
-	// Apply exponent scaling
+	// Apply exponent(beta) scaling
 	for (auto& scale : s_scale) {
-		scale = std::pow(scale, -exponent / 2.0);
+		scale = std::pow(scale, -beta / 2.0);
 	}
 
 	// Calculate theoretical output standard deviation from scaling
@@ -1188,7 +1186,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	///////////////
 	begin = std::chrono::high_resolution_clock::now();
 	auto N = uint64_t(std::pow(2, 19));
-	double beta = 3;
+	double beta = 0.25;
 	double fmin = 0;
 	auto x = powerlaw_psd_gaussian(beta, N, fmin, seed);
 	auto y = powerlaw_psd_gaussian(beta, N, fmin, seed + 1);

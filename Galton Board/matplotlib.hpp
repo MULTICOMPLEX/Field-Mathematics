@@ -110,7 +110,7 @@ public:
 	void imshow(const std::string& points, const std::string& cmap = "gray", double extent = 1.0);
 	std::string vector_data(const std::vector<double>& v);
 
-	void mlab_psd(const auto& X, const auto size);
+	void mlab_psd(const auto& X);
 
 };
 
@@ -354,7 +354,7 @@ alpha=" + std::to_string(alpha) + ")");
 }
 
 
-void plot_matplotlib::mlab_psd(const auto& X, const auto size)
+void plot_matplotlib::mlab_psd(const auto& X)
 {
 	// Plot Points:
 	std::string xpoints = "";
@@ -377,12 +377,18 @@ void plot_matplotlib::mlab_psd(const auto& X, const auto size)
 		}
 	}
 
-	PyRun_SimpleStringStd("s, f = mlab.psd( np.array([" + xpoints + "]), 	NFFT = 2**13)");
-	//PyRun_SimpleStringStd("s, f = mlab.psd( np.array([" + xpoints + "]), " + std::to_string(size) + ")");
+	PyRun_SimpleStringStd("plt.figure(figsize = (10, 6))");
+	PyRun_SimpleStringStd("s, f = mlab.psd(np.array([" + xpoints + "]), 	NFFT = " + std::to_string(X.size()) + ")");
+	PyRun_SimpleStringStd("plt.loglog(f * len(f), s)");
+	PyRun_SimpleStringStd("formatter = ticker.ScalarFormatter()");
+	PyRun_SimpleStringStd("formatter.set_useOffset(False)");
+	PyRun_SimpleStringStd("plt.gca().xaxis.set_major_formatter(formatter)");
+	PyRun_SimpleStringStd("plt.xlim(right = len(f))");
+	PyRun_SimpleStringStd("plt.grid(True, which='both', alpha = 0.4)");
+	PyRun_SimpleStringStd("plt.xlabel('frequencies')");
+	PyRun_SimpleStringStd("plt.ylabel('Amplitude')");
 
-	PyRun_SimpleStringStd("plt.loglog(f, s)");
 }
-
 
 void plot_matplotlib::plot_polar(const auto& X, const auto& Y,
 	std::string properties, std::string label, std::string color,

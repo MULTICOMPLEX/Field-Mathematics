@@ -170,7 +170,6 @@ int main(int argc, char** argv)
 	}
 
 
-
 	if (Initial_Board_size <= 256 && cout_gal)
 		cout_galton(Initial_Board_size, galton_arr[0][0]);
 

@@ -905,7 +905,6 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 void plot_fft(std::vector<double>& v, std::u8string title)
 {
 	plot.set_title(utf8_encode(title));
-
 	plot.mlab_psd(v);
 }
 
@@ -1186,7 +1185,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	///////////////
 	begin = std::chrono::high_resolution_clock::now();
 	auto N = uint64_t(std::pow(2, 19));
-	double beta = 0.25;
+	double beta = 1;
 	double fmin = 0;
 	auto x = powerlaw_psd_gaussian(beta, N, fmin, seed);
 	auto y = powerlaw_psd_gaussian(beta, N, fmin, seed + 1);

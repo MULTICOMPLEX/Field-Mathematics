@@ -383,10 +383,10 @@ void plot_matplotlib::mlab_psd(const auto& X)
 	PyRun_SimpleStringStd("formatter = ticker.ScalarFormatter()");
 	PyRun_SimpleStringStd("formatter.set_useOffset(False)");
 	PyRun_SimpleStringStd("plt.gca().xaxis.set_major_formatter(formatter)");
-	PyRun_SimpleStringStd("plt.xlim(right = len(f))");
+	PyRun_SimpleStringStd("plt.xlim(right = len(f) * 1.5)");
 	PyRun_SimpleStringStd("plt.grid(True, which='both', alpha = 0.4)");
-	PyRun_SimpleStringStd("plt.xlabel('frequencies')");
-	PyRun_SimpleStringStd("plt.ylabel('Amplitude')");
+	PyRun_SimpleStringStd("plt.xlabel('Frequency (Hz)')");
+	PyRun_SimpleStringStd("plt.ylabel('PSD (Unit**2/Hz)')");
 
 }
 

@@ -1027,7 +1027,7 @@ std::vector<double> grey_noise_frequencies(uint64_t samples) {
 	
 	// Calculate frequencies
 	for (int i = 0; i < frequencies.size(); ++i) {
-		frequencies[i] = double(i) / 16;
+		frequencies[i] = double(i) / (2 * std::numbers::pi);
 	}
 
 	// Apply A-weighting to the frequencies
@@ -1059,10 +1059,10 @@ std::vector<double> powerlaw_psd_gaussian(double beta, uint64_t samples, auto fm
 	}
 
 	// Function to generate grey noise
-	std::vector<double> s_scale = grey_noise_frequencies(samples);
+	//std::vector<double> s_scale = grey_noise_frequencies(samples);
 	
 	// Build scaling factors
-	//std::vector<double> s_scale = f; // Initialize with frequencies
+	std::vector<double> s_scale = f; // Initialize with frequencies
 	
 	auto ix = std::ranges::count_if(s_scale,
 		[fmin](double freq) { return freq < fmin; }); // Count frequencies below fmin
@@ -1178,8 +1178,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	///////////////
 
 	auto N = uint64_t(std::pow(2, 19));
-	double beta1 = 1;
-	double beta2 = 1;
+	double beta1 = 1; //1075 max
+	double beta2 = beta1;
 	double fmin = 0;
 
 	begin = std::chrono::high_resolution_clock::now();
@@ -1199,6 +1199,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	plot.set_title(utf8_encode(s));
 	plot.plot_somedata(X, x, "", "powerlaw_psd_gaussian", "blue");
 	*/
+
 	plot.mlab_psd(x, beta1);
 	//plot.mlab_psd(y, beta2);
 	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 512);

@@ -902,12 +902,6 @@ void Simulate_Brownian_motion_RNGuniform_no_global_storage(
 
 }
 
-void plot_fft(std::vector<double>& v, std::u8string title)
-{
-	plot.set_title(utf8_encode(title));
-	plot.mlab_psd(v);
-}
-
 
 // Function to calculate PWM Fourier coefficient
 double pwmCoefficient(int n, double dutyCycle) {
@@ -1034,7 +1028,7 @@ std::vector<double> grey_noise_frequencies(uint64_t samples) {
 	
 	// Calculate frequencies
 	for (int i = 0; i < frequencies.size(); ++i) {
-		frequencies[i] = double(i) / 4;
+		frequencies[i] = double(i) / 16;
 	}
 
 	// Apply A-weighting to the frequencies
@@ -1066,10 +1060,10 @@ std::vector<double> powerlaw_psd_gaussian(double beta, uint64_t samples, auto fm
 	}
 
 	// Function to generate grey noise
-	std::vector<double> s_scale = grey_noise_frequencies(samples);
+	//std::vector<double> s_scale = grey_noise_frequencies(samples);
 	
 	// Build scaling factors
-	//std::vector<double> s_scale = f; // Initialize with frequencies
+	std::vector<double> s_scale = f; // Initialize with frequencies
 	
 	auto ix = std::ranges::count_if(s_scale,
 		[fmin](double freq) { return freq < fmin; }); // Count frequencies below fmin
@@ -1183,19 +1177,32 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	*/
 
 	///////////////
-	begin = std::chrono::high_resolution_clock::now();
+
 	auto N = uint64_t(std::pow(2, 19));
-	double beta = 1;
+	double beta1 = 2;
+	double beta2 = 2.6;
 	double fmin = 0;
-	auto x = powerlaw_psd_gaussian(beta, N, fmin, seed);
-	auto y = powerlaw_psd_gaussian(beta, N, fmin, seed + 1);
+
+	begin = std::chrono::high_resolution_clock::now();
+	auto x = powerlaw_psd_gaussian(beta1, N, fmin, seed);
+	auto y = powerlaw_psd_gaussian(beta2, N, fmin, seed + 1);
 	end = std::chrono::high_resolution_clock::now();
 	std::cout << "Duration powerlaw_psd_gaussian "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl;
 
+	/*
+	std::vector <double> X(x.size());
+	for (auto i = 0; i < x.size(); i++)
+		X[i] = i;
+	plot.run_customcommand("figure(figsize = (10, 6))");
+	std::u8string s = u8"";
+	plot.set_title(utf8_encode(s));
+	plot.plot_somedata(X, x, "", "powerlaw_psd_gaussian", "blue");
+	*/
+	plot.mlab_psd(x, beta1);
+	//plot.mlab_psd(y, beta2);
 	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 512);
-	plot_fft(x, u8"Power spectral density powerlaw_psd_gaussian");
 
 	auto distance = euclidean_distance(x.front(), y.front(), x.back(), y.back());
 	std::cout << utf8_encode(u8"Δ Start-End= ") << std::scientific << std::setprecision(6) << distance << std::defaultfloat << std::endl << std::endl;

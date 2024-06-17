@@ -5,10 +5,12 @@ from numpy.fft import irfft, rfftfreq
 from numpy.random import default_rng, Generator, RandomState
 from matplotlib.ticker import ScalarFormatter
 import math
+from scipy.signal import bilinear
+from scipy import signal 
 
 
 def powerlaw_psd_gaussian(
-        exponent, 
+        beta, 
         samples,
         fmin
     ):
@@ -28,7 +30,7 @@ def powerlaw_psd_gaussian(
     ix   = np.sum(s_scale < fmin)   # Index of the cutoff
     if ix and ix < len(s_scale):
         s_scale[:ix] = s_scale[ix]
-    s_scale = s_scale**(-exponent/2.)
+    s_scale = s_scale**(-beta/2.)
     
     # Calculate theoretical output standard deviation from scaling
     sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
@@ -52,7 +54,7 @@ def powerlaw_psd_gaussian(
     return y
 
 
-def powerlaw_psd_gaussian_normal(exponent, samples, fmin):   
+def powerlaw_psd_gaussian_normal(beta, samples, fmin):   
     # Calculate Frequencies (we asume a sample rate of one)
     # Use fft functions for real output (-> hermitian spectrum)
     f = rfftfreq(samples) 
@@ -68,7 +70,7 @@ def powerlaw_psd_gaussian_normal(exponent, samples, fmin):
     ix   = np.sum(s_scale < fmin)   # Index of the cutoff
     if ix and ix < len(s_scale):
         s_scale[:ix] = s_scale[ix]
-    s_scale = s_scale**(-exponent/2.)
+    s_scale = s_scale**(-beta/2.)
     
     
     # Calculate theoretical output standard deviation from scaling
@@ -95,8 +97,8 @@ def powerlaw_psd_gaussian_normal(exponent, samples, fmin):
 
 samples = 2**19 # number of samples to generate
 return_to_beginning = 1
-beta1 = 3 # the exponent
-beta2 = 3 # the exponent
+beta1 = 0 # the exponent
+beta2 = 0 # the exponent
 fmin = 0.0;
 
 if(return_to_beginning == 0):
@@ -105,6 +107,7 @@ if(return_to_beginning == 0):
 initial_n_bins = np.linspace(0, samples, int(samples/return_to_beginning)) 
 
 y = powerlaw_psd_gaussian(beta1, samples, fmin)[:int(samples/return_to_beginning)]
+
 plt.figure(figsize=(10, 6))
 label = " (1/f)$\\beta$="
 label += str(beta1)
@@ -128,6 +131,7 @@ plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
 y2 = powerlaw_psd_gaussian(beta2, samples, fmin)[:int(samples/return_to_beginning)]
+
 plt.figure(figsize=(10, 6))
 label = "(1/f)$\\beta$="
 label += str(beta2)

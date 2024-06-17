@@ -110,7 +110,7 @@ public:
 	void imshow(const std::string& points, const std::string& cmap = "gray", double extent = 1.0);
 	std::string vector_data(const std::vector<double>& v);
 
-	void mlab_psd(const auto& X);
+	void mlab_psd(const auto& X, double beta);
 
 };
 
@@ -354,7 +354,7 @@ alpha=" + std::to_string(alpha) + ")");
 }
 
 
-void plot_matplotlib::mlab_psd(const auto& X)
+void plot_matplotlib::mlab_psd(const auto& X, double beta)
 {
 	// Plot Points:
 	std::string xpoints = "";
@@ -383,10 +383,13 @@ void plot_matplotlib::mlab_psd(const auto& X)
 	PyRun_SimpleStringStd("formatter = ticker.ScalarFormatter()");
 	PyRun_SimpleStringStd("formatter.set_useOffset(False)");
 	PyRun_SimpleStringStd("plt.gca().xaxis.set_major_formatter(formatter)");
+	//PyRun_SimpleStringStd("plt.xlim(left = 100, right = len(f) * 1.5)");
 	PyRun_SimpleStringStd("plt.xlim(right = len(f) * 1.5)");
 	PyRun_SimpleStringStd("plt.grid(True, which='both', alpha = 0.4)");
 	PyRun_SimpleStringStd("plt.xlabel('Frequency (Hz)')");
 	PyRun_SimpleStringStd("plt.ylabel('PSD (Unit**2/Hz)')");
+	PyRun_SimpleStringStd("plt.title('FFT Colored Noise, (1/f)$\\\\beta$=' + str(" + std::to_string(beta) + "))");
+	PyRun_SimpleStringStd("plt.grid(True)");
 
 }
 

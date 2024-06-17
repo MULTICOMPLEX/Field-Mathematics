@@ -849,5 +849,4 @@ double exampleFunction(double x) {
 
 	}
 
-
 #endif //__MXWS_HPP__ 

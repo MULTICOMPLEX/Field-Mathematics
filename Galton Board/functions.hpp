@@ -19,6 +19,7 @@ using Complex = MX0;
 #include "fft.hpp"
 #include "fftw3.h"
 
+
 template <typename T, typename I>
 	requires std::floating_point<T>&&
 std::integral<I>

@@ -1022,7 +1022,6 @@ double a_weighting(double f) {
 // Function to generate grey noise
 std::vector<double> grey_noise_frequencies(uint64_t samples) {
 
-
 	std::vector<double> frequencies(samples / 2 + 1); // Frequencies (real FFT)
 	std::vector<double> grey_noise(samples / 2 + 1);
 	
@@ -1060,10 +1059,10 @@ std::vector<double> powerlaw_psd_gaussian(double beta, uint64_t samples, auto fm
 	}
 
 	// Function to generate grey noise
-	//std::vector<double> s_scale = grey_noise_frequencies(samples);
+	std::vector<double> s_scale = grey_noise_frequencies(samples);
 	
 	// Build scaling factors
-	std::vector<double> s_scale = f; // Initialize with frequencies
+	//std::vector<double> s_scale = f; // Initialize with frequencies
 	
 	auto ix = std::ranges::count_if(s_scale,
 		[fmin](double freq) { return freq < fmin; }); // Count frequencies below fmin
@@ -1179,8 +1178,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	///////////////
 
 	auto N = uint64_t(std::pow(2, 19));
-	double beta1 = 2;
-	double beta2 = 2.6;
+	double beta1 = 1;
+	double beta2 = 1;
 	double fmin = 0;
 
 	begin = std::chrono::high_resolution_clock::now();

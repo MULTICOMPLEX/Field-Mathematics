@@ -9,14 +9,7 @@ from scipy.signal import bilinear
 from scipy import signal 
 
 
-def powerlaw_psd_gaussian(
-        beta, 
-        samples,
-        fmin,
-        f, 
-        sr,
-        si
-    ):
+def powerlaw_psd_gaussian(beta, samples, fmin, f, sr, si):
        
         # Validate / normalise fmin
     if 0 <= fmin <= 0.5:
@@ -53,14 +46,16 @@ def differentiate_twice(f, p2):
     f = np.fft.ifft(-p2*np.fft.fft(f))
     return f
 
+
 samples = 2**17 # number of samples to generate
 return_to_beginning = 1
-beta1 = 5 # the exponent
-beta2 = 5 # the exponent
+beta1 = 4 # the exponent
+beta2 = 4 # the exponent
 fmin = 0.0;
 n = 1 #plot every n sample
 derivative = 1
 normal_input = 0
+function_input = 0
 
 # Calculate Frequencies (we asume a sample rate of one)
 # Use fft functions for real output (-> hermitian spectrum)
@@ -80,6 +75,39 @@ if normal_input:
     si1 = rng.normal(size=len(f))   # Independent standard uniform variables
     sr2 = rng.normal(size=len(f))  # Independent standard uniform variables
     si2 = rng.normal(size=len(f))   # Independent standard uniform variables
+
+
+# 2. Custom Function
+def my_func1(x):
+    return np.sin(x)**2 + 1 * x - 1
+        
+arr_custom1 = np.fromfunction(my_func1, (len(f),))  # Apply custom function
+
+# 2. Custom Function
+def my_func2(x):
+    return np.cos(x)**2 + 2 * x - 1
+
+arr_custom2 = np.fromfunction(my_func2, (len(f),))  # Apply custom function
+
+# 2. Custom Function
+def my_func3(x):
+    return x**2 + 3 * x - 1
+        
+arr_custom3 = np.fromfunction(my_func3, (len(f),))  # Apply custom function
+
+# 2. Custom Function
+def my_func4(x):
+    return x**2 + 4 * x - 1
+        
+arr_custom4 = np.fromfunction(my_func4, (len(f),))  # Apply custom function
+
+if function_input:
+    sr1 = arr_custom1
+    si1 = arr_custom2
+    sr2 =  arr_custom3
+    si2 = arr_custom4
+    
+
 
 #Frequencies for the derivative
 x = 2 * np.pi * np.arange(0, samples, 1) / samples#-open-periodic domain    
@@ -190,14 +218,18 @@ print(text2)
 # Plot original and sorted points
 plt.figure(figsize=(18, 6))
 plt.subplot(141)
-plt.title('Original Path')
-plt.plot(y1[::n], y2[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
 
+label = " (1/f)$\\beta$="
+label += str(beta1)
+
+plt.title('Original Path')
+plt.plot(y1[::n], y2[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
 plt.plot(y1[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
 # Plot the end point (red)
 plt.plot(y1[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
-
+plt.legend(loc='upper right') 
+plt.grid(True)
 
 plt.subplot(142)
 # Sort by y-coordinate
@@ -206,20 +238,22 @@ x_sorted = y2[sorted_indices]
 y_sorted = y1[sorted_indices]
 
 plt.title('Sorted by Y-Coordinate')
-plt.plot(x_sorted[::n], y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
+plt.plot(x_sorted[::n], -y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
-plt.plot(x_sorted[0], y_sorted[0], marker='o', markersize=8, color=start_color, label='Start')
+plt.plot(x_sorted[0], -y_sorted[0], marker='o', markersize=8, color=end_color, label='End')
 # Plot the end point (red)
-plt.plot(x_sorted[-1], y_sorted[-1], marker='o', markersize=8, color=end_color, label='End')
+plt.plot(x_sorted[-1], -y_sorted[-1], marker='o', markersize=8, color=start_color, label='Start')
+plt.legend(loc='lower right') 
 
 plt.subplot(143)
 plt.title('Original Path Derivative')
-plt.plot(y1_dif[::n], y2_dif[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
+plt.plot(y1_dif[::n], y2_dif[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
 plt.plot(y1_dif[0], y2_dif[0], marker='o', markersize=8, color=start_color, label='Start')
 # Plot the end point (red)
 plt.plot(y1_dif[-1], y2_dif[-1], marker='o', markersize=8, color=end_color, label='End')
-
+plt.legend(loc='upper right') 
+plt.grid(True)
 
 plt.subplot(144)
 # Sort by y-coordinate
@@ -228,14 +262,45 @@ x_sorted = y2_dif[sorted_indices]
 y_sorted = y1_dif[sorted_indices]
 
 plt.title('Sorted by Y-Coordinate')
-plt.plot(x_sorted[::n], y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
+plt.plot(x_sorted[::n], -y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
-plt.plot(x_sorted[0], y_sorted[0], marker='o', markersize=8, color=start_color, label='Start')
+plt.plot(x_sorted[0], -y_sorted[0], marker='o', markersize=8, color=end_color, label='End')
 # Plot the end point (red)
-plt.plot(x_sorted[-1], y_sorted[-1], marker='o', markersize=8, color=end_color, label='End')
+plt.plot(x_sorted[-1], -y_sorted[-1], marker='o', markersize=8, color=start_color, label='Start')
+plt.legend(loc='lower right') 
 
+
+def is_closed_shape(x, y):
+    """Checks if an array of (x, y) points represents a closed shape.
+
+    Args:
+        x: NumPy array of x-coordinates.
+        y: NumPy array of y-coordinates.
+
+    Returns:
+        True if the shape is closed, False otherwise.
+    """
+    return (x[0] == x[-1]) and (y[0] == y[-1])
+
+
+x = y1
+y = y2
+if is_closed_shape(x, y):
+    print("Original Path                  is closed.")
+else:
+    print("Original Path            is not closed.")
+    
+x = y1_dif
+y = y2_dif
+if is_closed_shape(x, y):
+    print("Original Path Derivative       is closed.")
+else:
+    print("Original Path Derivative is not closed.")
 
 plt.show()
+
+
+
 
 
 

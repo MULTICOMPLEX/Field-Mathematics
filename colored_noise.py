@@ -12,13 +12,12 @@ from scipy import signal
 def powerlaw_psd_gaussian(
         beta, 
         samples,
-        fmin
+        fmin,
+        f, 
+        sr,
+        si
     ):
-   
-    # Calculate Frequencies (we asume a sample rate of one)
-    # Use fft functions for real output (-> hermitian spectrum)
-    f = rfftfreq(samples) 
-    
+       
         # Validate / normalise fmin
     if 0 <= fmin <= 0.5:
         fmin = max(fmin, 1./samples) # Low frequency cutoff
@@ -31,19 +30,12 @@ def powerlaw_psd_gaussian(
     if ix and ix < len(s_scale):
         s_scale[:ix] = s_scale[ix]
     s_scale = s_scale**(-beta/2.)
+      
+    sr *= s_scale
+    si *= s_scale   
     
     # Calculate theoretical output standard deviation from scaling
     sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
-      
-    # prepare random number generator    
-    rng = np.random.default_rng()
-    
-    # Generate scaled random power + phase
-    v = np.sqrt(np.pi)
-    sr = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
-    si = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
-    sr *= s_scale
-    si *= s_scale   
     
     # Combine power + corrected phase to Fourier components
     s  = sr + 1J * si
@@ -53,76 +45,72 @@ def powerlaw_psd_gaussian(
     
     return y
 
+def differentiate_once(f, p1):
+    f = np.fft.ifft(1j*p1*np.fft.fft(f))
+    return f
+    
+def differentiate_twice(f, p2):
+    f = np.fft.ifft(-p2*np.fft.fft(f))
+    return f
 
-def powerlaw_psd_gaussian_normal(beta, samples, fmin):   
-    # Calculate Frequencies (we asume a sample rate of one)
-    # Use fft functions for real output (-> hermitian spectrum)
-    f = rfftfreq(samples) 
-    
-            # Validate / normalise fmin
-    if 0 <= fmin <= 0.5:
-        fmin = max(fmin, 1./samples) # Low frequency cutoff
-    else:
-        raise ValueError("fmin must be chosen between 0 and 0.5.")
-    
-    # Build scaling factors for all frequencies
-    s_scale = f    
-    ix   = np.sum(s_scale < fmin)   # Index of the cutoff
-    if ix and ix < len(s_scale):
-        s_scale[:ix] = s_scale[ix]
-    s_scale = s_scale**(-beta/2.)
-    
-    
-    # Calculate theoretical output standard deviation from scaling
-    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
-      
-    # prepare random number generator    
-    rng = np.random.default_rng()
-    
-    # Generate scaled random power + phase
-
-    sr = rng.normal(size=len(f))  # Independent standard uniform variables
-    si = rng.normal(size=len(f))   # Independent standard uniform variables
-    sr *= s_scale
-    si *= s_scale   
-    
-    # Combine power + corrected phase to Fourier components
-    s  = sr + 1J * si
-     
-    # Transform to real time series & scale to unit variance
-    y = irfft(s, n=samples) / sigma
-    
-    return y
-
-
-samples = 2**19 # number of samples to generate
+samples = 2**17 # number of samples to generate
 return_to_beginning = 1
-beta1 = 2 # the exponent
-beta2 = 2 # the exponent
+beta1 = 5 # the exponent
+beta2 = 5 # the exponent
 fmin = 0.0;
+n = 1 #plot every n sample
+derivative = 1
+normal_input = 0
+
+# Calculate Frequencies (we asume a sample rate of one)
+# Use fft functions for real output (-> hermitian spectrum)
+f = rfftfreq(samples) 
+
+# Generate scaled random power + phase
+
+rng = np.random.default_rng()
+v = np.sqrt(np.pi)
+sr1 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
+si1 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+sr2 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
+si2 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+
+if normal_input:
+    sr1 = rng.normal(size=len(f))  # Independent standard uniform variables
+    si1 = rng.normal(size=len(f))   # Independent standard uniform variables
+    sr2 = rng.normal(size=len(f))  # Independent standard uniform variables
+    si2 = rng.normal(size=len(f))   # Independent standard uniform variables
+
+#Frequencies for the derivative
+x = 2 * np.pi * np.arange(0, samples, 1) / samples#-open-periodic domain    
+dx = x[1] - x[0]
+p1 = np.fft.fftfreq(samples, d = dx) * 2 * np.pi  #first order
+p2 =  (1j * p1)**2         #second order
 
 if(return_to_beginning == 0):
     return_to_beginning = 2;
 
 initial_n_bins = np.linspace(0, samples, int(samples/return_to_beginning)) 
 
-y = powerlaw_psd_gaussian(beta1, samples, fmin)[:int(samples/return_to_beginning)]
+y1 = powerlaw_psd_gaussian(beta1, samples, fmin, f, sr1, si1)[:int(samples/return_to_beginning)]
+if derivative:
+    y1_dif = differentiate_once(y1, p1).real 
 
 plt.figure(figsize=(10, 6))
 label = " (1/f)$\\beta$="
 label += str(beta1)
-plt.plot(initial_n_bins,  y, label=label)
+plt.plot(initial_n_bins,  y1, label=label)
 plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
 plt.figure(figsize=(10, 6))
-s, f = mlab.psd(y, NFFT=len(y))
+s, f = mlab.psd(y1, NFFT=len(y1))
 
 plt.loglog(f * len(f), s)
 formatter = ScalarFormatter()
 formatter.set_useOffset(False)
 plt.gca().xaxis.set_major_formatter(formatter)
-plt.xlim(right = len(f) * 1.5)
+plt.xlim(right = len(f) * 1.2)
 plt.grid(True, which='both', alpha = 0.4)
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (Unit**2/Hz)')
@@ -130,7 +118,9 @@ plt.ylabel('PSD (Unit**2/Hz)')
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
 plt.grid(True)
 
-y2 = powerlaw_psd_gaussian(beta2, samples, fmin)[:int(samples/return_to_beginning)]
+y2 = powerlaw_psd_gaussian(beta2, samples, fmin, f, sr2, si2)[:int(samples/return_to_beginning)]
+if derivative:
+    y2_dif = differentiate_once(y2, p1).real 
 
 plt.figure(figsize=(10, 6))
 label = "(1/f)$\\beta$="
@@ -146,14 +136,13 @@ plt.loglog(f * len(f), s)
 formatter = ScalarFormatter()
 formatter.set_useOffset(False)
 plt.gca().xaxis.set_major_formatter(formatter)
-plt.xlim(right = len(f) * 1.5)
+plt.xlim(right = len(f) * 1.2)
 plt.grid(True, which='both', alpha = 0.4)
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (Unit**2/Hz)')
 
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2))
 plt.grid(True)
-
 
 
 # Different colors
@@ -164,14 +153,11 @@ path_color = 'gray'
 plt.figure(figsize=(8, 8))
 
 # Plot the path 
-n = 512
-plt.plot(y[::n], y2[::n], marker='o', markersize=2, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
-
+plt.plot(y1[::n], y2[::n], marker='o', markersize=2, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
 # Plot the start point (green)
-plt.plot(y[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
-
+plt.plot(y1[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
 # Plot the end point (red)
-plt.plot(y[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
+plt.plot(y1[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
 
 plt.title("Simulated 2D Colored Noise Motion "+ "(1/f)$\\beta$=" + str(beta1) + ", (1/f)$\\beta$=" + str(beta2) )
 plt.xlabel("X")
@@ -188,7 +174,7 @@ text1 = "Number of samples " + f"{samples} = 2^{int(exponent)}"
 def distance(x1, y1, x2, y2):
     return math.sqrt(math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2))
 
-dif = distance(y[0],y2[0],y[-1],y2[-1])
+dif = distance(y1[0],y2[0],y1[-1],y2[-1])
 text2 = "Δ Start-End              " + f"{dif:.6e}"
 
 ax = plt.gca()
@@ -200,5 +186,56 @@ plt.legend(loc='upper right')
 print(text1)
 print(text2)
 
+
+# Plot original and sorted points
+plt.figure(figsize=(18, 6))
+plt.subplot(141)
+plt.title('Original Path')
+plt.plot(y1[::n], y2[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
+
+# Plot the start point (green)
+plt.plot(y1[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
+# Plot the end point (red)
+plt.plot(y1[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
+
+
+plt.subplot(142)
+# Sort by y-coordinate
+sorted_indices = np.argsort(y1)
+x_sorted = y2[sorted_indices]
+y_sorted = y1[sorted_indices]
+
+plt.title('Sorted by Y-Coordinate')
+plt.plot(x_sorted[::n], y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
+# Plot the start point (green)
+plt.plot(x_sorted[0], y_sorted[0], marker='o', markersize=8, color=start_color, label='Start')
+# Plot the end point (red)
+plt.plot(x_sorted[-1], y_sorted[-1], marker='o', markersize=8, color=end_color, label='End')
+
+plt.subplot(143)
+plt.title('Original Path Derivative')
+plt.plot(y1_dif[::n], y2_dif[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
+# Plot the start point (green)
+plt.plot(y1_dif[0], y2_dif[0], marker='o', markersize=8, color=start_color, label='Start')
+# Plot the end point (red)
+plt.plot(y1_dif[-1], y2_dif[-1], marker='o', markersize=8, color=end_color, label='End')
+
+
+plt.subplot(144)
+# Sort by y-coordinate
+sorted_indices = np.argsort(y1_dif)
+x_sorted = y2_dif[sorted_indices]
+y_sorted = y1_dif[sorted_indices]
+
+plt.title('Sorted by Y-Coordinate')
+plt.plot(x_sorted[::n], y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color)
+# Plot the start point (green)
+plt.plot(x_sorted[0], y_sorted[0], marker='o', markersize=8, color=start_color, label='Start')
+# Plot the end point (red)
+plt.plot(x_sorted[-1], y_sorted[-1], marker='o', markersize=8, color=end_color, label='End')
+
+
 plt.show()
+
+
 

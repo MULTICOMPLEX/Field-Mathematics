@@ -32,16 +32,12 @@ def  FFT(f):
     f = np.fft.fft(f)
     return f.real 
     
-# Function to calculate the output of the neuron
-def neuron_output(inputs, bias):
-    output = IFFT(inputs + bias)
-    return output
 
 # Function to update the weights and bias using backpropagation
 def update_bias(inputs, bias, target_output, learning_rate):
 
     # Calculate the neuron's output
-    output = neuron_output(inputs, bias)
+    output = IFFT(inputs + bias)  #neuron_output
     fft =  FFT(output)
     
     for i in range(len(target_output)):
@@ -80,7 +76,7 @@ print("Learning rate:", learning_rate)
 print("Training target: ", training_target)
 
 # Calculate the output of the neuron with the new input data
-new_output = neuron_output(new_inputs, bias)
+new_output = IFFT(new_inputs + bias)
 
 first_column = []
 for row in new_output:

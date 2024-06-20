@@ -1,6 +1,4 @@
-
 import numpy as np
-
 
 
 # Import the exp function from the math module
@@ -31,14 +29,14 @@ def Fourier_transform(z):
     return np.fft.fft(z)
 
 def Fourier_transform_derivative(f):
-    f = np.fft.ifft(1j*p*np.fft.fft([f]))
-    return f[0].real 
+    f = np.fft.ifft(1j*p*np.fft.fft(f))
+    return f.real 
     
 # Function to calculate the output of the neuron
 def neuron_output(inputs, bias):
     a = inputs + bias
     output = Fourier_transform(a)
-    return output[0].real 
+    return output.real 
 
 # Function to update the weights and bias using backpropagation
 def update_bias(inputs, bias, target_output, learning_rate):
@@ -46,43 +44,37 @@ def update_bias(inputs, bias, target_output, learning_rate):
     # Calculate the neuron's output
     output = neuron_output(inputs, bias)
 
+    for i in range(len(target_output)):
     # Calculate the error (difference between the target output and the actual output)
-    error = target_output - output
-
+        error = target_output[i] - output[i]
     # Calculate the gradient (chain rule)
-    gradient = error * output * (1 - Fourier_transform_derivative(output))
-
+        gradient = error * output[i] * (1 - Fourier_transform_derivative(output[i]))
     # Update the bias (partial derivative of the weighted sum with respect to the bias is 1)
-    bias += learning_rate * gradient
+        bias[i] += learning_rate * gradient
 
     return bias
 
 # Define the initial input values (example input features) and target output for training
-training_inputs = np.array([.2, .3, .4, .7, .3, .3, -.36])
+training_inputs = np.array([[0.5, 0.7], [0.8, 0.2], [0.3, 0.9]] )
+training_target_output = np.array([0.9, 0.7, 0.4])
 
-N = training_inputs.size
-x = 2*np.pi*np.arange(0,N,1)/N #-open-periodic domain    
+N = len(training_inputs[0])
+x = np.arange(0,N,1)/N #-open-periodic domain    
 dx = x[1]-x[0]
-p = np.fft.fftfreq(N, d = dx) * 2*np.pi 
+p = np.fft.fftfreq(N, d = dx) 
 
-
-training_target_output = 1.4123762
 
 # Define new input values for testing (example new input features)
+new_inputs = np.array([0.8, 0.2])
 new_inputs = training_inputs
-new_inputs[5] = 0.1
-new_inputs[4] = 0.1
-new_inputs[3] = 0
-new_inputs[2] = 0
-new_inputs[1] = 0
 
 
 # Define the bias term (initially random or zero)
-bias = 0.
+bias = np.array([[0.0, 0.0],[0.0, 0.0],[0.0, 0.0]])
 # Define the learning rate (how quickly the model should learn)
-learning_rate = 0.07
+learning_rate = 0.3
 
-iterations = 100
+iterations = 200
 
 for _ in range(iterations):
     bias = update_bias(training_inputs, bias, training_target_output, learning_rate)
@@ -92,6 +84,6 @@ new_output = neuron_output(new_inputs, bias)
 
 # Print the final weights, bias, and output with the new input data
 print("Iterations:", iterations)
-print("Final bias:", bias)
+#print("Final bias:", bias)
 print("Training target output:", training_target_output)
 print("Output of the neuron: ", new_output)

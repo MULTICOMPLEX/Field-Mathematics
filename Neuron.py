@@ -50,7 +50,7 @@ for epoch in range(epochs):
         print(f"Epoch {epoch + 1}: Error = {error_sum:.4f}")
 
 # Test the trained neuron
-test_input = [1.8, 0.2]
+test_input = [0.5, 0.7]
 output = neuron(test_input, weights, bias)
 print("Output for test input:", output)
 

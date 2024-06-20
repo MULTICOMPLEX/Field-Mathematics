@@ -34,8 +34,7 @@ def Fourier_transform_derivative(f):
     
 # Function to calculate the output of the neuron
 def neuron_output(inputs, bias):
-    a = inputs + bias
-    output = Fourier_transform(a)
+    output = Fourier_transform(inputs + bias)
     return output
 
 # Function to update the weights and bias using backpropagation
@@ -43,12 +42,13 @@ def update_bias(inputs, bias, target_output, learning_rate):
 
     # Calculate the neuron's output
     output = neuron_output(inputs, bias)
-
+    fft =  Fourier_transform_derivative(output)
+    
     for i in range(len(target_output)):
     # Calculate the error (difference between the target output and the actual output)
         error = target_output[i] - output[i]
     # Calculate the gradient (chain rule)
-        gradient = error * output[i] * (1 - Fourier_transform_derivative(output[i]))
+        gradient = error * output[i] * (1 - fft[i])
     # Update the bias (partial derivative of the weighted sum with respect to the bias is 1)
         bias[i] += learning_rate * gradient
 
@@ -68,7 +68,7 @@ bias = np.array([[0.0, 0.0],[0.0, 0.0],[0.0, 0.0]])
 # Define the learning rate (how quickly the model should learn)
 learning_rate = 0.3
 
-iterations = 150
+iterations = 300
 
 for _ in range(iterations):
     bias = update_bias(training_inputs, bias, training_target_output, learning_rate)

@@ -28,17 +28,17 @@ def train(inputs, target, weights, bias, learning_rate):
     return weights, bias, error
 
 # Example training data
-inputs = [[0.5, 0.7], [1.8, 0.2], [0.3, 0.9]]
-targets = [0.9, 0.6, 0.4]
+inputs = np.array([[0.5, 0.7], [0.8, 0.2], [0.3, 0.9]])
+targets = np.array([0.9, 0.7, 0.4])
 
 # Initialize weights and bias randomly
 weights = [0.5 for _ in range(len(inputs[0]))]
 bias = 0
 
-learning_rate = 0.4
-epochs = 100000
+learning_rate = 0.8
+epochs = 20000
 # Print frequency (adjust as needed)
-print_every = 5000
+print_every = 50
 
 for epoch in range(epochs):
     error_sum = 0
@@ -50,7 +50,7 @@ for epoch in range(epochs):
         print(f"Epoch {epoch + 1}: Error = {error_sum:.4f}")
 
 # Test the trained neuron
-test_input = [0.5, 0.7]
+test_input = np.array([0.8, 0.2])
 output = neuron(test_input, weights, bias)
 print("Output for test input:", output)
 

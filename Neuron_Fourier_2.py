@@ -26,17 +26,17 @@ def swish(x):
     return x * sigmoid(x)
     
 def Fourier_transform(z):
-    return np.fft.fft(z)
+    return np.fft.fft(z).real
 
 def Fourier_transform_derivative(f):
-    f = np.fft.ifft(1j*p*np.fft.fft(f))
+    f = np.fft.ifft(1j*np.fft.fft(f))
     return f.real 
     
 # Function to calculate the output of the neuron
 def neuron_output(inputs, bias):
     a = inputs + bias
     output = Fourier_transform(a)
-    return output.real 
+    return output
 
 # Function to update the weights and bias using backpropagation
 def update_bias(inputs, bias, target_output, learning_rate):
@@ -55,14 +55,8 @@ def update_bias(inputs, bias, target_output, learning_rate):
     return bias
 
 # Define the initial input values (example input features) and target output for training
-training_inputs = np.array([[0.5, 0.7], [0.8, 0.2], [0.3, 0.9]] )
+training_inputs = np.array([[0.5, 0.7], [0.8, 0.2], [0.3, 0.9]])
 training_target_output = np.array([0.9, 0.7, 0.4])
-
-N = len(training_inputs[0])
-x = np.arange(0,N,1)/N #-open-periodic domain    
-dx = x[1]-x[0]
-p = np.fft.fftfreq(N, d = dx) 
-
 
 # Define new input values for testing (example new input features)
 new_inputs = np.array([0.8, 0.2])
@@ -74,7 +68,7 @@ bias = np.array([[0.0, 0.0],[0.0, 0.0],[0.0, 0.0]])
 # Define the learning rate (how quickly the model should learn)
 learning_rate = 0.3
 
-iterations = 200
+iterations = 150
 
 for _ in range(iterations):
     bias = update_bias(training_inputs, bias, training_target_output, learning_rate)
@@ -86,4 +80,9 @@ new_output = neuron_output(new_inputs, bias)
 print("Iterations:", iterations)
 #print("Final bias:", bias)
 print("Training target output:", training_target_output)
-print("Output of the neuron: ", new_output)
+
+first_column = []
+for row in new_output:
+    first_column.append(row[0])  # Extract the first element from each row
+print("Output of the neuron: ", first_column) 
+#print("Output of the neuron: ", new_output)

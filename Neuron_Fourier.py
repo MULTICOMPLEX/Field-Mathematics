@@ -1,97 +1,48 @@
-
 import numpy as np
 
-
-
-# Import the exp function from the math module
-import numpy as np
-
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
-def tanh(x):
-    return np.tanh(x)
-
-def relu(x):
-    return np.maximum(0, x)
-
-def leaky_relu(x, alpha=0.01):
-    return np.where(x > 0, x, alpha * x)
-
-def prelu(x, alpha=0.1):
-    return np.where(x > 0, x, alpha * x)
-
-def elu(x, alpha=1.0):
-    return np.where(x > 0, x, alpha * (np.exp(x) - 1))
-
-def swish(x):
-    return x * sigmoid(x)
-    
-def Fourier_transform(z):
-    return np.fft.fft(z)
-
-def Fourier_transform_derivative(f):
-    f = np.fft.ifft(1j*p*np.fft.fft([f]))
-    return f[0].real 
-    
-# Function to calculate the output of the neuron
-def neuron_output(inputs, bias):
-    a = inputs + bias
-    output = Fourier_transform(a)
-    return output[0].real 
-
-# Function to update the weights and bias using backpropagation
-def update_bias(inputs, bias, target_output, learning_rate):
-
-    # Calculate the neuron's output
-    output = neuron_output(inputs, bias)
-
-    # Calculate the error (difference between the target output and the actual output)
-    error = target_output - output
-
-    # Calculate the gradient (chain rule)
-    gradient = error * output * (1 - Fourier_transform_derivative(output))
-
-    # Update the bias (partial derivative of the weighted sum with respect to the bias is 1)
-    bias += learning_rate * gradient
-
+def neuron(z):
+    return np.fft.ifft(z).real
+ 
+# Function to update the bias using backpropagation
+def update_bias(inputs, bias, target_output):
+    output = neuron(inputs + bias)     # Calculate the neuron's output
+    for i in range(len(target_output)):
+        bias[i] += (target_output[i] - output[i])  * output[i]  # Update the bias 
     return bias
 
 # Define the initial input values (example input features) and target output for training
-training_inputs = np.array([.2, .3, .4, .7, .3, .3, -.36])
+training_inputs = np.array([
+[0.5, 0.7, 0.77], [0.8, 0.2, 0.432], [0.3, 0.9, 0.6754], [0.8, 0.1, 0.55543], [0.334, 0.6, 0.55543], [0.334, 0.1, 0.55543], [0.134, 0.1, 0.55543], 
+[0.51, 0.7, 0.77],   [0.82, 0.2, 0.432],   [0.33, 0.9, 0.6754],    [0.84, 0.1, 0.55543],   [0.3345, 0.6, 0.55543],   [0.3346, 0.1, 0.55543],   [0.1347, 0.1, 0.55543],
+[0.51, 0.71, 0.77], [0.82, 0.22, 0.432], [0.33, 0.93, 0.6754], [0.84, 0.14, 0.55543], [0.3345, 0.65, 0.55543], [0.3346, 0.13, 0.55543], [0.1347, 0.14, 0.55543],
+[0.51, 0.72, 0.77], [0.82, 0.23, 0.432], [0.33, 0.94, 0.6754], [0.84, 0.15, 0.55543], [0.3345, 0.66, 0.55543], [0.3346, 0.14, 0.55543], [0.1347, 0.15, 0.5553]])
 
-N = training_inputs.size
-x = 2*np.pi*np.arange(0,N,1)/N #-open-periodic domain    
-dx = x[1]-x[0]
-p = np.fft.fftfreq(N, d = dx) * 2*np.pi 
+training_target = np.array([0.9, 0.7, 0.4, 0.56, 0.7, 0.234, 0.3, 0.91, 0.72, 0.43, 0.564, 0.75, 0.2346, 0.32, 0.91, 0.72, 0.4, 
+0.564, 0.74, 0.2345, 0.36, 0.917, 0.728, 0.439, 0.5641, 0.7512, 0.234613, 0.322])
 
-
-training_target_output = 1.4123762
-
+index = 10
+if(index >= len(training_target)):
+    index = len(training_target)-1
+    
 # Define new input values for testing (example new input features)
-new_inputs = training_inputs
-new_inputs[5] = 0.1
-new_inputs[4] = 0.1
-new_inputs[3] = 0
-new_inputs[2] = 0
-new_inputs[1] = 0
-
+new_inputs = training_inputs[index]
+#new_inputs = training_inputs
 
 # Define the bias term (initially random or zero)
-bias = 0.
-# Define the learning rate (how quickly the model should learn)
-learning_rate = 0.07
+bias = np.zeros_like(training_inputs) 
 
-iterations = 100
+# Define the number of iterations
+iterations = 500
 
 for _ in range(iterations):
-    bias = update_bias(training_inputs, bias, training_target_output, learning_rate)
+    bias = update_bias(training_inputs, bias, training_target)
+
+print("Iterations:", iterations)
+print("Training target: ", training_target[index])
 
 # Calculate the output of the neuron with the new input data
-new_output = neuron_output(new_inputs, bias)
+new_output = neuron(new_inputs + bias)
+print("Neuron output: ", new_output[index][0])
 
-# Print the final weights, bias, and output with the new input data
-print("Iterations:", iterations)
-print("Final bias:", bias)
-print("Training target output:", training_target_output)
-print("Output of the neuron: ", new_output)
+
+

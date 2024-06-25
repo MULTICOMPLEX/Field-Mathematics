@@ -3,7 +3,7 @@
 
 #include <Python.h>
 
-
+ 
 class plot_matplotlib
 {
 

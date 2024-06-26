@@ -722,7 +722,7 @@ std::vector<double> linspace(T start_in, T end_in, std::uint64_t num_in)
 
 template<typename T>
 	requires std::floating_point<T>
-void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::u8string title, int n = 1)
+void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::u8string title, int n = 1, bool points = false)
 {
 
 	std::vector<T> x, y;
@@ -733,7 +733,10 @@ void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::
 	}
 
 	plot.run_customcommand("figure(figsize = (8, 8))");
-	plot.plot_somedata(x, y, "o-", "BrownianMotion", "gray", 0.5, 2);
+	if(points)
+		plot.plot_somedata(x, y, "o", "BrownianMotion", "gray", 0.5, 2);
+	else
+		plot.plot_somedata(x, y, "o-", "BrownianMotion", "gray", 0.5, 2);
 
 	std::vector<T> btx, bty;
 	btx.push_back(B_t_X.front());
@@ -1179,7 +1182,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 	///////////////
 
 	auto N = uint64_t(std::pow(2, 19));
-	double beta1 = 1; //1075 max
+	double beta1 = -2; //1075 max
 	double beta2 = beta1;
 	double fmin = 0;
 
@@ -1203,7 +1206,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	plot.mlab_psd(x, beta1);
 	//plot.mlab_psd(y, beta2);
-	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 512);
+	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 32, true);
 
 	auto distance = euclidean_distance(x.front(), y.front(), x.back(), y.back());
 	std::cout << utf8_encode(u8"Δ Start-End= ") << std::scientific << std::setprecision(6) << distance << std::defaultfloat << std::endl << std::endl;

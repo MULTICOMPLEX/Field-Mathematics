@@ -1181,7 +1181,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	///////////////
 
-	auto N = uint64_t(std::pow(2, 19));
+	auto N = uint64_t(std::pow(2, 13));
 	double beta1 = -2; //1075 max
 	double beta2 = beta1;
 	double fmin = 0;
@@ -1206,7 +1206,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	plot.mlab_psd(x, beta1);
 	//plot.mlab_psd(y, beta2);
-	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 32, true);
+	Plot_2D_Brownian_Motion(x, y, u8"Simulated Brownian Motion, Powerlaw", 1, true);
 
 	auto distance = euclidean_distance(x.front(), y.front(), x.back(), y.back());
 	std::cout << utf8_encode(u8"Δ Start-End= ") << std::scientific << std::setprecision(6) << distance << std::defaultfloat << std::endl << std::endl;

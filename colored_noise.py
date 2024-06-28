@@ -27,6 +27,9 @@ def powerlaw_psd_gaussian(beta, samples, fmin, f, sr, si):
     sr *= s_scale
     si *= s_scale   
     
+    si[0] = 0
+    sr[0] *= sqrt(2)    # Fix magnitude
+    
     # Calculate theoretical output standard deviation from scaling
     sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
     

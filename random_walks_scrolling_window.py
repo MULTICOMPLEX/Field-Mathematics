@@ -1,25 +1,24 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
-def n_random_walks(n_walks, n_steps):
-    """Simulates n random walks of +1, -1 steps over n samples."""
-    walks = np.random.choice([-1, 1], size=(n_walks, n_steps)).cumsum(axis=1)
-    return walks
+import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Simulation parameters
 n_walks = 8
-n_steps = 10000000
 plot_interval = 10000
-window_size = 5000  
+window_size = 5000
 
-# Create figure and axes
-plt.ion()  
+# Initialize the main window
+root = tk.Tk()
+root.title("Random Walk Simulation")
+
+# Create the figure and axes for the plot
 fig, ax = plt.subplots(figsize=(10, 6))
 
 # Initialize empty lines
 lines = []
 for _ in range(n_walks):
-    line, = ax.plot([], [])  
+    line, = ax.plot([], [])
     lines.append(line)
 
 # Initial plot limits (just for the x-axis)
@@ -30,47 +29,89 @@ ax.autoscale(enable=True, axis='y')  # Enable y-axis autoscaling
 ax.set_xlabel('Steps')
 ax.set_ylabel('Position')
 ax.grid(True, which='both', alpha=0.4)
-ax.set_title(f'Random Walks (Scrolling Window)')
+ax.set_title(str(n_walks) +  ' Random Walks')
 
-# Main simulation loop
-walks = n_random_walks(n_walks, n_steps)  
+# Embed the plot in the tkinter window
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-for i in range(0, n_steps, plot_interval):
-    # Update line data
-    for j, line in enumerate(lines):
-        start_idx = max(0, i - window_size)
-        end_idx = i + plot_interval
-        x_data = list(range(start_idx, end_idx))  # Use full range
+# Initialize the starting positions and walks
+positions = np.zeros((n_walks,), dtype=int)
+walks = [[] for _ in range(n_walks)]
+
+# Control flag for the simulation
+running = False
+current_step = 0
+
+def reset_simulation():
+    global positions, walks, current_step
+    positions = np.zeros((n_walks,), dtype=int)
+    walks = [[] for _ in range(n_walks)]
+    current_step = 0
+    for line in lines:
+        line.set_data([], [])  # Clear the line data
+    ax.set_xlim([0, window_size])
+    ax.relim()
+    ax.autoscale_view()
+    canvas.draw()
+
+def start_simulation():
+    global running
+    if not running:
+        running = True
+        simulate()
+
+def stop_simulation():
+    global running
+    running = False
+
+def simulate():
+    global positions, walks, current_step
+
+    if not running:
+        return
+
+    # Generate new steps for the interval
+    new_steps = np.random.choice([-1, 1], size=(n_walks, plot_interval))
+
+    # Update positions incrementally
+    for j in range(n_walks):
+        for step in new_steps[j]:
+            positions[j] += step
+            walks[j].append(positions[j])
+
+        # Update line data
+        start_idx = max(0, len(walks[j]) - window_size)
+        end_idx = len(walks[j])
+        x_data = list(range(start_idx, end_idx))
         y_data = walks[j][start_idx:end_idx]
-        line.set_data(x_data, y_data)
+        lines[j].set_data(x_data, y_data)
 
     # Adjust x-axis limits for scrolling
-    ax.set_xlim([max(0, i - window_size + plot_interval), i + plot_interval])
-    
+    ax.set_xlim([max(0, len(walks[0]) - window_size), len(walks[0])])
+
     # Rescale y-axis automatically
-    ax.relim() 
+    ax.relim()
     ax.autoscale_view()
 
     # Redraw the plot
-    fig.canvas.draw()
-    plt.pause(0.001)  # Adjust for smoother/faster animation
+    canvas.draw()
 
-# Keep the plot open after the loop
+    current_step += plot_interval
+    root.after(1, simulate)  # Continue simulation after 1 millisecond
 
+# Create Start, Stop, and Reset buttons
+start_button = tk.Button(root, text="Start", command=start_simulation)
+start_button.pack(side=tk.LEFT)
 
-# Create a histogram of the final positions
-final_positions = [walk[-1] for walk in walks]
-plt.figure()  # Create a new figure for the histogram
-plt.hist(final_positions, bins=30, density=True, alpha=0.7, label='Final Positions')
+stop_button = tk.Button(root, text="Stop", command=stop_simulation)
+stop_button.pack(side=tk.LEFT)
 
-# Overlay a normal distribution fit for comparison
-mu, sigma = np.mean(final_positions), np.std(final_positions)
-x = np.linspace(mu - 3*sigma, mu + 3*sigma, 100)
-plt.plot(x, 1/(sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - mu)**2 / (2 * sigma**2)), 'r-', label='Normal Fit')
+reset_button = tk.Button(root, text="Reset", command=reset_simulation)
+reset_button.pack(side=tk.LEFT)
 
-plt.xlabel('Final Position')
-plt.ylabel('Density')
-plt.title('Distribution of Final Positions')
-plt.legend()
-plt.ioff()  # Turn off interactive mode
-plt.show()
+# Start the simulation automatically
+start_simulation()
+
+# Run the tkinter main loop
+root.mainloop()

@@ -37,14 +37,14 @@ def powerlaw_psd_gaussian(beta, samples, fmin, f, sr, si):
     
 
 # Define the original function (square wave in this example)
-def func2(x, period=2*np.pi,):
+def func2(x, period=2*np.pi, duty_cycle=0.5):
     return 0.5 + 0.5 * np.sign(np.sin(x / period * 2 * np.pi))
 
-def func1(x):
+def func1(x, period=2*np.pi, duty_cycle=0.5):
     return np.sin(x) + np.cos(2*x)
 
-def func3(x):
-    return np.sinh(np.arctan(np.sin(2*x)+np.cos(5*x))) 
+def func3(x, period=2*np.pi, duty_cycle=0.5):
+    return np.sinh(np.arctan(np.sin(2*X)+np.cos(5*X))) 
 
 
 n = 2000
@@ -59,24 +59,20 @@ si1 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
 y = powerlaw_psd_gaussian(beta1, n, fmin, f, sr1, si1)
 
 # Generate data points
-x = np.linspace(-np.pi, np.pi, len(f))
-sr1 = func1(x)
-si1 = func3(x)
-#y = powerlaw_psd_gaussian(beta1, n, fmin, f, sr1, si1)
+x = np.linspace(-np.pi, np.pi, n)
 
 # Perform the Fourier Transform
 yf = fft(y)
-x = np.linspace(-np.pi, np.pi, n)
 xf = np.linspace(0.0, 1.0/(2.0*x[1]-x[0]), n//2)
 
 # Truncate higher frequencies (approximation)
-num_components = int(n/4)# Adjust this to control the level of approximation
+num_components = int(n/30)# Adjust this to control the level of approximation
 yf_truncated = yf.copy()
 yf_truncated[num_components:-num_components] = 0
 
 # Perform the Inverse Fourier Transform to get the approximated function
 y_approx = ifft(yf_truncated)
-print("Δ Start-End              ", np.abs(y_approx[0] - y_approx[-1]))
+
 
 # Plot the results
 fig = plt.figure(facecolor='#002b36', figsize = (10, 6))

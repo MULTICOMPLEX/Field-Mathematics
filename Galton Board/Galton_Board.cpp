@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	typedef double R;
 	typedef bool B;
 
-	Red_Noise();
+	//Red_Noise();
 
 	/***************SETTINGS*****************/
 

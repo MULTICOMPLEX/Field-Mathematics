@@ -1104,8 +1104,8 @@ std::vector<double> powerlaw_psd_gaussian(double beta, uint64_t samples, auto fm
 	}
 
 	// Regardless of signal length, the DC component must be real
-	si.front() = 0;
-	sr.front() *= std::sqrt(2); // Fix magnitude
+	//si.front() = 0;
+	//sr.front() *= std::sqrt(2); // Fix magnitude
 
 	// Combine power + corrected phase to Fourier components
 	std::vector<std::complex<double>> s(f.size());
@@ -1181,8 +1181,8 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	///////////////
 
-	auto N = uint64_t(std::pow(2, 13));
-	double beta1 = -2; //1075 max
+	auto N = uint64_t(std::pow(2, 17));
+	double beta1 = 2; //1075 max
 	double beta2 = beta1;
 	double fmin = 0;
 

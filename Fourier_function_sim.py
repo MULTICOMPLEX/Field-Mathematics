@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.fft import fft, ifft
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, roc_curve, roc_auc_score, precision_recall_curve
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error, root_mean_squared_log_error, recall_score
 
 
 def powerlaw_psd_gaussian(beta, samples, fmin, f_in, sr_in, si_in):
@@ -66,10 +66,10 @@ def func_approx(x, n):
 
 n = 20000
 
-beta1 = 2 # the exponent
-beta2 = 2 # the exponent
+beta1 = 1 # the exponent
+beta2 = 1 # the exponent
 fmin = 0.0;  
-num_components = n//512
+num_components = n//1024
 
 f = np.fft.rfftfreq(n)   
 v1 = np.sqrt(np.pi)
@@ -80,20 +80,15 @@ si1 = rng.uniform(-v1, v1, size=len(f))   # Independent standard uniform variabl
 y1 = powerlaw_psd_gaussian(beta1, n, fmin, f, sr1, si1)
 y_approx1 = func_approx(y1, num_components)
 
-# Generate data points
-#x = np.linspace(-np.pi, np.pi, len(f))
-#sr1 = func3(x)
-#si1 = func4(x)
-#y = powerlaw_psd_gaussian(beta1, n, fmin, f, sr1, si1)
 
-v2 = np.sqrt(np.pi) / 5
+v2 = np.sqrt(np.pi) / 2 
 sr2 = rng.uniform(-v2, v2, size=len(f))  # Independent standard uniform variables
 si2 = rng.uniform(-v2, v2, size=len(f))   # Independent standard uniform variables
-y2 = powerlaw_psd_gaussian(beta2, n, fmin, f, sr1+sr2, si1+si2)
+y2 = powerlaw_psd_gaussian(beta1, n, fmin, f, sr2 + sr1, si2 + si1)
 y_approx2 = func_approx(y2, num_components)
 
 print("Δ Start-End              ", np.abs(y_approx1[0] - y_approx1[-1]))
-#y_approx = fft(y_approx)
+
 
 # Plot the results
 fig = plt.figure(facecolor='#002b36', figsize = (10, 6))
@@ -121,12 +116,38 @@ plt.grid()
 
  
 # Metrics
+print('\nMetrics approximated functions')
 mse = mean_squared_error(y_approx1.real,  y_approx2.real)
+rmse = np.sqrt(mse)
 mae = mean_absolute_error(y_approx1.real,  y_approx2.real)
 r2 = r2_score(y_approx1.real,  y_approx2.real)
+mape = mean_absolute_percentage_error(y_approx1.real,  y_approx2.real)
+rmsle = root_mean_squared_log_error(np.abs(y_approx1.real),  np.abs(y_approx2.real))
+
+
+print(f'R^2: {r2:.10f}') 
 print(f'MSE: {mse:.10f}')
+print(f'RMSE: {rmse:.10f}')
 print(f'MAE: {mae:.10f}')
-print(f'R^2: {r2:.10f}')
+print(f'MAPE: {mape:.10f}')
+print(f'RMSLE: {rmsle:.10f}')
+
+
+print('\nMetrics original functions')
+mse = mean_squared_error(y1,  y2)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(y1,  y2)
+r2 = r2_score(y1,  y2)
+mape = mean_absolute_percentage_error(y1,  y2)
+rmsle = root_mean_squared_log_error(np.abs(y1),  np.abs(y2))
+
+
+print(f'R^2: {r2:.10f}') 
+print(f'MSE: {mse:.10f}')
+print(f'RMSE: {rmse:.10f}')
+print(f'MAE: {mae:.10f}')
+print(f'MAPE: {mape:.10f}')
+print(f'RMSLE: {rmsle:.10f}')
 
 
 

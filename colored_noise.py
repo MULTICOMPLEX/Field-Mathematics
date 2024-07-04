@@ -7,6 +7,9 @@ from matplotlib.ticker import ScalarFormatter
 import math
 from scipy.signal import bilinear
 from scipy import signal 
+import phimagic_prng32
+import phimagic_prng64
+import time
 
 
 def powerlaw_psd_gaussian(beta, samples, fmin, f, sr, si):
@@ -68,10 +71,19 @@ f = rfftfreq(samples)
 
 rng = np.random.default_rng()
 v = np.sqrt(np.pi)
-sr1 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
-si1 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
-sr2 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
-si2 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+#sr1 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
+#si1 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+#sr2 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
+#si2 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+
+current_time_seconds = int(time.time())
+prng = phimagic_prng32.mxws(current_time_seconds)
+
+sr1 = prng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
+si1 = prng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+sr2 = prng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
+si2 = prng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+
 
 if normal_input:
     sr1 = rng.normal(size=len(f))  # Independent standard uniform variables

@@ -53,15 +53,28 @@ def differentiate_twice(f, p2):
     return f
 
 
+def func_approx(x, n):
+    # Perform the Fourier Transform
+    yf = np.fft.fft(x)
+    # Truncate higher frequencies (approximation)
+    num_components = int(n)# Adjust this to control the level of approximation
+    yf_truncated = yf
+    yf_truncated[num_components:-num_components] = 0
+    # Perform the Inverse Fourier Transform to get the approximated function
+    y_approx = np.fft.ifft(yf_truncated)
+    return y_approx.real
+
 samples = 2**17 # number of samples to generate
 return_to_beginning = 1
-beta1 = 4 # the exponent
-beta2 = 4 # the exponent
+beta1 = 2 # the exponent
+beta2 = 2# the exponent
 fmin = 0.0;
 n = 1 #plot every n sample
 derivative = 1
 normal_input = 0
 function_input = 0
+Nfreq1 = 5
+Nfreq2 = 30
 
 # Calculate Frequencies (we asume a sample rate of one)
 # Use fft functions for real output (-> hermitian spectrum)
@@ -113,7 +126,17 @@ arr_custom3 = np.fromfunction(my_func3, (len(f),))  # Apply custom function
 # 2. Custom Function
 def my_func4(x):
     return x**2 + 4 * x - 1
-        
+ 
+def set_axis_color(ax):
+    ax.set_facecolor('#002b36')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    ax.tick_params(colors='white')
+    ax.spines['left'].set_color('white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['top'].set_color('white')
+    ax.spines['right'].set_color('white') 
+ 
 arr_custom4 = np.fromfunction(my_func4, (len(f),))  # Apply custom function
 
 if function_input:
@@ -122,8 +145,7 @@ if function_input:
     sr2 =  arr_custom3
     si2 = arr_custom4
     
-
-
+    
 #Frequencies for the derivative
 x = 2 * np.pi * np.arange(0, samples, 1) / samples#-open-periodic domain    
 dx = x[1] - x[0]
@@ -139,14 +161,20 @@ y1 = powerlaw_psd_gaussian(beta1, samples, fmin, f, sr1, si1)[:int(samples/retur
 if derivative:
     y1_dif = differentiate_once(y1, p1).real 
 
-plt.figure(figsize=(10, 6))
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+ax = fig.gca()
+set_axis_color(ax)
+
 label = " (1/f)$\\beta$="
 label += str(beta1)
 plt.plot(initial_n_bins,  y1, label=label)
 plt.legend()
 plt.grid(True)
-# optionally plot the Power Spectral Density with Matplotlib
-plt.figure(figsize=(10, 6))
+
+
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+ax = fig.gca()
+set_axis_color(ax)
 s, f = mlab.psd(y1, NFFT=len(y1))
 
 plt.loglog(f * len(f), s)
@@ -158,21 +186,27 @@ plt.grid(True, which='both', alpha = 0.4)
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (Unit**2/Hz)')
 
-plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1))
+plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1), color='white')
 plt.grid(True)
 
 y2 = powerlaw_psd_gaussian(beta2, samples, fmin, f, sr2, si2)[:int(samples/return_to_beginning)]
 if derivative:
     y2_dif = differentiate_once(y2, p1).real 
 
-plt.figure(figsize=(10, 6))
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+ax = fig.gca()
+set_axis_color(ax)
+
 label = "(1/f)$\\beta$="
 label += str(beta2)
 plt.plot(initial_n_bins,  y2, label=label)
 plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
-plt.figure(figsize=(10, 6))
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+ax = fig.gca()
+set_axis_color(ax)
+
 s, f = mlab.psd(y2, NFFT=len(y2))
 
 plt.loglog(f * len(f), s)
@@ -184,7 +218,7 @@ plt.grid(True, which='both', alpha = 0.4)
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (Unit**2/Hz)')
 
-plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2))
+plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta2), color='white')
 plt.grid(True)
 
 
@@ -193,18 +227,20 @@ start_color = 'blue'
 end_color = 'orange'
 path_color = 'gray'
 
-plt.figure(figsize=(8, 8))
+fig = plt.figure(facecolor='#002b36', figsize=(8, 8))
+ax = fig.gca()
+set_axis_color(ax)
 
 # Plot the path 
-plt.plot(y1[::n], y2[::n], marker='o', markersize=2, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
+plt.plot(y1[::n], y2[::n], marker='o', markersize=1, linestyle='-', linewidth=0.5, color=path_color)  # Gray for path
 # Plot the start point (green)
 plt.plot(y1[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
 # Plot the end point (red)
 plt.plot(y1[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
 
-plt.title("Simulated 2D Colored Noise Motion "+ "(1/f)$\\beta$=" + str(beta1) + ", (1/f)$\\beta$=" + str(beta2) )
-plt.xlabel("X")
-plt.ylabel("Y")
+plt.title("Simulated 2D Colored Noise Random Walk "+ "(1/f)$\\beta$=" + str(beta1) + ", (1/f)$\\beta$=" + str(beta2), color = 'white')
+plt.xlabel("X", color = 'white')
+plt.ylabel("Y", color = 'white')
 plt.legend()  # Show the legend for start/end points
 plt.grid(alpha=0.4)
 plt.axis('equal')
@@ -221,8 +257,8 @@ dif = distance(y1[0],y2[0],y1[-1],y2[-1])
 text2 = "Δ Start-End              " + f"{dif:.6e}"
 
 ax = plt.gca()
-plt.text(0.015, 0.97, text1, fontsize=9, transform=ax.transAxes)
-plt.text(0.015, 0.95, text2, fontsize=9, transform=ax.transAxes)
+plt.text(0.015, 0.97, text1, fontsize=9, transform=ax.transAxes, color = 'white')
+plt.text(0.015, 0.95, text2, fontsize=9, transform=ax.transAxes, color = 'white')
 
 plt.legend(loc='upper right') 
 
@@ -231,14 +267,15 @@ print(text2)
 
 
 # Plot original and sorted points
-plt.figure(figsize=(18, 6))
-plt.subplot(141)
+plt.figure(facecolor='#002b36', figsize=(18, 6))
+ax = plt.subplot(141, )
+set_axis_color(ax)
 
 label = " (1/f)$\\beta$="
 label += str(beta1)
 
-plt.title('Original Path')
-plt.plot(y1[::n], y2[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
+plt.title('Random Walk', color = 'white')
+plt.plot(y1[::n], y2[::n], marker='o', markersize=0.5,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
 plt.plot(y1[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
 # Plot the end point (red)
@@ -246,23 +283,27 @@ plt.plot(y1[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
 plt.legend(loc='upper right') 
 plt.grid(True)
 
-plt.subplot(142)
+ax = plt.subplot(142)
+set_axis_color(ax)
+
 # Sort by y-coordinate
 sorted_indices = np.argsort(y1)
 x_sorted = y2[sorted_indices]
 y_sorted = y1[sorted_indices]
 
-plt.title('Sorted by Y-Coordinate')
-plt.plot(x_sorted[::n], -y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
+plt.title('Sorted by Y-Coordinate', color = 'white')
+plt.plot(x_sorted[::n], -y_sorted[::n], marker='o', markersize=0.5,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
 plt.plot(x_sorted[0], -y_sorted[0], marker='o', markersize=8, color=end_color, label='End')
 # Plot the end point (red)
 plt.plot(x_sorted[-1], -y_sorted[-1], marker='o', markersize=8, color=start_color, label='Start')
 plt.legend(loc='lower right') 
 
-plt.subplot(143)
-plt.title('Original Path Derivative')
-plt.plot(y1_dif[::n], y2_dif[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
+ax = plt.subplot(143)
+set_axis_color(ax)
+
+plt.title('Random Walk Derivative', color = 'white')
+plt.plot(y1_dif[::n], y2_dif[::n], marker='o', markersize=0.5,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
 plt.plot(y1_dif[0], y2_dif[0], marker='o', markersize=8, color=start_color, label='Start')
 # Plot the end point (red)
@@ -270,20 +311,39 @@ plt.plot(y1_dif[-1], y2_dif[-1], marker='o', markersize=8, color=end_color, labe
 plt.legend(loc='upper right') 
 plt.grid(True)
 
-plt.subplot(144)
+ax = plt.subplot(144)
+set_axis_color(ax)
+
 # Sort by y-coordinate
 sorted_indices = np.argsort(y1_dif)
 x_sorted = y2_dif[sorted_indices]
 y_sorted = y1_dif[sorted_indices]
 
-plt.title('Sorted by Y-Coordinate')
-plt.plot(x_sorted[::n], -y_sorted[::n], marker='o', markersize=2,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
+plt.title('Sorted by Y-Coordinate', color = 'white')
+plt.plot(x_sorted[::n], -y_sorted[::n], marker='o', markersize=0.5,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
 plt.plot(x_sorted[0], -y_sorted[0], marker='o', markersize=8, color=end_color, label='End')
 # Plot the end point (red)
 plt.plot(x_sorted[-1], -y_sorted[-1], marker='o', markersize=8, color=start_color, label='Start')
 plt.legend(loc='lower right') 
 
+# Plot original and sorted points
+
+approx1 = func_approx(y1, Nfreq1)
+approx2 = func_approx(y2, Nfreq2)
+
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+plt.title("Random Walk Fourier Function Approximation", color = 'white')
+label = "X vs Y"
+plt.plot(approx1,  approx2, label=label)
+
+plt.legend()
+plt.grid(True, alpha = 0.4)
+plt.xlabel("Approximation X= 0:" + str(Nfreq1) + " frequencies")
+plt.ylabel("Approximation Y= 0:" + str(Nfreq2) + " frequencies")
+
+ax = fig.gca()
+set_axis_color(ax)
 
 def is_closed_shape(x, y):
     """Checks if an array of (x, y) points represents a closed shape.
@@ -301,16 +361,16 @@ def is_closed_shape(x, y):
 x = y1
 y = y2
 if is_closed_shape(x, y):
-    print("Original Path                  is closed.")
+    print("Random Walk           is closed.")
 else:
-    print("Original Path            is not closed.")
+    print("Random Walk             is not closed.")
     
 x = y1_dif
 y = y2_dif
 if is_closed_shape(x, y):
-    print("Original Path Derivative       is closed.")
+    print("Random Walk Derivative        is closed.")
 else:
-    print("Original Path Derivative is not closed.")
+    print("Random Walk  Derivative is not closed.")
 
 plt.show()
 

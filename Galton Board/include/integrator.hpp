@@ -5,7 +5,6 @@
 ///integrator 
 
 #include <functional>
-#include <hep/mc.hpp>
 
 template <typename elem, int order>
 	requires ((order >= 0) && (order < 25))
@@ -366,7 +365,6 @@ const multicomplex<elem, order> newtonCotes
 	return c0 * h * answ;
 }
 
-///////////////////
 
 template <typename T>
 T denormalize(T normalized, T min, T max) {
@@ -374,51 +372,6 @@ T denormalize(T normalized, T min, T max) {
 	return denormalized;
 }
 
-///////////////////
-
-// the function that shall be integrated
-template<typename T>
-T square(hep::mc_point<T> const& x)
-{
-	const extern T x_max;
-	const extern T x_min;
-	auto p = (x_max - x_min) * x.point()[0] + x_min;
-	return exp(1 - p * p);
-}
-
-template<typename T>
-void hep_driver(T min, T max)
-{
-	// print reference result
-	std::cout << ">> computing integral of exp(1-x*x) from " + std::to_string(min) + " to " + std::to_string(max) + " \n\n";
-
-	// perform 5 iteration with 1000 calls each; this function will also call
-	// vegas_verbose_callback after each iteration which in turn prints the
-	// individual iterations
-
-	auto results = hep::vegas(
-		hep::make_integrand<T>(square<T>, 1),
-		std::vector<std::size_t>(5, 1000000)
-	).results();
-
-	// results contains the estimations for each iteration. We could take the
-	// result from last iteration, but here we instead choose to combine the
-	// results of all iterations but the first one in a cumulative result
-	auto result = hep::accumulate<hep::weighted_with_variance>(
-		results.begin() + 1, results.end());
-	auto chi_square_dof = hep::chi_square_dof<hep::weighted_with_variance>(
-		results.begin() + 1, results.end());
-
-	std::cout.setf(std::ios::fixed, std::ios::floatfield);
-	std::cout.precision(12);
-
-	// print the cumulative result
-	std::cout << ">> cumulative result (excluding first iteration):\n>> N="
-		<< result.calls() << " I=" << (max - min) * result.value() << " +- " << result.error()
-		<< " chi^2/dof=" << chi_square_dof << "\n\n";
-}
-
-//////////////
 
 template<typename T>
 T Wilkinsons_polynomial(const T& x, int n)

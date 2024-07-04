@@ -1,7 +1,7 @@
 #ifndef __FFT_HPP__
 #define __FFT_HPP__
 #include <vector>
-
+#include <fstream>
 
 template <typename T>
 void Write_DFTCoeff(const std::vector<T>& v) {

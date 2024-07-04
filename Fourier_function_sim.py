@@ -69,22 +69,24 @@ n = 20000
 beta1 = 1 # the exponent
 beta2 = 1 # the exponent
 fmin = 0.0;  
-num_components = n//1024
+num_components = 50
 
-f = np.fft.rfftfreq(n)   
-v1 = np.sqrt(np.pi)
+f = np.fft.rfftfreq(n)  
 rng = np.random.default_rng()
-
+ 
+v1 = np.sqrt(np.pi)
 sr1 = rng.uniform(-v1, v1, size=len(f))  # Independent standard uniform variables
 si1 = rng.uniform(-v1, v1, size=len(f))   # Independent standard uniform variables
-y1 = powerlaw_psd_gaussian(beta1, n, fmin, f, sr1, si1)
+y1 = powerlaw_psd_gaussian(beta1, n, fmin, f, sr1.real, si1.real)
+x = np.linspace(-np.pi, np.pi, len(y1))
+#y1 = func3(x)
 y_approx1 = func_approx(y1, num_components)
 
-
-v2 = np.sqrt(np.pi) / 2 
+v2 = np.sqrt(np.pi) / 2  
 sr2 = rng.uniform(-v2, v2, size=len(f))  # Independent standard uniform variables
 si2 = rng.uniform(-v2, v2, size=len(f))   # Independent standard uniform variables
 y2 = powerlaw_psd_gaussian(beta1, n, fmin, f, sr2 + sr1, si2 + si1)
+#y2 = func3(x)
 y_approx2 = func_approx(y2, num_components)
 
 print("Δ Start-End              ", np.abs(y_approx1[0] - y_approx1[-1]))
@@ -102,11 +104,16 @@ ax.spines['bottom'].set_color('white')
 ax.spines['top'].set_color('white')
 ax.spines['right'].set_color('white') 
 
+
 x = np.linspace(-np.pi, np.pi, n)
+
 plt.plot(x, y1, label='Original function1', linewidth=0.8)
 plt.plot(x, y2, label='Original function2', linewidth=0.8)
+
 plt.plot(x, y_approx1.real, label=f'Approximation1 ({num_components} Components)')
 plt.plot(x, y_approx2.real, label=f'Approximation2 ({num_components} Components)')
+
+
 
 plt.title('Function Approximation using Fourier Transform', color = 'white')
 plt.xlabel('x')

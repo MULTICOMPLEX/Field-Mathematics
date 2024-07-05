@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 10000000;
+	std::uint64_t Ntrials = 1000000;
 	//Wave cycles or threads  
 	U Ncycles = 40;
 	//Number of integrations

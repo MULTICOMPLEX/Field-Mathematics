@@ -10,13 +10,31 @@ from scipy import signal
 import phimagic_prng32
 import phimagic_prng64
 import time
+from scipy.io import wavfile
+import pyaudio
 
 
-def powerlaw_psd_gaussian(beta, samples, fmin, f, sr, si):
+steps = 2**20 # number of steps to generate
+return_to_beginning = 1
+beta1 = 1 # the exponent
+beta2 = 1.2# the exponent
+fmin = 0.0;
+n = 1024 #plot every n sample
+normal_input = 1
+standard_dev = 1
+function_input = 0
+#Number of frequencies for approximation
+Nfreq1 = 10
+Nfreq2 = 10
+
+if(return_to_beginning == 0):
+    return_to_beginning = 2;
+
+def powerlaw_psd_gaussian(beta, steps, fmin, f, sr, si):
        
         # Validate / normalise fmin
     if 0 <= fmin <= 0.5:
-        fmin = max(fmin, 1./samples) # Low frequency cutoff
+        fmin = max(fmin, 1./steps) # Low frequency cutoff
     else:
         raise ValueError("fmin must be chosen between 0 and 0.5.")
     
@@ -30,17 +48,14 @@ def powerlaw_psd_gaussian(beta, samples, fmin, f, sr, si):
     sr *= s_scale
     si *= s_scale   
     
-    si[0] = 0
-    sr[0] *= np.sqrt(2)    # Fix magnitude
-    
     # Calculate theoretical output standard deviation from scaling
-    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / samples
+    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / steps
     
     # Combine power + corrected phase to Fourier components
     s  = sr + 1J * si
      
     # Transform to real time series & scale to unit variance
-    y = irfft(s, n=samples) / sigma
+    y = irfft(s, n=steps) / sigma
     
     return y
 
@@ -64,46 +79,35 @@ def func_approx(x, n):
     y_approx = np.fft.ifft(yf_truncated)
     return y_approx.real
 
-samples = 2**17 # number of samples to generate
-return_to_beginning = 1
-beta1 = 2 # the exponent
-beta2 = 2# the exponent
-fmin = 0.0;
-n = 1 #plot every n sample
-derivative = 1
-normal_input = 0
-function_input = 0
-Nfreq1 = 5
-Nfreq2 = 30
 
 # Calculate Frequencies (we asume a sample rate of one)
 # Use fft functions for real output (-> hermitian spectrum)
-f = rfftfreq(samples) 
+f = rfftfreq(steps) 
 
-# Generate scaled random power + phase
-
-rng = np.random.default_rng()
-v = np.sqrt(np.pi)
-#sr1 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
-#si1 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
-#sr2 = rng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
-#si2 = rng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
-
+#Time seed 
 current_time_seconds = int(time.time())
-prng = phimagic_prng32.mxws(current_time_seconds)
-
-sr1 = prng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
-si1 = prng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
-sr2 = prng.uniform(-v, v, size=len(f))  # Independent standard uniform variables
-si2 = prng.uniform(-v, v, size=len(f))   # Independent standard uniform variables
+rng = np.random.default_rng(current_time_seconds)       #numpy PRNG
+prng = phimagic_prng32.mxws(current_time_seconds)  #Phimagic fastest PRNG
 
 
+# Independent standard normal variables
 if normal_input:
-    sr1 = rng.normal(size=len(f))  # Independent standard uniform variables
-    si1 = rng.normal(size=len(f))   # Independent standard uniform variables
-    sr2 = rng.normal(size=len(f))  # Independent standard uniform variables
-    si2 = rng.normal(size=len(f))   # Independent standard uniform variables
+    sr1 = rng.normal(0, standard_dev, size=len(f))  
+    si1 = rng.normal(0, standard_dev, size=len(f))   
+    sr2 = rng.normal(0, standard_dev, size=len(f)) 
+    si2 = rng.normal(0, standard_dev, size=len(f))   
 
+# Independent standard uniform variables
+else:
+    v = np.sqrt(np.pi)
+    sr1 = prng.uniform(-v, v, size=len(f))  
+    si1 = prng.uniform(-v, v, size=len(f))   
+    sr2 = prng.uniform(-v, v, size=len(f))  
+    si2 = prng.uniform(-v, v, size=len(f))  
+    #sr1 = rng.uniform(-v, v, size=len(f))  
+    #si1 = rng.uniform(-v, v, size=len(f))  
+    #sr2 = rng.uniform(-v, v, size=len(f)) 
+    #si2 = rng.uniform(-v, v, size=len(f))    
 
 # 2. Custom Function
 def my_func1(x):
@@ -147,19 +151,16 @@ if function_input:
     
     
 #Frequencies for the derivative
-x = 2 * np.pi * np.arange(0, samples, 1) / samples#-open-periodic domain    
+x = 2 * np.pi * np.arange(0, steps, 1) / steps#-open-periodic domain    
 dx = x[1] - x[0]
-p1 = np.fft.fftfreq(samples, d = dx) * 2 * np.pi  #first order
+p1 = np.fft.fftfreq(steps, d = dx) * 2 * np.pi  #first order
 p2 =  (1j * p1)**2         #second order
 
-if(return_to_beginning == 0):
-    return_to_beginning = 2;
 
-initial_n_bins = np.linspace(0, samples, int(samples/return_to_beginning)) 
+X = np.linspace(0, steps, int(steps/return_to_beginning)) 
 
-y1 = powerlaw_psd_gaussian(beta1, samples, fmin, f, sr1, si1)[:int(samples/return_to_beginning)]
-if derivative:
-    y1_dif = differentiate_once(y1, p1).real 
+y1 = powerlaw_psd_gaussian(beta1, steps, fmin, f, sr1, si1)
+y1_dif = differentiate_once(y1, p1).real 
 
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 ax = fig.gca()
@@ -167,7 +168,7 @@ set_axis_color(ax)
 
 label = " (1/f)$\\beta$="
 label += str(beta1)
-plt.plot(initial_n_bins,  y1, label=label)
+plt.plot(X,  y1[:int(steps/return_to_beginning)], label=label)
 plt.legend()
 plt.grid(True)
 
@@ -189,9 +190,8 @@ plt.ylabel('PSD (Unit**2/Hz)')
 plt.title("FFT Colored Noise, (1/f)$\\beta$=" + str(beta1), color='white')
 plt.grid(True)
 
-y2 = powerlaw_psd_gaussian(beta2, samples, fmin, f, sr2, si2)[:int(samples/return_to_beginning)]
-if derivative:
-    y2_dif = differentiate_once(y2, p1).real 
+y2 = powerlaw_psd_gaussian(beta2, steps, fmin, f, sr2, si2)
+y2_dif = differentiate_once(y2, p1).real 
 
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 ax = fig.gca()
@@ -199,7 +199,7 @@ set_axis_color(ax)
 
 label = "(1/f)$\\beta$="
 label += str(beta2)
-plt.plot(initial_n_bins,  y2, label=label)
+plt.plot(X,  y2[:int(steps/return_to_beginning)], label=label)
 plt.legend()
 plt.grid(True)
 # optionally plot the Power Spectral Density with Matplotlib
@@ -238,7 +238,7 @@ plt.plot(y1[0], y2[0], marker='o', markersize=8, color=start_color, label='Start
 # Plot the end point (red)
 plt.plot(y1[-1], y2[-1], marker='o', markersize=8, color=end_color, label='End')
 
-plt.title("Simulated 2D Colored Noise Random Walk "+ "(1/f)$\\beta$=" + str(beta1) + ", (1/f)$\\beta$=" + str(beta2), color = 'white')
+plt.title("Simulated 2D Colored Noise Random Walk "+ "(1/f)$\\beta$=" + str(beta1) + ", (1/f)$\\beta$=" + str(beta2) + ",  " + str(steps) + " steps", color = 'white')
 plt.xlabel("X", color = 'white')
 plt.ylabel("Y", color = 'white')
 plt.legend()  # Show the legend for start/end points
@@ -246,8 +246,8 @@ plt.grid(alpha=0.4)
 plt.axis('equal')
 
 
-exponent = math.log2(samples)
-text1 = "Number of samples " + f"{samples} = 2^{int(exponent)}"
+exponent = math.log2(steps)
+text1 = "Number of steps " + f"{steps} = 2^{int(exponent)}"
 
 
 def distance(x1, y1, x2, y2):
@@ -274,7 +274,7 @@ set_axis_color(ax)
 label = " (1/f)$\\beta$="
 label += str(beta1)
 
-plt.title('Random Walk', color = 'white')
+plt.title("Random Walk " + str(steps) + " steps", color = 'white')
 plt.plot(y1[::n], y2[::n], marker='o', markersize=0.5,  linewidth=0.5,  linestyle='-', color=path_color, label=label)
 # Plot the start point (green)
 plt.plot(y1[0], y2[0], marker='o', markersize=8, color=start_color, label='Start')
@@ -333,17 +333,40 @@ approx1 = func_approx(y1, Nfreq1)
 approx2 = func_approx(y2, Nfreq2)
 
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
-plt.title("Random Walk Fourier Function Approximation", color = 'white')
+plt.title("Random Walk Fourier Function Approximation " + str(steps) + " steps", color = 'white')
 label = "X vs Y"
-plt.plot(approx1,  approx2, label=label)
+plt.plot(approx2[:int(steps/return_to_beginning)],  approx1[:int(steps/return_to_beginning)], label=label)
 
 plt.legend()
 plt.grid(True, alpha = 0.4)
-plt.xlabel("Approximation X= 0:" + str(Nfreq1) + " frequencies")
-plt.ylabel("Approximation Y= 0:" + str(Nfreq2) + " frequencies")
+plt.xlabel("Approximation X= 0:" + str(Nfreq2) + " frequencies")
+plt.ylabel("Approximation Y= 0:" + str(Nfreq1) + " frequencies")
 
 ax = fig.gca()
 set_axis_color(ax)
+
+# Sampling rate (steps per second)
+sampling_rate = 44100
+
+# Open an audio stream using PyAudio
+p = pyaudio.PyAudio()
+stream = p.open(format=pyaudio.paFloat32,
+                channels=2,
+                rate=sampling_rate,
+                output=True)
+
+# Play the sound data
+# Combine left and right channels into a stereo NumPy array
+stereo_data = np.stack([y1, y2], axis=1)
+# Save the NumPy array to a WAV file
+wavfile.write("sound.wav", sampling_rate, stereo_data)
+
+stream.write(stereo_data.astype(np.float32).tobytes())
+stream.stop_stream()
+stream.close()
+p.terminate()
+
+
 
 def is_closed_shape(x, y):
     """Checks if an array of (x, y) points represents a closed shape.

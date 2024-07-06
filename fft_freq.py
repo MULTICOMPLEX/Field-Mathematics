@@ -1,11 +1,39 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+def compute_twiddle_factors(N):
+    """Compute the sine values for the twiddle factors and derive cosine values by rotating the sine array."""
+    theta = -2 * np.pi * np.arange(N) / N
+    sin_vals = np.sin(theta)
+    cos_vals = np.roll(sin_vals, N // 4)  # Rotate by 90 degrees to get cosine values
+    return cos_vals, sin_vals
+
+def fft_recursive(x, cos_vals, sin_vals):
+    """Compute the FFT of a sequence x using a recursive algorithm with precomputed sine and cosine values."""
+    N = x.shape[0]
+    
+    if N <= 1:
+        return x
+    
+    even = fft_recursive(x[0::2], cos_vals[::2], sin_vals[::2])
+    odd = fft_recursive(x[1::2], cos_vals[::2], sin_vals[::2])
+    
+    combined = np.zeros(N, dtype=complex)
+    
+    for k in range(N // 2):
+        t = complex(cos_vals[k] * odd[k].real - sin_vals[k] * odd[k].imag,
+                    cos_vals[k] * odd[k].imag + sin_vals[k] * odd[k].real)
+        combined[k] = even[k] + t
+        combined[k + N // 2] = even[k] - t
+    
+    return combined
+
 # Define desired frequencies
-frequencies = np.array([0, 5])  # Frequencies in Hz
+frequencies = 5  # Frequencies in Hz
 
 # Sampling rate (choose a rate appropriate for your frequencies)
-sampling_rate = 10000  # Samples per second
+sampling_rate = 2**12  # Samples per second
 
 # Calculate number of samples based on desired duration (adjust as needed)
 duration = 1  # Seconds
@@ -14,13 +42,17 @@ num_samples = int(sampling_rate * duration)
 # Create time axis
 t = np.linspace(0, duration, num_samples)
 
-# Generate ideal frequency domain representation (replace with your spectrum)
-# Here, we create impulses at the desired frequencies with amplitudes of 1
 spectrum = np.zeros(num_samples)
-spectrum[np.where(np.isin(np.fft.fftfreq(num_samples, d=1/sampling_rate), frequencies))] = 1
 
-# Take real part for actual signal (if needed)
-signal = np.real(1j * np.fft.fft(spectrum))
+spectrum[frequencies] = 1
+
+# Precompute the twiddle factors
+cos_vals, sin_vals = compute_twiddle_factors(num_samples)
+
+# Compute the FFT using the recursive function with precomputed twiddle factors
+signal = np.real(1j * fft_recursive(spectrum, cos_vals, sin_vals))
+
+#signal = np.real(1j * np.fft.fft(spectrum))
 
 def set_axis_color(ax):
     ax.set_facecolor('#002b36')

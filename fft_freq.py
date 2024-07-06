@@ -1,7 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import phimagic_prng32
+
+prng = phimagic_prng32.mxws(2)
 
 
+def normalize_signal(signal):
+    """Normalize a signal to the range [-1, 1]."""
+    min_val = np.min(signal)
+    max_val = np.max(signal)
+    
+    # Scale to [0, 1]
+    normalized_signal = (signal - min_val) / (max_val - min_val)
+    
+    # Scale to [-1, 1]
+    normalized_signal = 2 * normalized_signal - 1
+    
+    return normalized_signal
+    
 def compute_twiddle_factors(N):
     """Compute the sine values for the twiddle factors and derive cosine values by rotating the sine array."""
     theta = -2 * np.pi * np.arange(N) / N
@@ -48,6 +64,9 @@ spectrum[frequencies] = 1
 
 # Precompute the twiddle factors
 cos_vals, sin_vals = compute_twiddle_factors(num_samples)
+sin_vals  = prng.sine_distribution(Enable_Random_Seed = 1,  Seed = 10, Ntrials = 1000000000, Ncycles = 1,  N_Integrations = 10,   Nbins = num_samples)
+sin_vals = normalize_signal(sin_vals)
+cos_vals = np.roll(sin_vals, num_samples // 4)  # Rotate by 90 degrees to get cosine values
 
 # Compute the FFT using the recursive function with precomputed twiddle factors
 signal = np.real(1j * fft_recursive(spectrum, cos_vals, sin_vals))

@@ -3,6 +3,9 @@ import numpy as np
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from scipy.stats import norm  # Example: fitting a normal distribution
+import phimagic_prng32
+
+prng = phimagic_prng32.mxws(1)
 
 # Simulation parameters
 n_walks = 200
@@ -123,8 +126,10 @@ def simulate():
         return
 
     # Generate new steps for the interval
-    new_steps = np.random.choice([-1, 1], size=(n_walks, plot_interval))
-
+    #new_steps = np.random.choice([-1, 1], size=(n_walks, plot_interval))
+    new_steps = np.zeros((n_walks, plot_interval))
+    for i in range(n_walks):
+        new_steps[i] = prng.choice([-1, 1], size=plot_interval)
     # Update positions incrementally
     for j in range(n_walks):
         for step in new_steps[j]:

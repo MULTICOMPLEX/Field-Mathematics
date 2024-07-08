@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib import mlab
 from matplotlib.ticker import ScalarFormatter
 import phimagic_prng32
+import phimagic_prng64
+from matplotlib.ticker import MultipleLocator
 
 prng = phimagic_prng32.mxws(2)
 
@@ -47,16 +49,18 @@ def fft_recursive(x, cos_vals, sin_vals):
     
     return combined
 
-def func_approx(x, n):
+def func_approx(x, n, band = True):
     # Perform the Fourier Transform
     yf = np.fft.fft(x)
     # Truncate higher frequencies (approximation)
     num_components = int(n)# Adjust this to control the level of approximation
     yf_truncated = yf
-    #yf_truncated = np.zeros(len(yf), dtype=np.complex128)
-    #yf_truncated[num_components] = yf[num_components]
-    #yf_truncated[-num_components] = yf[-num_components]
-    yf_truncated[num_components:-num_components] = 0
+    if(band == False):
+        yf_truncated = np.zeros(len(yf), dtype=np.complex128)
+        yf_truncated[num_components] = yf[num_components]
+        yf_truncated[-num_components] = yf[-num_components]
+    else:
+        yf_truncated[num_components:-num_components] = 0
     # Perform the Inverse Fourier Transform to get the approximated function
     y_approx = np.fft.ifft(yf_truncated)
     return y_approx.real
@@ -65,18 +69,18 @@ def func_approx(x, n):
 frequencies = 50  # Frequencies in Hz
 
 # Sampling rate (choose a rate appropriate for your frequencies)
-sampling_rate = 2**12  # Samples per second
+num_samples = 2**17  # Samples per second
 
 # Calculate number of samples based on desired duration (adjust as needed)
 duration = 1  # Seconds
-num_samples = int(sampling_rate * duration)
 
 spectrum = np.zeros(num_samples)
 spectrum[frequencies] = 1
 
 # Precompute the twiddle factors
 #cos_vals, sin_vals = compute_twiddle_factors(num_samples)
-sin_vals  = prng.sine_distribution(Enable_Random_Seed = 1,  Seed = 10, Ntrials =1000, Ncycles = frequencies,  N_Integrations = 10,   Nbins = num_samples)
+sin_vals  = prng.sine_distribution(Enable_Random_Seed = 1,  Seed = 10, Ntrials =1000000, Ncycles = frequencies,  N_Integrations = 10,   Nbins = num_samples)
+#sin_vals = prng.uniform(-1, 1, size=num_samples) 
 sin_vals = normalize_signal(sin_vals)
 
 # Find the index where the sine wave crosses zero near the beginning
@@ -89,8 +93,12 @@ sin_vals= np.roll(sin_vals, -first_zero_crossing)
 # Compute the FFT using the recursive function with precomputed twiddle factors
 #signal = np.real(1j * fft_recursive(spectrum, cos_vals, sin_vals))
 
-signal = func_approx(sin_vals, len(sin_vals)/2)
+signal = func_approx(sin_vals, frequencies, True)
 signal = normalize_signal(signal)
+
+zero_crossings = np.where(np.diff(np.sign(signal)))[0]
+first_zero_crossing = zero_crossings[1]
+signal= np.roll(signal, -(first_zero_crossing))
 
 #signal =  sin_vals 
 #signal = np.real(1j * np.fft.fft(spectrum))
@@ -108,18 +116,20 @@ def set_axis_color(ax):
 
 # Print or plot the generated signal
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
-plt.title("Originald Signal", color = 'white')
+plt.title("Original Signal", color = 'white')
 t = np.linspace(0, duration, len(sin_vals))
-plt.plot(t, sin_vals)
+plt.step(t, sin_vals)
 ax = fig.gca()
 set_axis_color(ax)
+#unique_y_values = np.unique(sin_vals)
+#ax.set_yticks(unique_y_values)
 plt.grid(True, which='both', alpha = 0.4)
 plt.xlabel("Time (s)")
 plt.ylabel("Signal")
 
 
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
-plt.title("FFT Originald Signal", color='white')
+plt.title("FFT Original Signal", color='white')
 s, f = mlab.psd(sin_vals, NFFT=len(sin_vals))
 
 plt.loglog(f * len(f), s)
@@ -137,7 +147,11 @@ plt.ylabel('PSD (Unit**2/Hz)')
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 plt.title("Generated Signal", color = 'white')
 t = np.linspace(0, duration, len(signal))
-plt.plot(t, signal)
+plt.step(t, signal)
+
+s = np.sin(t * frequencies * 2 * np.pi)
+plt.step(t, s)
+
 ax = fig.gca()
 set_axis_color(ax)
 plt.grid(True, which='both', alpha = 0.4)

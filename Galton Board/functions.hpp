@@ -13,6 +13,7 @@ using Complex = MX0;
 #include "matplotlib.hpp"
 #include "number_theory.hpp"
 #include <map>
+#include <ranges>
 #include <unordered_set>
 #include "constants.hpp"
 #include "vector_operators.hpp"
@@ -39,9 +40,8 @@ auto Galton_Classic = []<typename L, typename K>
 (
 	const L& balls,
 	std::vector<K>& galton_arr,
-	double stddev,
 	double mean,
-	bool RandomWWalk)
+	bool Ziggurat)
 {
 
 	mxws <uint32_t>RNG;
@@ -51,15 +51,15 @@ auto Galton_Classic = []<typename L, typename K>
 
 	uint32_t k;
 
-	cxx::ziggurat_normal_distribution<double> normalz(mean, (Board_SIZE / 12) * stddev);
+	cxx::ziggurat_normal_distribution<double> normalz(mean, Board_SIZE / 12.);
 
 	for (L i = 0; i < balls; i++, random_walk = 0) {
 
-		if (RandomWWalk) {
+		if (!Ziggurat) {
 			for (auto j = 0; j < Board_SIZE; j++)
 				random_walk += RNG(1.);
 
-			k = uint32_t((random_walk - mean) / sqrt(12. / Board_SIZE) * stddev + mean);
+			k = uint32_t((random_walk - mean) / sqrt(12. / Board_SIZE) + mean);
 			//The 1D board
 			if (k < Board_SIZE) galton_arr[k]++;
 		}
@@ -72,7 +72,15 @@ auto Galton_Classic = []<typename L, typename K>
 			if (k < Board_SIZE) galton_arr[k]++;
 		}
 	}
+
 };
+
+double normal_pdf(double x, double mu, double sigma) {
+	// Calculate the PDF
+	double term1 = 1 / (std::sqrt(2 * std::numbers::pi) * sigma);
+	double term2 = std::exp(-0.5 * std::pow(x - mu, 2) / (sigma * sigma));
+	return term1 * term2;
+}
 
 template <typename A, typename I, typename B>
 	requires std::integral<I>&&
@@ -83,9 +91,8 @@ std::vector<A> Galton(
 	const I& Board_SIZE,
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
-	B probability_wave, A Seed, B Enable_Seed)
+	B probability_wave, A Seed, B Enable_Seed, B Ziggurat, double mean)
 {
-
 	mxws <uint32_t>RNG;
 	if (Enable_Seed)
 		RNG.seed(Seed);
@@ -98,7 +105,7 @@ std::vector<A> Galton(
 
 	else {
 		vec = { 0, Board_SIZE, Board_SIZE, Board_SIZE };
-		Galton_Classic(trials, galton_arr, 1.0, Board_SIZE / 2.0, false);
+		Galton_Classic(trials, galton_arr, Board_SIZE/2. + mean * Board_SIZE, Ziggurat);
 	}
 
 	return vec;

@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 1000000;
+	std::uint64_t Ntrials = 1700000;
 	//Wave cycles or threads  
 	U Ncycles = 40;
 	//Number of integrations
@@ -28,8 +28,11 @@ int main(int argc, char** argv)
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
-	U Binormal_Distribution_Nbins = 2000;
-	B Probability_wave = true;
+	U Normal_Distribution_Nbins = U(std::round(std::sqrt(Ntrials) * 2.0));
+	B Probability_wave = 0;
+	//Ziggurat algorithm or Random walk for the normal distribution 
+	B Ziggurat = 0;
+	double mean = 0, stdev = 0.5;
 	//Entropy analysis
 	B Entropy = false;
 	//DFT Entropy analysis
@@ -106,9 +109,9 @@ int main(int argc, char** argv)
 	}
 
 	else {
-		Initial_Board_size = Binormal_Distribution_Nbins;
+		Initial_Board_size = Normal_Distribution_Nbins;
 		Ncycles = 1;
-		std::cout << " NTrials           " << nameForNumber(Ntrials) << " (" << Ntrials << ")"
+		std::cout << " NTrials           " << nameForNumber(Ntrials * N_Integrations) << " (" << Ntrials * N_Integrations << ")"
 			<< " x " << Ncycles << std::endl;
 	}
 
@@ -135,7 +138,7 @@ int main(int argc, char** argv)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
 			return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
-				uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed); }));
+				uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed, Ziggurat, mean); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();
@@ -196,7 +199,23 @@ int main(int argc, char** argv)
 
 		Y = Y_buf;
 
-		plot.plot_somedata(X, Y, "", "Binomial-Normal Distribution", "blue");
+		auto sum = std::accumulate(Y.begin(), Y.end(), 0.0);
+
+		// Normalize the elements
+		std::ranges::transform(Y, Y.begin(), [&sum, &stdev](double val) { return val / sqrt(sum) / (6. * stdev); });
+
+		auto ndx = linspace(mean - 6 * stdev, mean + 6 * stdev, X.size());
+
+		plot.plot_somedata(ndx, Y, "", "Normal Distribution", "blue");
+		
+		std::vector<double> nd(X.size());
+		
+		for (auto i = 0; i < X.size(); i++)
+		{
+			nd[i] = normal_pdf(ndx[i], mean, stdev);
+		}
+			
+		plot.plot_somedata(ndx, nd, "", "Normal Distribution", "red");
 
 		std::string str = "Ntrials= ";
 		str += nameForNumber(Ntrials);
@@ -212,8 +231,8 @@ int main(int argc, char** argv)
 
 		std::cout << " Entropy " << entropy << std::endl;
 
-		plot.set_xlabel("Boxes");
-		plot.set_ylabel("Frequency");
+		plot.set_xlabel("x");
+		plot.set_ylabel("PDF(x)");
 		plot.grid_on();
 		plot.set_title(utf8_encode(title));
 		plot.show();

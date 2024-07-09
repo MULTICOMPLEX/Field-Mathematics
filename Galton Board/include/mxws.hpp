@@ -5,13 +5,20 @@
 #ifndef __x86_64
 #define __x86_64 1
 #endif
-#include "../pcg_random.hpp"
+#include "pcg_random.hpp"
 
+#include <future>
 #include <random>
 #include <numbers>
 #include <iostream>
-#include "../ziggurat.hpp"
+#include "ziggurat.hpp"
 #include <numeric>
+#include <iomanip>
+#include <pybind11.h>
+#include <numpy.h>
+
+
+namespace py = pybind11;
 
 template <typename RN>
 	requires
@@ -42,7 +49,7 @@ public:
 	template <typename T>
 		requires	std::same_as<RN, uint64_t>&&
 	std::integral<T>
-	void inline seed(const T& k)
+		void inline seed(const T& k)
 	{
 		w1 = k ^ 0x1010101010101010;
 		w2 = w1 + 1;
@@ -52,7 +59,7 @@ public:
 	template <typename T>
 		requires	std::same_as<RN, uint32_t>&&
 	std::integral<T>
-	void inline seed(const T& k)
+		void inline seed(const T& k)
 	{
 		w = k ^ 0x1010101010101010;
 		x = 1;
@@ -202,6 +209,38 @@ public:
 	inline RN rng()
 	{
 		return (*this)();
+	}
+
+	inline RN RNG()
+	{
+		return (*this)();
+	}
+
+	py::array_t<double> uniform(double low, double high, size_t size) {
+		py::array_t<double> result(size);
+		auto buffer = result.request();
+		double* ptr = static_cast<double*>(buffer.ptr);
+
+		for (auto i = 0; i < size; ++i) {
+			ptr[i] = (*this)(low, high);
+		}
+
+		return result;
+	}
+
+	py::array_t<int64_t> choice(py::array_t<int64_t>& vec, size_t size) {
+		py::array_t<int64_t> result(size);
+		auto buffer = result.request();
+		auto buffer2 = vec.request();
+		int64_t* ptr = static_cast<int64_t*>(buffer.ptr);
+		int64_t* ptr2 = static_cast<int64_t*>(buffer2.ptr);
+
+		for (auto i = 0; i < size; ++i) {
+			auto randomIndex = (*this)(vec.size() - 1);
+			ptr[i] = ptr2[randomIndex];
+		}
+
+		return result;
 	}
 
 	template <typename T>
@@ -438,12 +477,12 @@ public:
 		for (L i = 0; i < TRIALS; i++, random_walk = 0)
 		{
 			for (I j = 0; j < Board_size; j++)
-				random_walk += rng();
+				random_walk += (*this)();
 
 			cycle[std::modulus()(random_walk * rn_range >> 32, Initial_Board_size)]++;
 
 		}
-		
+
 		auto k = std::ranges::minmax_element(cycle);
 		auto Amplitude = std::uint64_t(round(*k.max - *k.min));
 
@@ -661,192 +700,350 @@ public:
 		return (t - 1.) * total / n;
 	}
 
+
+
+	/*1D Galton Board simulation with normal and sinusoidal distribution*/
+	template <typename A>
+		requires std::same_as<A, uint64_t>
+	std::vector<A> Galton(
+		const A& trials,
+		const A& Board_SIZE,
+		std::vector<A>& galton_arr,
+		A Seed,
+		A Enable_Seed)
+	{
+		if (Enable_Seed)
+			seed(Seed);
+		auto vec = Probability_Wave(Board_SIZE, galton_arr, trials);
+		return vec;
+	}
+
+
+	py::array_t<int64_t> sine_distribution(uint64_t Enable_Random_Seed = 1, uint64_t Seed = 10, uint64_t Ntrials = 10000000,
+		uint64_t Ncycles = 1, uint64_t N_Integrations = 10, uint64_t Nbins = 3000)
+	{
+		if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
+			Nbins = 3 * Ncycles;
+
+		uint64_t Initial_Board_size = uint64_t(std::round(Nbins / double(Ncycles)));
+
+		Nbins = Initial_Board_size * Ncycles;
+
+		std::vector<uint64_t> vec = {};
+
+		std::vector < std::future <decltype(vec)>> vecOfThreads;
+
+		std::vector<std::vector<std::vector<uint64_t>>>
+			galton_arr(N_Integrations, std::vector<std::vector<uint64_t>>
+				(Ncycles, std::vector<uint64_t>(Initial_Board_size, 0ull)));
+
+		for (auto i = 0; i < N_Integrations; i++)
+			for (auto k = 0; k < Ncycles; k++)
+				vecOfThreads.push_back(std::async([&, i, k] {
+				return Galton(Ntrials, Initial_Board_size, galton_arr[i][k],
+					uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed); }));
+
+		for (auto& th : vecOfThreads)
+			vec = th.get();
+
+		std::vector<double> Y, Y_buf;
+		Y_buf.resize(galton_arr.front().front().size() * galton_arr.front().size());
+
+		for (auto k = 0ull; k < N_Integrations; k++) {
+
+			Y.clear();
+			for (const auto& i : galton_arr[k])
+				std::ranges::transform(i, std::back_inserter(Y), [](auto& c) {return double(c); });
+
+			for (auto i = 0; i < Y_buf.size(); ++i) {
+				Y_buf[i] += Y[i];
+			}
+
+		}
+
+		for (auto i = 0; i < Y_buf.size(); ++i) {
+			Y_buf[i] /= double(N_Integrations);
+		}
+
+
+		py::array_t<int64_t> result(Y_buf.size());
+		auto buffer = result.request();
+		int64_t* ptr = static_cast<int64_t*>(buffer.ptr);
+
+		for (auto i = 0; i < Y_buf.size(); ++i) {
+			ptr[i] = int64_t(Y_buf[i]);
+		}
+
+		return result;
+	}
+
+	py::array_t<double> normal_distribution(uint64_t Enable_Random_Seed = 1, uint64_t Seed = 10, uint64_t Ntrials = 10000000,
+		uint64_t Nbins = 3000, double stddev = 1)
+	{
+
+		std::vector<double> galton_arr(Nbins);
+		double random_walk = 0;
+
+		if (Enable_Random_Seed)
+			seed(Seed);
+
+		uint32_t k;
+		double mean = Nbins / 2.;
+
+		for (auto i = 0; i < Ntrials; i++, random_walk = 0) {
+
+			for (auto j = 0; j < Nbins; j++)
+				random_walk += (*this)(1.);
+			
+
+			k = uint32_t((random_walk - mean) / std::sqrt(12. / Nbins) * stddev + mean);
+		
+			//The 1D board
+			if (k < Nbins) galton_arr[k]++;
+			
+		}
+
+		py::array_t<double> result(galton_arr.size());
+		auto buffer = result.request();
+		double* ptr = static_cast<double*>(buffer.ptr);
+
+		for (auto i = 0; i < galton_arr.size(); ++i) {
+			ptr[i] = galton_arr[i];
+			
+		}
+
+		return result;
+	}
+
 };
 
 
 // Example function to integrate
-double exampleFunction(double x) {
+template <typename T>
+	requires
+std::same_as<T, double>
+T exampleFunction(T x) {
 	return x * x; // f(x) = x^2
 }
 
 //convergence rate of 1/sqrt(n)
-	double monteCarloIntegration(std::function<double(double)> func, double a, double b, uint64_t numSamples, uint64_t seed) {
-		mxws <uint32_t> generator(seed);
-		std::uniform_real_distribution<double> distribution(a, b);
+template <typename T> requires
+std::same_as<T, double>
+T monteCarloIntegration(std::function<T(T)> func, T a, T b, uint64_t numSamples, uint64_t seed) {
+	mxws <uint32_t> generator(seed);
+	std::uniform_real_distribution<T> distribution(a, b);
 
-		double sum = 0.0;
-		for (auto i = 0; i < numSamples; ++i) {
-			double x = distribution(generator);
-			sum += func(x);
+	T sum = 0.0;
+	for (auto i = 0; i < numSamples; ++i) {
+		T x = distribution(generator);
+		sum += func(x);
+	}
+
+	T result = (b - a) * sum / numSamples;
+	return result;
+}
+
+template <typename T>
+	requires
+std::same_as<T, uint64_t>
+void test_monteCarloIntegration(T seed) {
+
+	double a = 0.0; // Lower bound of the interval
+	double b = 1.0; // Upper bound of the interval
+	size_t numSamples = 10000; // Number of random samples
+
+	double result = monteCarloIntegration(exampleFunction, a, b, numSamples, seed);
+	std::cout << "Estimated integral: " << result << std::endl;
+
+	// Demonstrating the convergence rate
+	for (auto n = 1000; n <= 1000000; n *= 10) {
+		double estimate = monteCarloIntegration(exampleFunction, a, b, n, seed);
+		std::cout << "Samples: " << n << ", Estimated integral: " << estimate << ", Error: " << std::abs(estimate - 1.0 / 3.0) << std::endl;
+	}
+}
+
+// Function to compute the derivative of the diffusion term
+template <typename T>
+	requires
+std::same_as<T, double>
+double sigma_derivative(T x) {
+	return 0.2; // Assuming sigma'(x) is constant for simplicity
+}
+
+// Define the SDE: dX_t = mu * X_t * dt + sigma * X_t * dW_t
+
+template <typename T>
+	requires
+std::same_as<T, double>
+void eulerMaruyama(T mu, T sigma, T X0, T t, size_t N, std::vector<T>& path, uint64_t seed) {
+	T dt = t / N;
+	path.resize(N + 1);
+	path[0] = X0;
+
+	mxws <uint32_t> generator(seed);
+	std::normal_distribution<T> distribution(0.0, std::sqrt(dt));
+
+	for (auto i = 1; i <= N; ++i) {
+		T dW = distribution(generator);
+		path[i] = path[i - 1] + mu * path[i - 1] * dt + sigma * path[i - 1] * dW;
+	}
+}
+
+template <typename T>
+	requires
+std::same_as<T, uint64_t>
+void test_eulerMaruyama(T seed) {
+	double mu = 0.1;       // Drift coefficient
+	double sigma = 0.2;    // Volatility coefficient
+	double X0 = 1.0;       // Initial value
+	double T = 1.0;        // Time period
+	size_t N = 1000;       // Number of steps
+
+	std::vector<T> path;
+	eulerMaruyama(mu, sigma, X0, T, N, path, seed);
+
+	// Output the path for verification
+	for (auto i = 0; i <= N; ++i) {
+		std::cout << "X[" << i << "] = " << path[i] << std::endl;
+	}
+}
+
+// Function to perform Milstein Method
+template <typename T>
+	requires
+std::same_as<T, double>
+void milsteinMethod(T mu, T sigma, T X0, T t, size_t N, std::vector<T>& path, uint64_t seed) {
+	T dt = t / N;
+	path.resize(N + 1);
+	path[0] = X0;
+
+	mxws <uint32_t> generator(seed);
+	std::normal_distribution<T> distribution(0.0, std::sqrt(dt));
+
+	for (auto i = 1; i <= N; ++i) {
+		T dW = distribution(generator);
+		T Xi = path[i - 1];
+		T drift = mu * Xi;
+		T diffusion = sigma * Xi;
+		T diffusion_derivative = sigma_derivative(Xi);
+
+		path[i] = Xi + drift * dt + diffusion * dW + 0.5 * diffusion * diffusion_derivative * (dW * dW - dt);
+	}
+}
+
+template <typename T>
+	requires
+std::same_as<T, uint64_t>
+void test_milsteinMethod(T seed) {
+	double mu = 0.1;       // Drift coefficient
+	double sigma = 0.2;    // Volatility coefficient
+	double X0 = 1.0;       // Initial value
+	double T = 1.0;        // Time period
+	int N = 1000;          // Number of steps
+
+	std::vector<double> path;
+	milsteinMethod(mu, sigma, X0, T, N, path, seed);
+
+	// Output the path for verification
+	for (int i = 0; i <= N; ++i) {
+		std::cout << "X[" << i << "] = " << path[i] << std::endl;
+	}
+}
+
+// Target distribution: standard normal distribution
+template <typename T>
+	requires
+std::same_as<T, double>
+double targetDistribution(T x) {
+	return std::exp(-0.5 * x * x) / std::sqrt(2 * std::numbers::pi);
+}
+
+// Proposal distribution: normal distribution centered at the current state
+template <typename T>
+	requires
+std::same_as<T, double>
+double proposalDistribution(double x, mxws <uint32_t>& generator, std::normal_distribution<T>& distribution) {
+	return x + distribution(generator);
+}
+
+// Metropolis-Hastings algorithm
+template <typename T>
+	requires
+std::same_as<T, double>
+void metropolisHastings(int numSamples, T initialState, std::vector<double>& samples, uint64_t seed) {
+	mxws <uint32_t> generator(seed);
+	std::uniform_real_distribution<double> uniformDist(0.0, 1.0);
+	std::normal_distribution<double> proposalDist(0.0, 1.0);
+
+	double currentState = initialState;
+	samples.resize(numSamples);
+
+	for (int i = 0; i < numSamples; ++i) {
+		double proposedState = proposalDistribution(currentState, generator, proposalDist);
+
+		double acceptanceRatio = targetDistribution(proposedState) / targetDistribution(currentState);
+
+		if (uniformDist(generator) < acceptanceRatio) {
+			currentState = proposedState;
 		}
 
-		double result = (b - a) * sum / numSamples;
-		return result;
+		samples[i] = currentState;
 	}
+}
 
-	void test_monteCarloIntegration(uint64_t seed) {
+// Calculate the mean of the samples
+template <typename T>
+	requires
+std::same_as<T, double>
+T calculateMean(const std::vector<T>& samples) {
+	T sum = std::accumulate(samples.begin(), samples.end(), 0.0);
+	return sum / samples.size();
+}
 
-		double a = 0.0; // Lower bound of the interval
-		double b = 1.0; // Upper bound of the interval
-		int numSamples = 10000; // Number of random samples
-
-		double result = monteCarloIntegration(exampleFunction, a, b, numSamples, seed);
-		std::cout << "Estimated integral: " << result << std::endl;
-
-		// Demonstrating the convergence rate
-		for (int n = 1000; n <= 1000000; n *= 10) {
-			double estimate = monteCarloIntegration(exampleFunction, a, b, n, seed);
-			std::cout << "Samples: " << n << ", Estimated integral: " << estimate << ", Error: " << std::abs(estimate - 1.0 / 3.0) << std::endl;
-		}
+// Calculate the variance of the samples
+template <typename T>
+	requires
+std::same_as<T, double>
+T calculateVariance(const std::vector<T>& samples, T mean) {
+	T sum = 0.0;
+	for (double sample : samples) {
+		sum += (sample - mean) * (sample - mean);
 	}
+	return sum / (samples.size() - 1);
+}
 
-	// Function to compute the derivative of the diffusion term
-	double sigma_derivative(double x) {
-		return 0.2; // Assuming sigma'(x) is constant for simplicity
-	}
+template <typename T>
+	requires
+std::same_as<T, uint64_t>
+void test_metropolisHastings(T seed) {
+	int numSamples = 10000;    // Number of samples to generate
+	double initialState = 0.0; // Initial state of the Markov chain
 
-	// Define the SDE: dX_t = mu * X_t * dt + sigma * X_t * dW_t
-	void eulerMaruyama(double mu, double sigma, double X0, double T, int N, std::vector<double>& path, uint64_t seed) {
-		double dt = T / N;
-		path.resize(N + 1);
-		path[0] = X0;
+	std::vector<double> samples;
+	metropolisHastings(numSamples, initialState, samples, seed);
 
-		mxws <uint32_t> generator(seed);
-		std::normal_distribution<double> distribution(0.0, std::sqrt(dt));
+	// Calculate mean and variance
+	double mean = calculateMean(samples);
+	double variance = calculateVariance(samples, mean);
 
-		for (int i = 1; i <= N; ++i) {
-			double dW = distribution(generator);
-			path[i] = path[i - 1] + mu * path[i - 1] * dt + sigma * path[i - 1] * dW;
-		}
-	}
-	
-	void test_eulerMaruyama(uint64_t seed) {
-		double mu = 0.1;       // Drift coefficient
-		double sigma = 0.2;    // Volatility coefficient
-		double X0 = 1.0;       // Initial value
-		double T = 1.0;        // Time period
-		int N = 1000;          // Number of steps
+	// True mean and variance for a standard normal distribution
+	double trueMean = 0.0;
+	double trueVariance = 1.0;
 
-		std::vector<double> path;
-		eulerMaruyama(mu, sigma, X0, T, N, path, seed);
+	// Calculate errors
+	double meanError = std::abs(mean - trueMean);
+	double varianceError = std::abs(variance - trueVariance);
 
-		// Output the path for verification
-		for (int i = 0; i <= N; ++i) {
-			std::cout << "X[" << i << "] = " << path[i] << std::endl;
-		}
-	}
+	// Output the results
+	std::cout << "Estimated mean: " << mean << std::endl;
+	std::cout << "True mean: " << trueMean << std::endl;
+	std::cout << "Mean error: " << meanError << std::endl;
 
-	// Function to perform Milstein Method
-	void milsteinMethod(double mu, double sigma, double X0, double T, int N, std::vector<double>& path, uint64_t seed) {
-		double dt = T / N;
-		path.resize(N + 1);
-		path[0] = X0;
+	std::cout << "Estimated variance: " << variance << std::endl;
+	std::cout << "True variance: " << trueVariance << std::endl;
+	std::cout << "Variance error: " << varianceError << std::endl;
 
-		mxws <uint32_t> generator(seed);
-		std::normal_distribution<double> distribution(0.0, std::sqrt(dt));
+}
 
-		for (int i = 1; i <= N; ++i) {
-			double dW = distribution(generator);
-			double Xi = path[i - 1];
-			double drift = mu * Xi;
-			double diffusion = sigma * Xi;
-			double diffusion_derivative = sigma_derivative(Xi);
-
-			path[i] = Xi + drift * dt + diffusion * dW + 0.5 * diffusion * diffusion_derivative * (dW * dW - dt);
-		}
-	}
-
-	void test_milsteinMethod(uint64_t seed) {
-		double mu = 0.1;       // Drift coefficient
-		double sigma = 0.2;    // Volatility coefficient
-		double X0 = 1.0;       // Initial value
-		double T = 1.0;        // Time period
-		int N = 1000;          // Number of steps
-
-		std::vector<double> path;
-		milsteinMethod(mu, sigma, X0, T, N, path, seed);
-
-		// Output the path for verification
-		for (int i = 0; i <= N; ++i) {
-			std::cout << "X[" << i << "] = " << path[i] << std::endl;
-		}
-	}
-
-	// Target distribution: standard normal distribution
-	double targetDistribution(double x) {
-		return std::exp(-0.5 * x * x) / std::sqrt(2 * std::numbers::pi);
-	}
-
-	// Proposal distribution: normal distribution centered at the current state
-	double proposalDistribution(double x, mxws <uint32_t>& generator, std::normal_distribution<double>& distribution) {
-		return x + distribution(generator);
-	}
-
-	// Metropolis-Hastings algorithm
-	void metropolisHastings(int numSamples, double initialState, std::vector<double>& samples, uint64_t seed) {
-		mxws <uint32_t> generator(seed);
-		std::uniform_real_distribution<double> uniformDist(0.0, 1.0);
-		std::normal_distribution<double> proposalDist(0.0, 1.0);
-
-		double currentState = initialState;
-		samples.resize(numSamples);
-
-		for (int i = 0; i < numSamples; ++i) {
-			double proposedState = proposalDistribution(currentState, generator, proposalDist);
-
-			double acceptanceRatio = targetDistribution(proposedState) / targetDistribution(currentState);
-
-			if (uniformDist(generator) < acceptanceRatio) {
-				currentState = proposedState;
-			}
-
-			samples[i] = currentState;
-		}
-	}
-
-	// Calculate the mean of the samples
-	double calculateMean(const std::vector<double>& samples) {
-		double sum = std::accumulate(samples.begin(), samples.end(), 0.0);
-		return sum / samples.size();
-	}
-
-	// Calculate the variance of the samples
-	double calculateVariance(const std::vector<double>& samples, double mean) {
-		double sum = 0.0;
-		for (double sample : samples) {
-			sum += (sample - mean) * (sample - mean);
-		}
-		return sum / (samples.size() - 1);
-	}
-
-	void test_metropolisHastings(uint64_t seed) {
-		int numSamples = 10000;    // Number of samples to generate
-		double initialState = 0.0; // Initial state of the Markov chain
-
-		std::vector<double> samples;
-		metropolisHastings(numSamples, initialState, samples, seed);
-
-		// Calculate mean and variance
-		double mean = calculateMean(samples);
-		double variance = calculateVariance(samples, mean);
-
-		// True mean and variance for a standard normal distribution
-		double trueMean = 0.0;
-		double trueVariance = 1.0;
-
-		// Calculate errors
-		double meanError = std::abs(mean - trueMean);
-		double varianceError = std::abs(variance - trueVariance);
-
-		// Output the results
-		std::cout << "Estimated mean: " << mean << std::endl;
-		std::cout << "True mean: " << trueMean << std::endl;
-		std::cout << "Mean error: " << meanError << std::endl;
-
-		std::cout << "Estimated variance: " << variance << std::endl;
-		std::cout << "True variance: " << trueVariance << std::endl;
-		std::cout << "Variance error: " << varianceError << std::endl;
-
-	}
 
 #endif //__MXWS_HPP__ 

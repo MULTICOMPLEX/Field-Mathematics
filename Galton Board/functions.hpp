@@ -59,7 +59,7 @@ auto Galton_Classic = []<typename L, typename K>
 			for (auto j = 0; j < Board_SIZE; j++)
 				random_walk += RNG(-1.);
 
-			k = uint32_t(random_walk / sqrt(12. / Board_SIZE) + mean);
+			k = uint32_t(random_walk / sqrt(12. / Board_SIZE) + mean); //Irwin–Hall distribution
 			//The 1D board
 			galton_arr[k % Board_SIZE]++;
 		}

@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 170000;
+	std::uint64_t Ntrials = 1000000;
 	//Wave cycles or threads  
 	U Ncycles = 40;
 	//Number of integrations
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
 	U Normal_Distribution_Nbins = U(std::round(std::sqrt(Ntrials) * 2.0));
-	B Probability_wave = 0;
+	B Probability_wave = true;
 	//Ziggurat algorithm or Random walk for the normal distribution 
 	B Ziggurat = 0;
 	double mean = 0, stdev = 0.5;

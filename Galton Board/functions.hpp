@@ -45,7 +45,7 @@ auto Galton_Classic = []<typename L, typename K>
 {
 
 	mxws <uint32_t>RNG;
-	double random_walk = 0;
+	double random_walk = mean;
 
 	const auto Board_SIZE = galton_arr.size();
 
@@ -53,15 +53,15 @@ auto Galton_Classic = []<typename L, typename K>
 
 	cxx::ziggurat_normal_distribution<double> normalz(mean, Board_SIZE / 12.);
 
-	for (L i = 0; i < balls; i++, random_walk = 0) {
+	for (L i = 0; i < balls; i++, random_walk = mean) {
 
 		if (!Ziggurat) {
 			for (auto j = 0; j < Board_SIZE; j++)
-				random_walk += RNG(1.);
+				random_walk += RNG(-1.);
 
-			k = uint32_t((random_walk - mean) / sqrt(12. / Board_SIZE) + mean);
+			k = uint32_t(random_walk / sqrt(12. / Board_SIZE) + mean);
 			//The 1D board
-			if (k < Board_SIZE) galton_arr[k]++;
+			galton_arr[k % Board_SIZE]++;
 		}
 
 		else {

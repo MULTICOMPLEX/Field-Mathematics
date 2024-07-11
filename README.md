@@ -10,7 +10,7 @@ https://www.youtube.com/watch?v=UCmPmkHqHXk&feature=youtu.be
 
 C++20 implementation. 
 
-![Figure_1](https://user-images.githubusercontent.com/75379917/172885838-9a640c10-6f10-4268-9afe-6f209ec89f7d.png)
+![Figure_12](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/d56f9cca-b1c3-4dee-9b8b-23f227ff0767)
 
 ![Figure_1](https://user-images.githubusercontent.com/75379917/171993589-c2d9824d-f931-4a36-ad55-4a6dac93ed86.png)
 

@@ -60,7 +60,7 @@ prng = phimagic_prng32.mxws(2)
 mu = 0  # Mean
 
 sigma = 1
-trials = 3000  # Number of balls to drop
+trials = 300000  # Number of balls to drop
 
 #Time seed 
 current_time_seconds = int(time.time())
@@ -77,7 +77,12 @@ y = normal_pdf(x, mu, sigma)# Normal distribution probability density function
 
 #normalf = func_approx(normal, 10, True)
 deltax = x[1] - x[0]
-plt.bar(x, normal, width=deltax, label='Galton Board ' + str(trials) +' balls', color = 'blue', edgecolor = '#002b36')
+
+if(trials > 30000):
+    plt.step(x, normal, label='Galton Board ' + str(trials) +' balls', color = 'blue')
+else:
+    plt.bar(x, normal, width=deltax, label='Galton Board ' + str(trials) +' balls', color = 'blue', edgecolor = '#002b36')
+        
 plt.plot(x, y, label=f"Normal Distribution (μ={mu}, σ={sigma})", linewidth=1, color = 'orange')
 
 plt.title('Galton Board', color = 'white')

@@ -9,13 +9,13 @@ prng = phimagic_prng32.mxws(2)
 
 # Parameters
 n = 100  # Number of rows (trials)
-p = 0.5  # Probability of bouncing left or right
-num_balls = 100000000  # Number of balls to drop
+p = 0.1  # Probability of bouncing left or right
+num_balls = 10000000  # Number of balls to drop
 σ = np.sqrt(n*p*(1-p))  #Standard deviation
 
 #Time seed 
 current_time_seconds = int(time.time())
-position_counts = prng.binomial_distribution(Enable_Seed = 1,  Seed = current_time_seconds, Ntrials = num_balls ,  n = n, p = p )
+position_counts = prng.binomial(enable_seed = 1,  Seed = current_time_seconds, Ntrials = num_balls ,  n = n, p = p )
 
 # Plotting the results
 plt.figure(figsize=(16, 9))

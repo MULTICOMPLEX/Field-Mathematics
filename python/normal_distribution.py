@@ -59,8 +59,8 @@ prng = phimagic_prng32.mxws(2)
 # Parameters
 mu = 0  # Mean
 
-sigma = 0.9
-trials = 1000000  # Number of balls to drop
+sigma = 1
+trials = 3000  # Number of balls to drop
 
 #Time seed 
 current_time_seconds = int(time.time())
@@ -76,13 +76,13 @@ x = np.linspace(mu - 6 * 1, mu + 6 * 1, len(normal));
 y = normal_pdf(x, mu, sigma)# Normal distribution probability density function
 
 #normalf = func_approx(normal, 10, True)
-
-plt.plot(x, normal, '-', label='Normal Distribution', color = 'blue')
+deltax = x[1] - x[0]
+plt.bar(x, normal, width=deltax, label='Galton Board ' + str(trials) +' balls', color = 'blue', edgecolor = '#002b36')
 plt.plot(x, y, label=f"Normal Distribution (μ={mu}, σ={sigma})", linewidth=1, color = 'orange')
 
-plt.title('Normal Distribution', color = 'white')
+plt.title('Galton Board', color = 'white')
 plt.xlabel('x')
 plt.ylabel('Probability Density')
 plt.legend()
-plt.grid(alpha=0.4)
+plt.grid(alpha=0.2)
 plt.show()

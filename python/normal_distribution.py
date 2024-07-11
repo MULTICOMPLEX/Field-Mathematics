@@ -59,13 +59,12 @@ prng = phimagic_prng32.mxws(2)
 # Parameters
 mu = 0  # Mean
 
-sigma = 1
-trials = 300000  # Number of balls to drop
+sigma = 1.
+trials = 3000  # Number of balls to drop
 
 #Time seed 
 current_time_seconds = int(time.time())
 normal = prng.normal(trials = trials, mean = mu, dev = sigma, enable_seed= True, Seed = current_time_seconds)
-
 
 fig = plt.figure(facecolor='#002b36', figsize=(16, 9))
 ax = fig.gca()
@@ -75,7 +74,7 @@ x = np.linspace(mu - 6 * 1, mu + 6 * 1, len(normal));
 
 y = normal_pdf(x, mu, sigma)# Normal distribution probability density function
 
-#normalf = func_approx(normal, 10, True)
+#normal = func_approx(normal, 3, True)
 deltax = x[1] - x[0]
 
 if(trials > 30000):

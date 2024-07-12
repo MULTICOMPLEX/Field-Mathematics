@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 
 	std::uint64_t Ntrials = 1000000;
 	//Wave cycles or threads  
-	U Ncycles = 40;
+	U Ncycles = 13;
 	//Number of integrations
 	U N_Integrations = 10;
 	//Initial number of bins
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
 	U Normal_Distribution_Nbins = U(std::round(std::sqrt(Ntrials) * 2.0));
-	B Probability_wave = 0;
+	B Probability_wave = true;
 	//Ziggurat algorithm or Random walk for the normal distribution 
 	B Ziggurat = 0;
 	double mean = 0, stdev = 1.;
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 		DFT = false;
 	}
 
-	U Initial_Board_size = U(round(Nbins / R(Ncycles)));
+	U Initial_Board_size = U(std::ceil(Nbins / R(Ncycles)));
 
 	/* get cmd args */
 	if (argc < 7) {

@@ -5,7 +5,7 @@ import phimagic_prng32
 import time
 
 # Create an instance of the custom PRNG
-prng = phimagic_prng32.mxws(2)
+prng = phimagic_prng32.mxws()
 
 # Parameters
 n = 100  # Number of rows (trials)

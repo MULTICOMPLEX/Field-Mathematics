@@ -54,7 +54,7 @@ def func_approx(x, n, band = True):
 
 
 # Create an instance of the custom PRNG
-prng = phimagic_prng32.mxws(2)
+prng = phimagic_prng32.mxws()
 
 # Parameters
 mu = 0  # Mean

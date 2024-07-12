@@ -10,7 +10,7 @@ import phimagic_prng64
 
 
 # Create an instance of the custom PRNG
-prng = phimagic_prng32.mxws(2)
+prng = phimagic_prng32.mxws()
 
 # Generate random numbers
 for _ in range(0):
@@ -40,8 +40,6 @@ s3 = s1 * s2
 s3 /= s3.sum()
 
 #s3 = np.concatenate((s1, s2), axis=None)
-
-
 
 def set_axis_color(ax):
     ax.set_facecolor('#002b36')

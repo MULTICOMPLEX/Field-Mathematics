@@ -57,24 +57,24 @@ def func_approx(x, n, band = True):
 prng = phimagic_prng32.mxws()
 
 # Parameters
-mu = 0  # Mean
+mu = 2.6  # Mean
 
-sigma = 1.
-trials = 3000  # Number of balls to drop
+sigma = 1.5
+trials = 1000000  # Number of balls to drop
 
 #Time seed 
 current_time_seconds = int(time.time())
-normal = prng.normal(trials = trials, mean = mu, dev = sigma, enable_seed= True, Seed = current_time_seconds)
+normal = prng.normal(trials = trials,  dev = sigma, enable_seed= True, Seed = current_time_seconds)
 
 fig = plt.figure(facecolor='#002b36', figsize=(16, 9))
 ax = fig.gca()
 set_axis_color(ax)
 
-x = np.linspace(mu - 6 * 1, mu + 6 * 1, len(normal));
+x = np.linspace(mu - 6, mu + 6, len(normal));
 
 y = normal_pdf(x, mu, sigma)# Normal distribution probability density function
 
-#normal = func_approx(normal, 3, True)
+#normal = func_approx(normal, 4, True)
 deltax = x[1] - x[0]
 
 if(trials > 30000):

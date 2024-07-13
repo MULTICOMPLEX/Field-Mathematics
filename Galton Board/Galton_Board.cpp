@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 100000;
+	std::uint64_t Ntrials = 1000000;
 	//Wave cycles or threads  
 	U Ncycles = 13;
 	//Number of integrations
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 		DC = atoi(argv[4]);
 		DFT = atoi(argv[5]);
 		WAV = atoi(argv[6]);
-		Initial_Board_size = U(round(Nbins / R(Ncycles)));
+		Initial_Board_size = U(ceil(Nbins / R(Ncycles)));
 	}
 
 	std::u8string title = u8" Probability Wave Φ";

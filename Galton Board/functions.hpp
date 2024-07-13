@@ -35,42 +35,94 @@ I FP_digits(const T& var, const I& digits)
 
 plot_matplotlib plot;
 
+
+py::array_t<double> normal
+(
+	uint64_t trials,
+	double dev,
+	uint64_t enable_seed,
+	uint64_t Seed)
+{
+
+	mxws <uint32_t> rng;
+	if (enable_seed)
+		rng.seed(Seed);
+
+	dev = 1. / dev;
+	dev *= dev;
+
+	dev *= 12;
+
+	auto size = uint64_t(std::round(std::sqrt(trials) * 2.0));
+
+	auto mean = 0.5 * std::sqrt(trials) * 2.0;
+
+	double random_walk = mean;
+
+	std::vector<double> galton_arr(size);
+
+	uint32_t k;
+
+	for (auto i = 0; i < trials; i++, random_walk = mean) {
+
+		for (auto j = 0; j < size; j++)
+			random_walk += rng(-1.);
+
+		k = uint32_t(std::round(random_walk / std::sqrt(dev / size) + mean)); //Irwin–Hall distribution
+
+		if (k < size)
+			galton_arr[k]++;
+	}
+
+	auto sum = std::accumulate(galton_arr.begin(), galton_arr.end(), 0.0);
+
+	for (auto& i : galton_arr)
+		i /= std::sqrt(sum) * 6.;
+
+	py::array_t<double> result(size);
+	auto buffer = result.request();
+	double* ptr = static_cast<double*>(buffer.ptr);
+
+	std::copy(galton_arr.begin(), galton_arr.begin() + size, ptr);
+
+	return result;
+}
+
 auto Galton_Classic = []<typename L, typename K>
 	requires std::same_as<L, uint64_t>
 (
 	const L& balls,
 	std::vector<K>& galton_arr,
-	double mean,
-	bool Ziggurat)
+	double stdev)
 {
 
+	auto dev = 1. / stdev;
+	dev *= dev;
+
+	dev *= 12;
+
 	mxws <uint32_t>RNG;
+
+	auto size = galton_arr.size();
+
+	auto mean = 0.5 * std::sqrt(balls) * 2.0;
+
 	double random_walk = mean;
 
-	const auto Board_SIZE = galton_arr.size();
+	const auto Board_SIZE = size;
 
 	uint32_t k;
 
-	cxx::ziggurat_normal_distribution<double> normalz(mean, Board_SIZE / 12.);
+	auto mean3 = 0.5 * size + mean * size;
 
 	for (L i = 0; i < balls; i++, random_walk = mean) {
 
-		if (!Ziggurat) {
-			for (auto j = 0; j < Board_SIZE; j++)
-				random_walk += RNG(-1.);
-
-			k = uint32_t(random_walk / sqrt(12. / Board_SIZE) + mean); //Irwin–Hall distribution
-			//The 1D board
-			galton_arr[k % Board_SIZE]++;
-		}
-
-		else {
-
-			k = uint32_t(normalz(RNG));
-
-			//The 1D board
-			if (k < Board_SIZE) galton_arr[k]++;
-		}
+		for (auto j = 0; j < Board_SIZE; j++)
+			random_walk += RNG(-1.);
+		k = uint32_t(std::round(random_walk / std::sqrt(dev / size) + mean)); //Irwin–Hall distribution
+		//The 1D board
+		if (k < size)
+			galton_arr[k]++;
 	}
 
 };
@@ -91,7 +143,7 @@ std::vector<A> Galton(
 	const I& Board_SIZE,
 	const I& N_cycles,
 	std::vector<A>& galton_arr,
-	B probability_wave, A Seed, B Enable_Seed, B Ziggurat, double mean)
+	B probability_wave, A Seed, B Enable_Seed, double stdev)
 {
 	mxws <uint32_t>RNG;
 	if (Enable_Seed)
@@ -105,7 +157,7 @@ std::vector<A> Galton(
 
 	else {
 		vec = { 0, Board_SIZE, Board_SIZE, Board_SIZE };
-		Galton_Classic(trials, galton_arr, Board_SIZE/2. + mean * Board_SIZE, Ziggurat);
+		Galton_Classic(trials, galton_arr, stdev);
 	}
 
 	return vec;
@@ -740,7 +792,7 @@ void Plot_2D_Brownian_Motion(std::vector<T>& B_t_X, std::vector<T>& B_t_Y, std::
 	}
 
 	plot.run_customcommand("figure(figsize = (8, 8))");
-	if(points)
+	if (points)
 		plot.plot_somedata(x, y, "o", "BrownianMotion", "gray", 0.5, 2);
 	else
 		plot.plot_somedata(x, y, "o-", "BrownianMotion", "gray", 0.5, 2);
@@ -1035,7 +1087,7 @@ std::vector<double> grey_noise_frequencies(uint64_t samples) {
 
 	std::vector<double> frequencies(samples / 2 + 1); // Frequencies (real FFT)
 	std::vector<double> grey_noise(samples / 2 + 1);
-	
+
 	// Calculate frequencies
 	for (int i = 0; i < frequencies.size(); ++i) {
 		frequencies[i] = double(i) / (2 * std::numbers::pi);
@@ -1071,10 +1123,10 @@ std::vector<double> powerlaw_psd_gaussian(double beta, uint64_t samples, auto fm
 
 	// Function to generate grey noise
 	//std::vector<double> s_scale = grey_noise_frequencies(samples);
-	
+
 	// Build scaling factors
 	std::vector<double> s_scale = f; // Initialize with frequencies
-	
+
 	auto ix = std::ranges::count_if(s_scale,
 		[fmin](double freq) { return freq < fmin; }); // Count frequencies below fmin
 
@@ -1121,15 +1173,15 @@ std::vector<double> powerlaw_psd_gaussian(double beta, uint64_t samples, auto fm
 	}
 
 	std::vector<double> y(samples);
-	
+
 	fftw_plan plan = fftw_plan_dft_c2r_1d(int(samples), reinterpret_cast<fftw_complex*>(s.data()), y.data(), FFTW_ESTIMATE);
 	fftw_execute(plan);
 	fftw_destroy_plan(plan);
-	
+
 	// Transform to real time series & scale to unit variance
-	for (auto& value : y) 
+	for (auto& value : y)
 		value /= sigma * samples;
-	
+
 	return y;
 }
 
@@ -1166,7 +1218,7 @@ void Red_Noise() //Brownian noise, also known as Brown noise or red noise
 
 	std::chrono::high_resolution_clock::time_point begin;
 	std::chrono::high_resolution_clock::time_point end;
-	
+
 	/*
 	begin = std::chrono::high_resolution_clock::now();
 	Simulate_Brownian_motion_RNGnormal(Nsamples, spread, seed, B_t_x, B_t_y);

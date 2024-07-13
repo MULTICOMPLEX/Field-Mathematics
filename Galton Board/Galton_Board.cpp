@@ -17,22 +17,20 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 1000000;
+	std::uint64_t Ntrials = 100000;
 	//Wave cycles or threads  
 	U Ncycles = 13;
 	//Number of integrations
-	U N_Integrations = 10;
+	U N_Integrations = 1;
 	//Initial number of bins
 	U Nbins = 3000;
 	//U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
 	//Sinusoidal distribution or Normal distribution
-	U Normal_Distribution_Nbins = U(std::round(std::sqrt(Ntrials) * 2.0));
 	B Probability_wave = true;
-	//Ziggurat algorithm or Random walk for the normal distribution 
-	B Ziggurat = 0;
-	double mean = 0, stdev = 1.;
+	//mean and the standard deviation for the normal distribution 
+	R mean = 0.2, stdev = 1.5;
 	//Entropy analysis
 	B Entropy = false;
 	//DFT Entropy analysis
@@ -109,7 +107,7 @@ int main(int argc, char** argv)
 	}
 
 	else {
-		Initial_Board_size = Normal_Distribution_Nbins;
+		Initial_Board_size = U(std::round(std::sqrt(Ntrials) * 2.0));
 		Ncycles = 1;
 		std::cout << " NTrials           " << nameForNumber(Ntrials * N_Integrations) << " (" << Ntrials * N_Integrations << ")"
 			<< " x " << Ncycles << std::endl;
@@ -138,7 +136,7 @@ int main(int argc, char** argv)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
 			return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
-				uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed, Ziggurat, mean); }));
+				uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed, stdev); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();
@@ -200,11 +198,12 @@ int main(int argc, char** argv)
 		Y = Y_buf;
 
 		auto sum = std::accumulate(Y.begin(), Y.end(), 0.0);
-
+		
 		// Normalize the elements
-		std::ranges::transform(Y, Y.begin(), [&sum, &stdev](double val) { return val / sqrt(sum) / (6. * stdev); });
+		for (auto& i : Y)
+			i /= std::sqrt(sum) * 6.;
 
-		auto ndx = linspace(mean - 6 * stdev, mean + 6 * stdev, X.size());
+		auto ndx = linspace(mean - 6, mean + 6, X.size());
 
 		plot.plot_somedata(ndx, Y, "", "Normal Distribution", "blue");
 		

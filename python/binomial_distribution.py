@@ -9,7 +9,7 @@ prng = phimagic_prng32.mxws()
 
 # Parameters
 n = 100  # Number of rows (trials)
-p = 0.1  # Probability of bouncing left or right
+p = 0.7  # Probability of bouncing left or right
 num_balls = 10000000  # Number of balls to drop
 σ = np.sqrt(n*p*(1-p))  #Standard deviation
 
@@ -34,7 +34,7 @@ fig = plt.figure(facecolor='#002b36', figsize=(16, 9))
 ax = fig.gca()
 set_axis_color(ax)
 
-x = np.arange(0, n+1)
+x = np.arange(0, n + 1)
 
 # Theoretical binomial distribution
 binom_pmf = binom.pmf(x, n, p)

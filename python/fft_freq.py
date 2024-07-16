@@ -89,6 +89,8 @@ sin_vals = normalize_signal(sin_vals)
 zero_crossings = np.where(np.diff(np.sign(sin_vals)))[0]
 first_zero_crossing = zero_crossings[0]
 sin_vals= np.roll(sin_vals, -first_zero_crossing)
+sin_vals /= sin_vals.sum()
+
 
 #cos_vals = -np.roll(sin_vals, num_samples // 4)  # Rotate by 90 degrees to get cosine values
 
@@ -101,6 +103,7 @@ signal = normalize_signal(signal)
 zero_crossings = np.where(np.diff(np.sign(signal)))[0]
 first_zero_crossing = zero_crossings[1]
 signal= np.roll(signal, -(first_zero_crossing))
+
 
 #signal =  sin_vals 
 #signal = np.real(1j * np.fft.fft(spectrum))

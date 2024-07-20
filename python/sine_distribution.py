@@ -41,6 +41,28 @@ def normalize_signal_to_range(signal, a, b):
     normalized_signal = (b - a) * normalized_signal + a
     
     return normalized_signal
+
+def calculate_snr(signal, noise):
+    """
+    Calculate the Signal-to-Noise Ratio (SNR).
+
+    Parameters:
+    signal (numpy.ndarray): The original signal array.
+    noise (numpy.ndarray): The noise array.
+
+    Returns:
+    float: The SNR value in dB.
+    """
+    # Ensure the signal and noise arrays are numpy arrays
+    
+    # Calculate the power of the signal and noise
+    signal_power = np.mean(signal ** 2)
+    noise_power = np.mean(noise ** 2)
+    
+    # Calculate the SNR
+    snr = 10 * np.log10(signal_power / noise_power)
+    
+    return snr
     
 class Timer:
     def __enter__(self):
@@ -54,48 +76,53 @@ class Timer:
 # Create an instance of the custom PRNG
 prng = phimagic_prng32.mxws()
 
-# Generate random numbers
-for _ in range(0):
-    print(prng.rng())
-    
- 
- # Generate an array of random numbers
-size = 100
-
-v1 = np.sqrt(np.pi)
-random_array = prng.uniform(-v1, v1, size=size)
-
-# Print the array
-#print("Generated random numbers:", random_array)
 
 Nbins = 2000
-Ntrials = 10000000
+Ntrials = 100000
+N_Integrations = 100
 Ncycles1 = 17
 Ncycles2 = 217
-analytical = False
+#Ncycles3 = 217
+analytical = 0
 
-start_time = time.perf_counter()
+if(analytical):
+   Ntrials = 1 
 
-if(analytical ==False):
-    #Time seed 
-    current_time_seconds = int(time.time())   
+#Time seed 
+current_time_seconds = int(time.time())    
 
-    with Timer() as t:        
-        s1 = prng.sine(enable_seed = 1,  Seed = current_time_seconds, Ntrials = Ntrials, Ncycles = Ncycles1,  N_Integrations = 10,   Nbins = Nbins, Icycles = False)
-        s2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = 10,   Nbins = Nbins, Icycles = False)
+with Timer() as t:        
+        s1, p1 = prng.sine(enable_seed = 1,  Seed = current_time_seconds, Ntrials = Ntrials, Ncycles = Ncycles1,  N_Integrations = N_Integrations,   Nbins = Nbins, Icycles = True)
+        s2, p2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = N_Integrations,   Nbins = Nbins, Icycles = True)
+        #s3, p3 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles3,  N_Integrations = N_Integrations,   Nbins = Nbins, Icycles = False)
 
-    print(f"Elapsed time: {t.elapsed_time:.5g}")
-
-else:
-    s1 = sine_function(Nbins, Ncycles1)
-    s2 = sine_function(Nbins, Ncycles2)
-
-
+print(f"Elapsed time: {t.elapsed_time:.5g}", "\n")
 
 fa1 = func_approx(s1, Ncycles1, False)
 fa2 = func_approx(s2, Ncycles2, False)
+
 s1 = normalize_signal_to_range(s1, 0, 1)
 s2 = normalize_signal_to_range(s2, 0, 1)
+s3 = np.zeros(len(s2)-len(s1)) 
+s1 = np.concatenate((s1, s3), axis=None)
+
+if(analytical ==True):
+    s1 = sine_function(Nbins, Ncycles1)
+    s2 = sine_function(Nbins, Ncycles2)
+    s1 = normalize_signal_to_range(s1, 0, 1)
+    s2 = normalize_signal_to_range(s2, 0, 1)
+
+
+n1 = normalize_signal_to_range(s1, -1, 1)
+n2 = normalize_signal_to_range(s2, -1, 1)
+snr_db = calculate_snr(sine_function(len(n1), Ncycles1), n1)
+print(f'SNR1: {snr_db}')
+power_ratio = 10 ** (snr_db / 10)
+print(f'POW1: {power_ratio}')
+snr_db = calculate_snr(sine_function(len(n2), Ncycles2), n2)
+print(f'SNR2: {snr_db}')
+power_ratio = 10 ** (snr_db / 10)
+print(f'POW2: {power_ratio}')
 
 """
 s1 = sine_function(len(s1), Ncycles1)
@@ -106,7 +133,7 @@ s1 += prng.uniform(0.0, 0.5, len(s1))
 s2 += prng.uniform(0.0, 0.5, len(s2))
 """
 
-s3 = s1  *  np.sqrt(s2)
+s3 = s1 *  np.sqrt(s2) 
 
 #s3 = np.concatenate((s1, s2), axis=None)
 
@@ -126,15 +153,36 @@ def set_axis_color(ax):
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 ax = fig.gca()
 set_axis_color(ax)
-
 x = np.linspace(0,1,  len(s3)) 
-
-plt.plot(x, s3) 
+plt.plot(x, s3, label = str(int((Ntrials * N_Integrations * p1[1] * Ncycles1) + (Ntrials * N_Integrations * p2[1] * Ncycles2)))+ " Trials") 
 plt.title("Sine Distribution " + str(Ncycles1)+ " Hz * sqrt(" +str(Ncycles2)+ ") Hz", color = 'white')
 plt.xlabel("Time", color = 'white')
 plt.ylabel("Y", color = 'white')
 plt.grid(alpha=0.4)
+plt.legend()
 
+
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+ax = fig.gca()
+set_axis_color(ax)
+x = np.linspace(0,1,  len(s1)) 
+plt.plot(x, s1, label = str(int((Ntrials * N_Integrations * p1[1] * Ncycles1)))+ " Trials") 
+plt.title("Sine Distribution1: " + str(Ncycles1)+ " Hz", color = 'white')
+plt.xlabel("Time", color = 'white')
+plt.ylabel("Y", color = 'white')
+plt.grid(alpha=0.4)
+plt.legend()
+
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+ax = fig.gca()
+set_axis_color(ax)
+x = np.linspace(0,1,  len(s2)) 
+plt.plot(x, s2, label = str(int((Ntrials * N_Integrations * p2[1] * Ncycles1)))+ " Trials") 
+plt.title("Sine Distribution2: " + str(Ncycles2)+ " Hz", color = 'white')
+plt.xlabel("Time", color = 'white')
+plt.ylabel("Y", color = 'white')
+plt.grid(alpha=0.4)
+plt.legend()
 
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 ax = fig.gca()

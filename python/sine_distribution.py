@@ -76,9 +76,8 @@ class Timer:
 # Create an instance of the custom PRNG
 prng = phimagic_prng32.mxws()
 
-
 Nbins = 2000
-Ntrials = 100000
+Ntrials = 10000
 N_Integrations = 100
 Ncycles1 = 17
 Ncycles2 = 217
@@ -91,10 +90,16 @@ if(analytical):
 #Time seed 
 current_time_seconds = int(time.time())    
 
+nb2 = int(np.ceil(Nbins / Ncycles2))
+nb2 *= Ncycles2
+
+nb1 = int(np.floor(nb2 / Ncycles1))
+nb1 *= Ncycles1
+
 with Timer() as t:        
-        s1, p1 = prng.sine(enable_seed = 1,  Seed = current_time_seconds, Ntrials = Ntrials, Ncycles = Ncycles1,  N_Integrations = N_Integrations,   Nbins = Nbins, Icycles = True)
-        s2, p2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = N_Integrations,   Nbins = Nbins, Icycles = True)
-        #s3, p3 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles3,  N_Integrations = N_Integrations,   Nbins = Nbins, Icycles = False)
+        s1, p1 = prng.sine(enable_seed = 1,  Seed = current_time_seconds, Ntrials = Ntrials, Ncycles = Ncycles1,  N_Integrations = N_Integrations,  Nbins = nb1, Icycles = True)
+        s2, p2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = N_Integrations,  Nbins = nb2, Icycles = True)
+        #s3, p3 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles3,  N_Integrations = N_Integrations,  Nbins = Nbins, Icycles = False)
 
 print(f"Elapsed time: {t.elapsed_time:.5g}", "\n")
 
@@ -104,6 +109,7 @@ fa2 = func_approx(s2, Ncycles2, False)
 s1 = normalize_signal_to_range(s1, 0, 1)
 s2 = normalize_signal_to_range(s2, 0, 1)
 s3 = np.zeros(len(s2)-len(s1)) 
+
 s1 = np.concatenate((s1, s3), axis=None)
 
 if(analytical ==True):

@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 
 	std::uint64_t Ntrials = 10000;
 	//Wave cycles or threads  
-	U Ncycles = 217;
+	U Ncycles = 17;
 	//Number of integrations
 	U N_Integrations = 100;
 	//Initial number of bins
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 	B WAV = false;
 	// Seed for rng's
 	U Seed = 10;
-	B Enable_Random_Seed = true;
+	B Enable_Seed = true;
 
 	//Console output
 	const B cout_gal = false;
@@ -129,17 +129,19 @@ int main(int argc, char** argv)
 	std::vector<std::vector<std::vector<std::uint64_t>>>
 		galton_arr(N_Integrations, std::vector<std::vector<std::uint64_t>>
 			(Ncycles, std::vector<std::uint64_t>(Initial_Board_size, 0ull)));
-
+	std::mutex mtx;
 	auto begin = std::chrono::high_resolution_clock::now();
 
 	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
+			std::lock_guard<std::mutex> lock(mtx);
 			return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
-				uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed, stdev); }));
+				uint64_t(i * Ncycles + k + Seed), Enable_Seed, stdev); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();
+
 
 	auto end = std::chrono::high_resolution_clock::now();
 

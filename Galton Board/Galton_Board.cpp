@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 	//Number of integrations
 	U N_Integrations = 100;
 	//Initial number of bins
-	U Nbins = 8000;
+	U Nbins = 2000;
 	//U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
@@ -150,9 +150,9 @@ int main(int argc, char** argv)
 
 	Ntrials *= N_Integrations;
 
-	std::cout << " Duration Trial    "
-		<< std::chrono::nanoseconds(end - begin).count() / (Ntrials * Ncycles)
-		<< "[ns]" << std::endl << std::endl << std::endl;
+	std::cout << " Duration      "
+		<< std::chrono::nanoseconds(end - begin).count() / 1e9
+		<< "[s]" << std::endl << std::endl << std::endl;
 
 	if (Probability_wave)
 	{
@@ -168,7 +168,8 @@ int main(int argc, char** argv)
 
 		auto DC = vec.back();
 		std::cout << " DC                " << DC << std::endl;
-		std::cout << " DC Calculated     " << L(round((Ntrials / (double)Nbins) * Ncycles)) << " (Ntrials / Nbins) x Ncycles"
+		std::cout << " DC Calculated     " << L(round((Ntrials / (double)Nbins) * Ncycles / N_Integrations)) 
+			<< " (Ntrials / Nbins) x Ncycles / N_Integrations"
 			<< std::endl << std::endl;
 	}
 

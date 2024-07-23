@@ -150,7 +150,7 @@ int main(int argc, char** argv)
 
 	Ntrials *= N_Integrations;
 
-	std::cout << " Duration      "
+	std::cout << " Duration          "
 		<< std::chrono::nanoseconds(end - begin).count() / 1e9
 		<< "[s]" << std::endl << std::endl << std::endl;
 
@@ -169,7 +169,6 @@ int main(int argc, char** argv)
 		auto DC = vec.back();
 		std::cout << " DC                " << DC << std::endl;
 		std::cout << " DC Calculated     " << L(round((Ntrials / (double)Nbins) * Ncycles / N_Integrations)) 
-			<< " (Ntrials / Nbins) x Ncycles / N_Integrations"
 			<< std::endl << std::endl;
 	}
 

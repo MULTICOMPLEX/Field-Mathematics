@@ -2,14 +2,17 @@ import sys
 import os
 from matplotlib import pylab as plt
 from matplotlib import mlab
-from matplotlib.ticker import ScalarFormatter
 import numpy as np
 import time
 import phimagic_prng32
 import phimagic_prng64
 
 
-def sine_function(len, f):
+def sine_function(length, frequency, sample_rate):
+    t = np.linspace(0, length / sample_rate, length)
+    return np.sin(2 * np.pi * frequency * t)
+    
+def sine_function2(len, f):
     x = np.linspace(0, 2 *  np.pi, len) 
     return np.sin(x * f)
     
@@ -79,8 +82,9 @@ prng = phimagic_prng32.mxws()
 Nbins = 2000
 Ntrials = 10000
 N_Integrations = 100
-Ncycles1 = 17
+Ncycles1 = 100
 Ncycles2 = 217
+
 #Ncycles3 = 217
 analytical = 0
 
@@ -90,42 +94,39 @@ if(analytical):
 #Time seed 
 current_time_seconds = int(time.time())    
 
-nb2 = int(np.ceil(Nbins / Ncycles2))
-nb2 *= Ncycles2
+with Timer() as t:        
+        s2, p2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds + 1, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = N_Integrations,  Nbins = Nbins, Icycles = True)
 
-nb1 = int(np.floor(nb2 / Ncycles1))
-nb1 *= Ncycles1
+print(f"Elapsed time: {t.elapsed_time:.5g}", "\n")
 
 with Timer() as t:        
-        s1, p1 = prng.sine(enable_seed = 1,  Seed = current_time_seconds, Ntrials = Ntrials, Ncycles = Ncycles1,  N_Integrations = N_Integrations,  Nbins = nb1, Icycles = True)
-        s2, p2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = N_Integrations,  Nbins = nb2, Icycles = True)
+        s1, p1 = prng.sine(enable_seed = 1,  Seed = current_time_seconds, Ntrials = Ntrials, Ncycles = Ncycles1,  N_Integrations = N_Integrations,  Nbins = len(s2), Icycles = False)
         #s3, p3 = prng.sine(enable_seed = 1,  Seed = current_time_seconds+1, Ntrials = Ntrials, Ncycles = Ncycles3,  N_Integrations = N_Integrations,  Nbins = Nbins, Icycles = False)
 
 print(f"Elapsed time: {t.elapsed_time:.5g}", "\n")
+
 
 fa1 = func_approx(s1, Ncycles1, False)
 fa2 = func_approx(s2, Ncycles2, False)
 
 s1 = normalize_signal_to_range(s1, 0, 1)
 s2 = normalize_signal_to_range(s2, 0, 1)
-s3 = np.zeros(len(s2)-len(s1)) 
 
-s1 = np.concatenate((s1, s3), axis=None)
 
 if(analytical ==True):
-    s1 = sine_function(Nbins, Ncycles1)
-    s2 = sine_function(Nbins, Ncycles2)
+    s1 = sine_function(Nbins, Ncycles1, Nbins + 20)
+    s2 = sine_function(Nbins, Ncycles2, Nbins)
     s1 = normalize_signal_to_range(s1, 0, 1)
     s2 = normalize_signal_to_range(s2, 0, 1)
 
 
 n1 = normalize_signal_to_range(s1, -1, 1)
 n2 = normalize_signal_to_range(s2, -1, 1)
-snr_db = calculate_snr(sine_function(len(n1), Ncycles1), n1)
+snr_db = calculate_snr(sine_function(len(n1), Ncycles1, len(n1)), n1)
 print(f'SNR1: {snr_db}')
 power_ratio = 10 ** (snr_db / 10)
 print(f'POW1: {power_ratio}')
-snr_db = calculate_snr(sine_function(len(n2), Ncycles2), n2)
+snr_db = calculate_snr(sine_function(len(n2), Ncycles2, len(n2)), n2)
 print(f'SNR2: {snr_db}')
 power_ratio = 10 ** (snr_db / 10)
 print(f'POW2: {power_ratio}')
@@ -142,7 +143,6 @@ s2 += prng.uniform(0.0, 0.5, len(s2))
 s3 = s1 *  np.sqrt(s2) 
 
 #s3 = np.concatenate((s1, s2), axis=None)
-
 
 
 def set_axis_color(ax):
@@ -194,13 +194,9 @@ fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 ax = fig.gca()
 set_axis_color(ax)
 
-s, f = mlab.psd(s3, NFFT=len(s3))
-
-plt.loglog(f * len(f), s)
-formatter = ScalarFormatter()
-formatter.set_useOffset(False)
-plt.gca().xaxis.set_major_formatter(formatter)
-plt.xlim(right = len(f) * 1.2)
+Fs = len(s3) # Example value, set this to the actual sampling rate of your signal
+s, f = mlab.psd(s3, NFFT= Fs, Fs = Fs)
+plt.loglog(f, s)
 plt.grid(True, which='both', alpha = 0.4)
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('PSD (Unit**2/Hz)')

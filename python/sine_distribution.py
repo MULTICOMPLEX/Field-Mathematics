@@ -81,7 +81,7 @@ prng = phimagic_prng32.mxws()
 
 Nbins = 2000
 Ntrials = 10000
-N_Integrations = 100
+N_Integrations = 1000
 Ncycles1 = 100
 Ncycles2 = 217
 
@@ -90,12 +90,13 @@ analytical = 0
 
 if(analytical):
    Ntrials = 1 
+   N_Integrations = 1
 
 #Time seed 
 current_time_seconds = int(time.time())    
 
 with Timer() as t:        
-        s2, p2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds + 1, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = N_Integrations,  Nbins = Nbins, Icycles = True)
+        s2, p2 = prng.sine(enable_seed = 1,  Seed = current_time_seconds + 1, Ntrials = Ntrials, Ncycles = Ncycles2,  N_Integrations = N_Integrations,  Nbins = Nbins, Icycles = 1)
 
 print(f"Elapsed time: {t.elapsed_time:.5g}", "\n")
 
@@ -114,8 +115,8 @@ s2 = normalize_signal_to_range(s2, 0, 1)
 
 
 if(analytical ==True):
-    s1 = sine_function(Nbins, Ncycles1, Nbins + 20)
-    s2 = sine_function(Nbins, Ncycles2, Nbins)
+    s1 = sine_function(len(s1), Ncycles1, len(s1) + 30)
+    s2 = sine_function(len(s2), Ncycles2, len(s2))
     s1 = normalize_signal_to_range(s1, 0, 1)
     s2 = normalize_signal_to_range(s2, 0, 1)
 
@@ -140,9 +141,7 @@ s1 += prng.uniform(0.0, 0.5, len(s1))
 s2 += prng.uniform(0.0, 0.5, len(s2))
 """
 
-s3 = s1 *  np.sqrt(s2) 
-
-#s3 = np.concatenate((s1, s2), axis=None)
+s3 = s1 * np.sqrt(s2) 
 
 
 def set_axis_color(ax):

@@ -17,11 +17,11 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 10000;
+	std::uint64_t Ntrials = 10000000;
 	//Wave cycles or threads  
-	U Ncycles = 17;
+	U Ncycles = 1;
 	//Number of integrations
-	U N_Integrations = 100;
+	U N_Integrations = 2;
 	//Initial number of bins
 	U Nbins = 2000;
 	//U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
@@ -135,9 +135,9 @@ int main(int argc, char** argv)
 	for (U i = 0; i < N_Integrations; i++)
 		for (U k = 0; k < Ncycles; k++)
 			vecOfThreads.push_back(std::async([&, i, k] {
-			std::lock_guard<std::mutex> lock(mtx);
+			
 			return Galton(Ntrials, Initial_Board_size, Ncycles, galton_arr[i][k], Probability_wave,
-				uint64_t(i * Ncycles + k + Seed), Enable_Seed, stdev); }));
+				uint64_t(i * Ncycles + k + Seed), Enable_Seed, stdev); std::lock_guard<std::mutex> lock(mtx); }));
 
 	for (auto& th : vecOfThreads)
 		vec = th.get();

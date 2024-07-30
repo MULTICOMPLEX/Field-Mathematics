@@ -736,12 +736,15 @@ public:
 		std::vector<std::vector<std::vector<uint64_t>>>
 			galton_arr(N_Integrations, std::vector<std::vector<uint64_t>>
 				(Ncycles, std::vector<uint64_t>(Initial_Board_size, 0ull)));
+		
+		std::mutex mtx;
 
 		for (auto i = 0; i < N_Integrations; i++)
 			for (auto k = 0; k < Ncycles; k++)
 				vecOfThreads.push_back(std::async([&, i, k] {
 				return Galton(Ntrials, Initial_Board_size, galton_arr[i][k],
-					uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed); }));
+					uint64_t(i * Ncycles + k + Seed), Enable_Random_Seed); 
+				std::lock_guard<std::mutex> lock(mtx); }));
 
 		for (auto& th : vecOfThreads)
 			vec = th.get();

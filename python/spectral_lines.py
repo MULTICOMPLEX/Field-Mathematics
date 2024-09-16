@@ -20,7 +20,7 @@ data = [
 
 wavelengths = np.linspace(400, 700, 71)  # 400 nm to 700 nm
 plt.figure(figsize=(12, 6))
-plt.plot(wavelengths, data, label='Observed Spectrum')
+plt.step(wavelengths, data, label='Observed Spectrum')
 
 # Plot known spectral lines
 known_lines = {

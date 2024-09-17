@@ -21,7 +21,14 @@ plt.show()
 
 ############################
 
-INITIAL_NBINS = 200
+Nbins = 3000
+
+Ncycles  = 1
+
+if (Nbins < 3 * Ncycles):#minimum 3 x Ncycles
+	Nbins = 3 * Ncycles;
+    
+INITIAL_NBINS = int(np.ceil(Nbins / Ncycles))
 TRIALS = 5000000
 
 def simulate_wave_galton_board(trials, initial_n_bins):

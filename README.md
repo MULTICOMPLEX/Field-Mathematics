@@ -25,10 +25,11 @@ Paper:
 Updated Podcast:
 
 
-
-
 https://github.com/user-attachments/assets/28402b5c-6085-4b46-a127-6550fb0249d0
 
+Updated paper:
+
+[Cycle_Galton_Board_Latex_V2.pdf](https://github.com/user-attachments/files/17034209/Cycle_Galton_Board_Latex_V2.pdf)
 
 
 ![Figure_12](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/d56f9cca-b1c3-4dee-9b8b-23f227ff0767)

@@ -15,6 +15,10 @@ Podcast:
 
 https://github.com/user-attachments/assets/1b7b2fe9-4e0b-4159-a56b-e1e340e9a974
 
+Paper:
+
+[Cycle_Galton_Board_Latex.pdf](https://github.com/user-attachments/files/17027486/Cycle_Galton_Board_Latex.pdf)
+
 
 ![Figure_12](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/d56f9cca-b1c3-4dee-9b8b-23f227ff0767)
 

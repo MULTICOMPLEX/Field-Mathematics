@@ -13,14 +13,20 @@ C++20 implementation.
 
 Podcast:
 
+
 https://github.com/user-attachments/assets/1b7b2fe9-4e0b-4159-a56b-e1e340e9a974
+
 
 Paper:
 
 [Cycle_Galton_Board_Latex.pdf](https://github.com/user-attachments/files/17027486/Cycle_Galton_Board_Latex.pdf)
 
 
+Updated Podcast:
+
+
 ![Figure_12](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/d56f9cca-b1c3-4dee-9b8b-23f227ff0767)
+
 
 ![Figure_1](https://user-images.githubusercontent.com/75379917/171993589-c2d9824d-f931-4a36-ad55-4a6dac93ed86.png)
 

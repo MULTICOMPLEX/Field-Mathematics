@@ -25,6 +25,9 @@ Paper:
 Updated Podcast:
 
 
+https://github.com/user-attachments/assets/b56e492b-9881-428f-be8b-ddc702785ce4
+
+
 ![Figure_12](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/d56f9cca-b1c3-4dee-9b8b-23f227ff0767)
 
 

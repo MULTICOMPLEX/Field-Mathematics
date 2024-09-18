@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-#https://github.com/lemire/fastrand
-import fastrand   # Assuming you have this library for faster random generation
+import phimagic_prng32
+
+# Create an instance of the custom PRNG
+prng = phimagic_prng32.mxws()
+
 
 initial_n_bins = np.linspace(2, 300, 2000) 
 
@@ -17,7 +20,6 @@ plt.ylabel('RNMag, NBins')
 plt.title('NBins  =  log( 6 x Initial NBins ) sqrt( π )\n RNMag = Initial NBins / sqrt( log2( Initial NBins ))')
 plt.legend()
 plt.grid(True)
-plt.show()
 
 ############################
 
@@ -29,7 +31,7 @@ if (Nbins < 3 * Ncycles):#minimum 3 x Ncycles
 	Nbins = 3 * Ncycles;
     
 INITIAL_NBINS = int(np.ceil(Nbins / Ncycles))
-TRIALS = 5000000
+TRIALS = 500000
 
 def simulate_wave_galton_board(trials, initial_n_bins):
     """Simulates a Cycle Galton board with efficient random number generation and bin updating.
@@ -49,14 +51,14 @@ def simulate_wave_galton_board(trials, initial_n_bins):
     cycle = np.zeros(initial_n_bins, dtype=np.uint64)  # Use uint64 to prevent overflow
 
     # Seed the random number generator (optional for reproducibility)
-    fastrand.pcg32_seed(10)#np.random.seed( 10 )  # Replace 10 with any desired seed value
+    prng.Seed(10)#np.random.seed( 10 )  # Replace 10 with any desired seed value
 
     for _ in range(trials):
         random_walk = np.uint64(0)
 
         # Simulate random walk with fastrand
         for _ in range(n_bins):
-            random_walk +=  np.uint32(fastrand.pcg32())#np.random.randint(0, 2**32, dtype=np.uint32)
+            random_walk +=  np.uint32(prng.rng())#np.random.randint(0, 2**32, dtype=np.uint32)
 
         # Calculate bin index with improved modulo operation
         index = np.uint32(np.mod(random_walk * rn_mag >> np.uint32(32), initial_n_bins))

@@ -19,11 +19,11 @@ int main(int argc, char** argv)
 
 	std::uint64_t Ntrials = 10000000;
 	//Wave cycles or threads  
-	U Ncycles = 2;
+	U Ncycles = 8;
 	//Number of integrations
 	U N_Integrations = 2;
 	//Initial number of bins
-	U Nbins = 2000;
+	U Nbins = 3000;
 	//U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;

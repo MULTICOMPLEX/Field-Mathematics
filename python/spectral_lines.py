@@ -32,6 +32,9 @@ known_lines = {
     'Ne (703.2 nm)': 703.2
 }
 
+for x in data:
+    print(x*10000)
+
 for line, wl in known_lines.items():
     plt.axvline(x=wl, color='r', linestyle='--', label=line)
 

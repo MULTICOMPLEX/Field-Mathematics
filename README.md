@@ -32,6 +32,11 @@ Updated paper:
 [Cycle_Galton_Board_Latex_V2.pdf](https://github.com/user-attachments/files/17034209/Cycle_Galton_Board_Latex_V2.pdf)
 
 
+
+QFT quantum potential:
+![Figure_aa4](https://github.com/user-attachments/assets/fec4c850-0340-4ca6-818d-71dd584cf187)
+
+
 ![Figure_12](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/d56f9cca-b1c3-4dee-9b8b-23f227ff0767)
 
 

@@ -467,10 +467,10 @@ public:
 			std::vector<L>& cycle, const L& TRIALS) {
 
 		I Board_size;
-		I rn_range;
+		I rn_mag;
 
 		Board_size = I(round(std::log(Initial_Board_size * 6) * std::sqrt(std::numbers::pi)));
-		rn_range = I(round(Initial_Board_size / std::sqrt(log2(Initial_Board_size))));
+		rn_mag = I(round(Initial_Board_size / std::sqrt(log2(Initial_Board_size))));
 
 		L random_walk = {};
 
@@ -479,7 +479,7 @@ public:
 			for (I j = 0; j < Board_size; j++)
 				random_walk += (*this)();
 
-			cycle[std::modulus()(random_walk * rn_range >> 32, Initial_Board_size)]++;
+			cycle[std::modulus()(random_walk * rn_mag >> 32, Initial_Board_size)]++;
 
 		}
 
@@ -488,7 +488,7 @@ public:
 
 		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude / 2.0));
 
-		std::vector<L> vec = { rn_range , Board_size , Amplitude , DC };
+		std::vector<L> vec = { rn_mag , Board_size , Amplitude , DC };
 
 		return vec;
 	}
@@ -501,17 +501,17 @@ public:
 		typedef double T;
 
 		//const I Board_size = Initial_Board_size;
-		//const T rn_range = std::sqrt(Board_size) + std::log(Board_size / 4));
+		//const T rn_mag = std::sqrt(Board_size) + std::log(Board_size / 4));
 
-		const I board_size = I(round(log(board_SIZE * 6) * sqrt(std::numbers::pi)));
-		const T rn_range = board_SIZE / sqrt(log2(board_SIZE));
+		const I board_size = I(std::round(std::log(board_SIZE * 6) * std::sqrt(std::numbers::pi)));
+		const T rn_mag = board_SIZE / std::sqrt(log2(board_SIZE));
 
 		T random_walk = 0;
 
 		for (auto j = 0; j < board_size; j++)
 			random_walk += rng(1.0);
 
-		return fmod(random_walk * rn_range, board_SIZE);
+		return fmod(random_walk * rn_mag, board_SIZE);
 	}
 
 	template <typename T, typename L>

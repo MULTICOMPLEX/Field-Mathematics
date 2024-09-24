@@ -12,24 +12,7 @@ from visuals import *
 from constants import *
 from functions import *
 from scipy.stats import multivariate_normal
-
-
-data = np.array([
-    0.0, 0.00070828, 0.001287, 0.00195187, 0.00231236, 0.00260503,
-    0.00350503, 0.00382311, 0.00412949, 0.00532276, 0.00546761,
-    0.00585458, 0.00597484, 0.00654682, 0.00649861, 0.00692958,
-    0.00896672, 0.00934132, 0.00952466, 0.00980925, 0.00937891,
-    0.01023884, 0.01002169, 0.01014887, 0.01071207, 0.00991016,
-    0.01045768, 0.00995521, 0.01429816, 0.01374376, 0.01379477,
-    0.01386332, 0.01388479, 0.01378815, 0.01386626, 0.01472256,
-    0.01471372, 0.01565928, 0.01679873, 0.01461367, 0.01570879,
-    0.01684039, 0.01440463, 0.016757, 0.01424766, 0.01668054,
-    0.01805236, 0.01658982, 0.01504341, 0.0218531, 0.02004097,
-    0.02372314, 0.0216847, 0.01974058, 0.02353628, 0.02135308,
-    0.01921034, 0.02325664, 0.02093071, 0.02549789, 0.02279485,
-    0.02037135, 0.02499673, 0.02502833, 0.02225504, 0.01957914,
-    0.0244614, 0.02449773, 0.02146073, 0.02721013, 0.02706302
-])
+from data import *
 
 n = 2048*2
 
@@ -43,14 +26,14 @@ S = {
     "V0": 2,  # barrier voltage
     "initial offset": 0,
     "N": n,
-    "dt": 0.05,
+    "dt": 0.025,
     "x0": 0,  # barrier x
     "x1": 3,
     "x2": 12,
     "extent": 20 * Å,  # 150, 30
     "extentN": -75 * Å,
     "extentP": +85 * Å,
-    "Number of States": 19,
+    "Number of States": 11,
     "imaginary time evolution": True,
     "animation duration": 10,  # seconds
     "save animation": True,
@@ -94,32 +77,9 @@ def 𝜓0_gaussian_wavepacket_1D(X, σ, v0, x0):
     Z /= Zmax 
     return Z 
 
-#V = V(X)
-
-
-base_array = data
-reversed_array = base_array
-mirrored_array = np.concatenate((base_array, reversed_array[:-1])) 
-
-smaller_vector = mirrored_array 
-larger_size = len(X)
-
-smaller_size = len(smaller_vector)
-replication_factor = larger_size // smaller_size  # Use // for integer division
-
-if larger_size % smaller_size != 0:
-  print("Warning: larger_size is not a multiple of smaller_size. Exact replication is not possible.")
-
-larger_vector = np.repeat(smaller_vector, replication_factor)
-
-larger_vector.resize(len(X))
-
-
-V = reverse_first_half_1d(larger_vector)
-
-V[len(V)//2:] = 0
-
-V *= 3
+V = V(X)
+V = V / np.max(V)
+V /= 10
 
 Vmin = np.amin(V)
 Vmax = np.amax(V)

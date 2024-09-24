@@ -56,7 +56,17 @@ def normalize(T):
 # orthogonal projection
 
 
+from numba import njit
+
+@njit
 def apply_projection(tmp, psi_list, dx):
+    for i in range(len(psi_list)):
+        psi = psi_list[i]
+        coef = np.vdot(psi, tmp)
+        tmp -= coef * psi * dx
+    return tmp
+
+def apply_projection_V1(tmp, psi_list, dx):
     for psi in psi_list:
         tmp -= np.vdot(psi, tmp) * psi * dx
     return tmp
@@ -208,6 +218,18 @@ def reverse_first_half_1d(arr):
 
     # Combine the reversed first half with the unchanged second half
     return np.concatenate((reversed_half, arr[half:]))
+
+def func_approx(x, n):
+    # Perform the Fourier Transform
+    yf = np.fft.fft(x)
+    # Truncate higher frequencies (approximation)
+    num_components = int(n)# Adjust this to control the level of approximation
+    yf_truncated = yf
+    yf_truncated[num_components:-num_components] = 0
+    # Perform the Inverse Fourier Transform to get the approximated function
+    y_approx = np.fft.ifft(yf_truncated)
+    return y_approx.real
+
 
 '''    
 #3D

@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.colors import hsv_to_rgb
 
+import phimagic_prng32
+
 from visuals import *
 from constants import *
 from functions import *
@@ -19,21 +21,21 @@ n = 2048*2
 S = {
     "name": "Q0",
     "mode": "two tunnel+-",
-    "total time": 6 * femtoseconds,
+    "total time": 4 * femtoseconds,
     "store steps": 20,
     "σ": 0.7 * Å,
     "v0": 60,  # T momentum
     "V0": 2,  # barrier voltage
     "initial offset": 0,
     "N": n,
-    "dt": 0.025,
+    "dt": 0.5,
     "x0": 0,  # barrier x
     "x1": 3,
     "x2": 12,
     "extent": 20 * Å,  # 150, 30
     "extentN": -75 * Å,
     "extentP": +85 * Å,
-    "Number of States": 11,
+    "Number of States": 13,
     "imaginary time evolution": True,
     "animation duration": 10,  # seconds
     "save animation": True,
@@ -78,8 +80,7 @@ def 𝜓0_gaussian_wavepacket_1D(X, σ, v0, x0):
     return Z 
 
 V = V(X)
-V = V / np.max(V)
-V /= 10
+#V = V / np.max(V)
 
 Vmin = np.amin(V)
 Vmax = np.amax(V)
@@ -103,8 +104,8 @@ else:
     Uk = np.exp(-0.5j*(dt/(const["m"]*const["hbar"]))*p2)
 
 
-tmp = pyfftw.empty_aligned(S["N"],  dtype='complex64')
-c = pyfftw.empty_aligned(S["N"], dtype='complex64')
+#tmp = pyfftw.empty_aligned(S["N"],  dtype='complex64')
+#c = pyfftw.empty_aligned(S["N"], dtype='complex64')
 
 
 print("store_steps", S["store steps"])
@@ -112,15 +113,50 @@ print("Nt_per_store_step", Nt_per_store_step)
 
 
 psi_0 = norm(𝜓0_gaussian_wavepacket_1D(X, S["σ"], S["v0"], S["initial offset"]), dx)
-n = 1
-x = np.arange(len(X))
-Z = np.exp(1j * n/len(X) * 2 * np.pi * x)
+#n = 1
+#x = np.arange(len(X))
+#Z = np.exp(1j * n/len(X) * 2 * np.pi * x)
 #psi_0 = norm(Z, dx)
 
 standard_dev = 1
-#psi_0 = norm(1j * np.random.normal(0, standard_dev, size=len(x)), dx)  
+#psi_0 = 1e-12j * norm(np.random.normal(0, standard_dev, size=len(X)), dx)
+#psi_0 = 1e-12j * norm(np.random.uniform(0, 1, size=len(X)), dx) 
+
+# Calculate Frequencies (we asume a sample rate of one)
+# Use fft functions for real output (-> hermitian spectrum)
 
 
+#Time seed 
+current_time_seconds = int(time.time())
+rng = np.random.default_rng(current_time_seconds)       #numpy PRNG
+prng = phimagic_prng32.mxws(current_time_seconds)  #Phimagic fastest PRNG
+
+
+f = rfftfreq(len(X)) 
+v = np.sqrt(np.pi)
+sr = prng.uniform(-v, v, size=len(f))  
+si = prng.uniform(-v, v, size=len(f))  
+
+fmin = 0
+beta = - 4 # -2 = Violet noise, differentiated white noise
+psi_0 = norm(powerlaw_psd_gaussian(beta, n, fmin, f, sr, si) + 1j * powerlaw_psd_gaussian(beta, n, fmin, f, sr, si), dx)    
+
+#psi_0 = second_order_diff_noise( len(psi_0), dx) 
+ 
+ 
+fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
+plt.title('psi_0', color = 'white') 
+
+ax = fig.gca()
+set_axis_color(ax)
+plt.grid(True)
+
+real_plot, = ax.plot(X/Å, np.real(psi_0), label='$Re|\\psi(0)|$')
+imag_plot, = ax.plot(X/Å, np.imag(psi_0), label='$Im|\\psi(0)|$')
+abs_plot, = ax.plot(X/Å, np.abs(psi_0), label='$|\\psi(0)|$')
+leg = ax.legend(facecolor='#002b36', loc='lower left')
+for line, text in zip(leg.get_lines(), leg.get_texts()):
+        text.set_color(line.get_color())
 
 
 # Define the ground state wave function
@@ -156,13 +192,13 @@ print("\nenergy =\n", energies.reshape(-1, 1))
 
 
 fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
-plt.title('QFT quantum potential', color = 'white') 
+plt.title('Quantum Ground State', color = 'white') 
 
 ax = fig.gca()
 set_axis_color(ax)
 plt.grid(True)
 
-index = -1
+index = 0
 
 if Vmax-Vmin != 0:
         potential_plot = ax.plot(X/Å, (V + Vmin)/(Vmax-Vmin), label='$V(x)$')
@@ -177,7 +213,30 @@ ax.set_facecolor('#002b36')
 leg = ax.legend(facecolor='#002b36', loc='lower left')
 for line, text in zip(leg.get_lines(), leg.get_texts()):
         text.set_color(line.get_color())
+
+fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
+plt.title('Ψ[-1]', color = 'white') 
+
+ax = fig.gca()
+set_axis_color(ax)
+plt.grid(True)
+
+index = -1
+if Vmax-Vmin != 0:
+        potential_plot = ax.plot(X/Å, (V + Vmin)/(Vmax-Vmin), label='$V(x)$')
+else:
+        potential_plot = ax.plot(X/Å, V, label='$V(x)$')  
+real_plot, = ax.plot(X/Å, np.real(Ψ[index]), label='$Re|\\psi(x)|$')
+imag_plot, = ax.plot(X/Å, np.imag(Ψ[index]), label='$Im|\\psi(x)|$')
+abs_plot, = ax.plot(X/Å, np.abs(Ψ[index]), label='$|\\psi(x)|$')
+
+ax.set_facecolor('#002b36')
+
+leg = ax.legend(facecolor='#002b36', loc='lower left')
+for line, text in zip(leg.get_lines(), leg.get_texts()):
+        text.set_color(line.get_color())
 plt.show()
+
 
 
 # visualize the time dependent simulation

@@ -6,6 +6,7 @@ import time
 import progressbar
 from matplotlib import mlab
 from matplotlib.ticker import ScalarFormatter
+from numpy.fft import irfft, rfftfreq
 
   # laplacian_operator
 def fft_frequencies_1D(N, dx, hbar):
@@ -54,6 +55,7 @@ def normalize(T):
 # P = sum_i |psi_i><psi_i|
 # method for projecting a vector onto a given subspace.
 # orthogonal projection
+
 
 
 from numba import njit
@@ -230,6 +232,54 @@ def func_approx(x, n):
     y_approx = np.fft.ifft(yf_truncated)
     return y_approx.real
 
+def powerlaw_psd_gaussian(beta, steps, fmin, f, sr, si):
+       
+        # Validate / normalise fmin
+    if 0 <= fmin <= 0.5:
+        fmin = max(fmin, 1./steps) # Low frequency cutoff
+    else:
+        raise ValueError("fmin must be chosen between 0 and 0.5.")
+    
+    # Build scaling factors for all frequencies
+    s_scale = f    
+    ix   = np.sum(s_scale < fmin)   # Index of the cutoff
+    if ix and ix < len(s_scale):
+        s_scale[:ix] = s_scale[ix]
+    s_scale = s_scale**(-beta/2.)
+      
+    sr *= s_scale
+    si *= s_scale   
+    
+    # Calculate theoretical output standard deviation from scaling
+    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / steps
+    
+    # Combine power + corrected phase to Fourier components
+    s  = sr + 1J * si
+     
+    # Transform to real time series & scale to unit variance
+    y = irfft(s, n=steps) / sigma
+    
+    return y
+
+def second_order_diff_noise(num_samples, dx):
+    num_samples += 2
+
+    white_noise = np.random.normal(0, 1, num_samples)
+    # First-order difference (differentiated white noise)
+    first_order_diff = np.diff(white_noise)
+    # Second-order difference (second-order differentiated white noise)
+    second_order_diff = np.diff(first_order_diff)
+    sr = second_order_diff
+
+    white_noise = np.random.normal(0, 1, num_samples)
+    # First-order difference (differentiated white noise)
+    first_order_diff = np.diff(white_noise)
+    # Second-order difference (second-order differentiated white noise)
+    second_order_diff = np.diff(first_order_diff)
+    si = 1j * second_order_diff
+
+    psi_0 = norm(sr + si, dx)
+    return psi_0
 
 '''    
 #3D

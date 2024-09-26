@@ -21,14 +21,14 @@ n = 2048*2
 S = {
     "name": "Q0",
     "mode": "two tunnel+-",
-    "total time": 4 * femtoseconds,
+    "total time": 5 * femtoseconds,
     "store steps": 20,
     "σ": 0.7 * Å,
     "v0": 60,  # T momentum
     "V0": 2,  # barrier voltage
     "initial offset": 0,
     "N": n,
-    "dt": 0.5,
+    "dt": 0.025,
     "x0": 0,  # barrier x
     "x1": 3,
     "x2": 12,

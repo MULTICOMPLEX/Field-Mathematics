@@ -21,7 +21,7 @@ n = 2048*2
 S = {
     "name": "Q0",
     "mode": "two tunnel+-",
-    "total time": 5 * femtoseconds,
+    "total time": 2 * femtoseconds,
     "store steps": 20,
     "σ": 0.7 * Å,
     "v0": 60,  # T momentum
@@ -235,8 +235,13 @@ ax.set_facecolor('#002b36')
 leg = ax.legend(facecolor='#002b36', loc='lower left')
 for line, text in zip(leg.get_lines(), leg.get_texts()):
         text.set_color(line.get_color())
-plt.show()
 
+plot_spectrum(Ψ[-1], 'FFT Ψ[-1]')
+
+plot_spectrum(Ψ[0], 'FFT Ground State')
+
+
+plt.show()
 
 
 # visualize the time dependent simulation

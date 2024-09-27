@@ -281,6 +281,7 @@ def second_order_diff_noise(num_samples, dx):
     psi_0 = norm(sr + si, dx)
     return psi_0
 
+
 '''    
 #3D
 def V_Coulomb_3D(X, Y, Z):

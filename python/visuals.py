@@ -12,6 +12,19 @@ from matplotlib.widgets import Slider
 from matplotlib.widgets import Button
 
 
+def plot_spectrum(Ψ, title = 'title'):
+    fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+    ax = fig.gca()
+    set_axis_color(ax)
+    Fs = len(Ψ) # Example value, set this to the actual sampling rate of your signal
+    s, f = mlab.psd(Ψ, NFFT= Fs, Fs = Fs)
+    plt.loglog(f, s)
+    plt.grid(True, which='both', alpha = 0.4)
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('PSD (Unit**2/Hz)')
+    plt.title(title, color='white')
+    plt.grid(True)
+
 px = 1 / plt.rcParams['figure.dpi']
 
 viridis = plt.get_cmap('gray', 256)

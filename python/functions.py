@@ -7,6 +7,7 @@ import progressbar
 from matplotlib import mlab
 from matplotlib.ticker import ScalarFormatter
 from numpy.fft import irfft, rfftfreq
+from numba import njit
 
   # laplacian_operator
 def fft_frequencies_1D(N, dx, hbar):
@@ -37,28 +38,23 @@ def fft_frequencies_ND(shape, spacing, hbar):
 
 
 def norm(phi, dx):
-    norm = np.linalg.norm(phi) * dx
-    return (phi * np.sqrt(dx)) / norm
+    sqrt_dx = np.sqrt(dx)
+    norm_value = np.linalg.norm(phi) * dx
+    phi *= np.sqrt(dx) / norm_value
+    return phi
 
 '''
 def norm(phi, dx):
     return phi/np.sqrt(np.sum(np.square(np.abs(phi)) * dx))
 '''
 
-
 def normalize(T):
     norm = np.max(np.abs(T))
     return T  /  norm
     
-
-
 # P = sum_i |psi_i><psi_i|
 # method for projecting a vector onto a given subspace.
 # orthogonal projection
-
-
-
-from numba import njit
 
 @njit
 def apply_projection(tmp, psi_list, dx):

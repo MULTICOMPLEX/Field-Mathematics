@@ -36,6 +36,7 @@ S = {
     "extentN": -75 * Å,
     "extentP": +85 * Å,
     "Number of States": 13,
+    "beta":  -4, # -2 = Violet noise, 2x differentiated white noise
     "imaginary time evolution": True,
     "animation duration": 10,  # seconds
     "save animation": True,
@@ -50,15 +51,30 @@ dx = X[1] - X[0]
 
 
 # Define parameters
-k = 1  # Harmonic force constant
-alpha = 0.1  # Anharmonic coefficient (x^3 term)
-beta = 0.01  # Anharmonic coefficient (x^4 term)
+k = 1.0      # Harmonic force constant
+alpha = 0.3  # Increased anharmonic coefficient (x^3 term)
+beta = 0.05  # Increased anharmonic coefficient (x^4 term)
+gamma = 0.005  # Optional: Higher-order anharmonic coefficient (x^5 term)
 
 def V2(X):
-# Calculate potential energy for harmonic and anharmonic cases
+    """
+    Calculate the anharmonic potential energy.
+
+    Parameters:
+    X (float or array-like): Displacement variable.
+
+    Returns:
+    float or array-like: Potential energy.
+    """
+    # Harmonic term
     V_harmonic = 0.5 * k * X**2
-    V_anharmonic = 0.5 * k * X**2 + alpha * X**3 + beta * X**4
-    return V_harmonic
+    
+    # Anharmonic terms
+    V_anharmonic = V_harmonic + alpha * X**3 + beta * X**4
+    # Optional: Add higher-order term for more anharmonicity
+    # V_anharmonic += gamma * X**5
+    
+    return V_anharmonic
 
 #potential energy operator
 def V(X):
@@ -134,12 +150,14 @@ prng = phimagic_prng32.mxws(current_time_seconds)  #Phimagic fastest PRNG
 
 f = rfftfreq(len(X)) 
 v = np.sqrt(np.pi)
-sr = prng.uniform(-v, v, size=len(f))  
-si = prng.uniform(-v, v, size=len(f))  
+sr1 = prng.uniform(-v, v, size=len(f))  
+si1 = prng.uniform(-v, v, size=len(f))
+sr2 = prng.uniform(-v, v, size=len(f))  
+si2 = prng.uniform(-v, v, size=len(f))   
 
 fmin = 0
-beta = - 4 # -2 = Violet noise, differentiated white noise
-psi_0 = norm(powerlaw_psd_gaussian(beta, n, fmin, f, sr, si) + 1j * powerlaw_psd_gaussian(beta, n, fmin, f, sr, si), dx)    
+
+psi_0 = norm(powerlaw_psd_gaussian(S["beta"], n, fmin, f, sr1, si1) + 1j * powerlaw_psd_gaussian(S["beta"], n, fmin, f, sr2, si2), dx)    
 
 #psi_0 = second_order_diff_noise( len(psi_0), dx) 
  

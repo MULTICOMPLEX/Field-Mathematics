@@ -6,8 +6,15 @@ import time
 import progressbar
 from matplotlib import mlab
 from matplotlib.ticker import ScalarFormatter
-from numpy.fft import irfft, rfftfreq
+from numpy.fft import irfft, rfftfreq, ifft,  fftfreq
 from numba import njit
+import phimagic_prng32
+
+
+#Time seed 
+current_time_seconds = int(time.time())
+rng = np.random.default_rng(current_time_seconds)       #numpy PRNG
+prng = phimagic_prng32.mxws(current_time_seconds)  #Phimagic fastest PRNG
 
   # laplacian_operator
 def fft_frequencies_1D(N, dx, hbar):
@@ -228,51 +235,73 @@ def func_approx(x, n):
     y_approx = np.fft.ifft(yf_truncated)
     return y_approx.real
 
-def powerlaw_psd_gaussian(beta, steps, fmin, f, sr, si):
-       
-        # Validate / normalise fmin
-    if 0 <= fmin <= 0.5:
-        fmin = max(fmin, 1./steps) # Low frequency cutoff
-    else:
+def powerlaw_psd_gaussian(beta, n, fmin, dx):
+   
+    if (0 < fmin <= 0.5):
         raise ValueError("fmin must be chosen between 0 and 0.5.")
     
+    f = rfftfreq(n) 
+     
     # Build scaling factors for all frequencies
     s_scale = f    
     ix   = np.sum(s_scale < fmin)   # Index of the cutoff
     if ix and ix < len(s_scale):
         s_scale[:ix] = s_scale[ix]
-    s_scale = s_scale**(-beta/2.)
+    s_scale = (s_scale/2)**-beta
       
+   
+    v = np.sqrt(np.pi)
+    sr = prng.uniform(-v, v, size=len(f))  
+    si = prng.uniform(-v, v, size=len(f))
+    
     sr *= s_scale
     si *= s_scale   
     
     # Calculate theoretical output standard deviation from scaling
-    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / steps
+    sigma = 2 * np.sqrt(np.sum(s_scale**2)) 
     
     # Combine power + corrected phase to Fourier components
     s  = sr + 1J * si
      
     # Transform to real time series & scale to unit variance
-    y = irfft(s, n=steps) / sigma
+    y = norm(ifft(s, int(n)) / sigma, dx)
     
     return y
 
 def second_order_diff_noise(num_samples, dx):
     num_samples += 2
 
-    white_noise = np.random.normal(0, 1, num_samples)
+    white_noise = prng.uniform(0, 1, num_samples)
     # First-order difference (differentiated white noise)
     first_order_diff = np.diff(white_noise)
     # Second-order difference (second-order differentiated white noise)
     second_order_diff = np.diff(first_order_diff)
     sr = second_order_diff
 
-    white_noise = np.random.normal(0, 1, num_samples)
+    white_noise = prng.uniform(0, 1, num_samples)
     # First-order difference (differentiated white noise)
     first_order_diff = np.diff(white_noise)
     # Second-order difference (second-order differentiated white noise)
     second_order_diff = np.diff(first_order_diff)
     si = 1j * second_order_diff
+
+    psi_0 = norm(sr + si, dx)
+    return psi_0
+
+def first_order_diff_noise(num_samples, dx):
+    num_samples += 1
+
+    white_noise = prng.uniform(0, 1, num_samples)
+    # First-order difference (differentiated white noise)
+    first_order_diff = np.diff(white_noise)
+    
+    sr = first_order_diff
+
+    white_noise = prng.uniform(0, 1, num_samples)
+    # First-order difference (differentiated white noise)
+    first_order_diff = np.diff(white_noise)
+   
+    si = 1j * first_order_diff
 
     psi_0 = norm(sr + si, dx)
     return psi_0

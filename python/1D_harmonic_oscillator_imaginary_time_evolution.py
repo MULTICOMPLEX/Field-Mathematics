@@ -1,14 +1,10 @@
-import numpy as np
 import time
 import progressbar
 import pyfftw
 import multiprocessing
 
-import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.colors import hsv_to_rgb
-
-import phimagic_prng32
 
 from visuals import *
 from constants import *
@@ -28,17 +24,17 @@ S = {
     "V0": 2,  # barrier voltage
     "initial offset": 0,
     "N": n,
-    "dt": 0.025,
+    "dt": 0.25,
     "x0": 0,  # barrier x
     "x1": 3,
     "x2": 12,
     "extent": 20 * Å,  # 150, 30
     "extentN": -75 * Å,
     "extentP": +85 * Å,
-    "Number of States": 13,
-    "beta":  -4, # -2 = Violet noise, 2x differentiated white noise
+    "Number of States": 15,
+    "beta":  -4, # -2 = Violet noise, 1 x differentiated white noise
     "imaginary time evolution": True,
-    "animation duration": 10,  # seconds
+    "animation duration": 31,  # seconds
     "save animation": True,
     "fps": 30,
     "path data": "./data/",
@@ -129,38 +125,20 @@ print("Nt_per_store_step", Nt_per_store_step)
 
 
 psi_0 = norm(𝜓0_gaussian_wavepacket_1D(X, S["σ"], S["v0"], S["initial offset"]), dx)
-#n = 1
-#x = np.arange(len(X))
-#Z = np.exp(1j * n/len(X) * 2 * np.pi * x)
-#psi_0 = norm(Z, dx)
+
 
 standard_dev = 1
 #psi_0 = 1e-12j * norm(np.random.normal(0, standard_dev, size=len(X)), dx)
 #psi_0 = 1e-12j * norm(np.random.uniform(0, 1, size=len(X)), dx) 
 
-# Calculate Frequencies (we asume a sample rate of one)
-# Use fft functions for real output (-> hermitian spectrum)
+fmin = 0 
+psi_0 =  powerlaw_psd_gaussian(S["beta"], len(X), fmin, dx)
 
+#psi_0 = norm(prng.uniform(0, 1, len(X)) + 1j * prng.uniform(0, 1, len(X)), dx) 
+#psi_0 = norm(np.random.normal(0, 1, len(X)) + 1j * np.random.normal(0, 1, len(X)), dx)
+#psi_0 =  first_order_diff_noise(len(psi_0), dx) #beta = -2
+#psi_0 =  second_order_diff_noise(len(psi_0), dx)  #beta = -4
 
-#Time seed 
-current_time_seconds = int(time.time())
-rng = np.random.default_rng(current_time_seconds)       #numpy PRNG
-prng = phimagic_prng32.mxws(current_time_seconds)  #Phimagic fastest PRNG
-
-
-f = rfftfreq(len(X)) 
-v = np.sqrt(np.pi)
-sr1 = prng.uniform(-v, v, size=len(f))  
-si1 = prng.uniform(-v, v, size=len(f))
-sr2 = prng.uniform(-v, v, size=len(f))  
-si2 = prng.uniform(-v, v, size=len(f))   
-
-fmin = 0
-
-psi_0 = norm(powerlaw_psd_gaussian(S["beta"], n, fmin, f, sr1, si1) + 1j * powerlaw_psd_gaussian(S["beta"], n, fmin, f, sr2, si2), dx)    
-
-#psi_0 = second_order_diff_noise( len(psi_0), dx) 
- 
  
 fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
 plt.title('psi_0', color = 'white') 

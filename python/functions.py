@@ -235,36 +235,39 @@ def func_approx(x, n):
     y_approx = np.fft.ifft(yf_truncated)
     return y_approx.real
 
-def powerlaw_psd_gaussian(beta, n, fmin, dx):
+    
+def powerlaw_psd_gaussian(beta, steps, fmin):
    
-    if (0 < fmin <= 0.5):
+        # Validate / normalise fmin
+    if 0 <= fmin <= 0.5:
+        fmin = max(fmin, 1./steps) # Low frequency cutoff
+    else:
         raise ValueError("fmin must be chosen between 0 and 0.5.")
     
-    f = rfftfreq(n) 
-     
+    f = rfftfreq(steps)
+
+    v = np.sqrt(np.pi)
+    sr = prng.uniform(-v, v, size=len(f))  
+    si = prng.uniform(-v, v, size=len(f))
+      
     # Build scaling factors for all frequencies
     s_scale = f    
     ix   = np.sum(s_scale < fmin)   # Index of the cutoff
     if ix and ix < len(s_scale):
         s_scale[:ix] = s_scale[ix]
-    s_scale = (s_scale/2)**-beta
+    s_scale = (s_scale/2)**(-beta)
       
-   
-    v = np.sqrt(np.pi)
-    sr = prng.uniform(-v, v, size=len(f))  
-    si = prng.uniform(-v, v, size=len(f))
-    
     sr *= s_scale
     si *= s_scale   
     
     # Calculate theoretical output standard deviation from scaling
-    sigma = 2 * np.sqrt(np.sum(s_scale**2)) 
+    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / steps
     
     # Combine power + corrected phase to Fourier components
     s  = sr + 1J * si
      
     # Transform to real time series & scale to unit variance
-    y = norm(ifft(s, int(n)) / sigma, dx)
+    y = irfft(s, n=steps) / sigma
     
     return y
 

@@ -31,7 +31,7 @@ S = {
     "extent": 20 * Å,  # 150, 30
     "extentN": -75 * Å,
     "extentP": +85 * Å,
-    "Number of States": 15,
+    "Number of States": 38,
     "beta":  -4, # -2 = Violet noise, 1 x differentiated white noise
     "imaginary time evolution": True,
     "animation duration": 31,  # seconds
@@ -47,10 +47,10 @@ dx = X[1] - X[0]
 
 
 # Define parameters
-k = 1.0      # Harmonic force constant
+k = 0.001      # Harmonic force constant
 alpha = 0.3  # Increased anharmonic coefficient (x^3 term)
 beta = 0.05  # Increased anharmonic coefficient (x^4 term)
-gamma = 0.005  # Optional: Higher-order anharmonic coefficient (x^5 term)
+gamma = 0.0005  # Optional: Higher-order anharmonic coefficient (x^5 term)
 
 def V2(X):
     """
@@ -66,9 +66,9 @@ def V2(X):
     V_harmonic = 0.5 * k * X**2
     
     # Anharmonic terms
-    V_anharmonic = V_harmonic + alpha * X**3 + beta * X**4
+    V_anharmonic = V_harmonic + alpha * X**3 + beta * X**4 
     # Optional: Add higher-order term for more anharmonicity
-    # V_anharmonic += gamma * X**5
+    #V_anharmonic += gamma * X**5
     
     return V_anharmonic
 
@@ -76,7 +76,10 @@ def V2(X):
 def V(X):
     return 2 * m_e * (2 * np.pi / (0.6 * femtoseconds))**2 * X**2
     
-
+def V1(X):
+    return np.ones(len(X))
+    
+   
 #initial waveform
 def 𝜓0_gaussian_wavepacket_1D(X, σ, v0, x0):
     v0 = v0 * Å / femtoseconds
@@ -90,9 +93,10 @@ def 𝜓0_gaussian_wavepacket_1D(X, σ, v0, x0):
     Zmax = np.amax(np.abs(Z))
     Z /= Zmax 
     return Z 
+    
+    
+V = V(X) 
 
-V = V(X)
-#V = V / np.max(V)
 
 Vmin = np.amin(V)
 Vmax = np.amax(V)
@@ -116,23 +120,15 @@ else:
     Uk = np.exp(-0.5j*(dt/(const["m"]*const["hbar"]))*p2)
 
 
-#tmp = pyfftw.empty_aligned(S["N"],  dtype='complex64')
-#c = pyfftw.empty_aligned(S["N"], dtype='complex64')
-
 
 print("store_steps", S["store steps"])
 print("Nt_per_store_step", Nt_per_store_step)
 
 
-psi_0 = norm(𝜓0_gaussian_wavepacket_1D(X, S["σ"], S["v0"], S["initial offset"]), dx)
-
-
-standard_dev = 1
-#psi_0 = 1e-12j * norm(np.random.normal(0, standard_dev, size=len(X)), dx)
-#psi_0 = 1e-12j * norm(np.random.uniform(0, 1, size=len(X)), dx) 
+#psi_0 = norm(𝜓0_gaussian_wavepacket_1D(X, S["σ"], S["v0"], S["initial offset"]), dx)
 
 fmin = 0 
-psi_0 =  powerlaw_psd_gaussian(S["beta"], len(X), fmin, dx)
+psi_0 =  powerlaw_psd_gaussian(S["beta"], len(X), fmin)
 
 #psi_0 = norm(prng.uniform(0, 1, len(X)) + 1j * prng.uniform(0, 1, len(X)), dx) 
 #psi_0 = norm(np.random.normal(0, 1, len(X)) + 1j * np.random.normal(0, 1, len(X)), dx)

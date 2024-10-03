@@ -134,7 +134,7 @@ print("Nt_per_store_step", Nt_per_store_step)
 
 fmin = 0 
 S["beta"] = -4
-psi_0 =  powerlaw_psd_gaussian(S["beta"], len(X), fmin)
+psi_0 =  norm(powerlaw_psd_gaussian(S["beta"], len(X), fmin),dx)
 
 #psi_0 = norm(prng.uniform(0, 1, len(X)) + 1j * prng.uniform(0, 1, len(X)), dx) 
 #psi_0 = norm(np.random.normal(0, 1, len(X)) + 1j * np.random.normal(0, 1, len(X)), dx)

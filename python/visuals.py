@@ -355,6 +355,7 @@ def animate_1D(
 
     fig = plt.figure(figsize=figsize, facecolor='#002b36')
     ax = fig.add_subplot(1, 1, 1)
+    plt.grid(True)
 
     ax.set_xlabel("[Å]")
     ax.set_title("$\psi(x,t)$"+" "+title, color='white')

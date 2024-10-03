@@ -45,10 +45,8 @@ def fft_frequencies_ND(shape, spacing, hbar):
 
 
 def norm(phi, dx):
-    sqrt_dx = np.sqrt(dx)
-    norm_value = np.linalg.norm(phi) * dx
-    phi *= np.sqrt(dx) / norm_value
-    return phi
+    norm = np.linalg.norm(phi) * dx
+    return (phi * np.sqrt(dx)) / norm
 
 '''
 def norm(phi, dx):
@@ -65,13 +63,25 @@ def normalize(T):
 
 @njit
 def apply_projection(tmp, psi_list, dx):
+    """
+    Orthogonalizes a vector (tmp) against a list of vectors (psi_list)
+    using the Gram-Schmidt process.
+
+    Args:
+        tmp: The vector to orthogonalize (NumPy array).
+        psi_list: A list of orthogonal vectors (NumPy arrays).
+        dx: Spatial discretization factor.
+
+    Returns:
+        The orthogonalized vector (NumPy array).
+    """
     for i in range(len(psi_list)):
         psi = psi_list[i]
-        coef = np.vdot(psi, tmp)
-        tmp -= coef * psi * dx
+        coef = np.vdot(psi, tmp) * dx
+        tmp -= coef * psi
     return tmp
 
-def apply_projection_V1(tmp, psi_list, dx):
+def apply_projection2(tmp, psi_list, dx):
     for psi in psi_list:
         tmp -= np.vdot(psi, tmp) * psi * dx
     return tmp
@@ -267,7 +277,7 @@ def powerlaw_psd_gaussian(beta, steps, fmin):
     s  = sr + 1J * si
      
     # Transform to real time series & scale to unit variance
-    y = irfft(s, n=steps) / sigma
+    y = ifft(s, n=steps) / sigma
     
     return y
 

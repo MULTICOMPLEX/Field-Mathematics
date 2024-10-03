@@ -21,7 +21,8 @@ def plot_spectrum(Ψ, title = 'title'):
     plt.loglog(f, s)
     plt.grid(True, which='both', alpha = 0.4)
     plt.xlabel('Frequency (Hz)')
-    plt.ylabel('PSD (Unit**2/Hz)')
+    #plt.ylabel('PSD (Unit**2/Hz)')
+    plt.ylabel('PSD (a.u.)')
     plt.title(title, color='white')
     plt.grid(True)
 
@@ -373,7 +374,9 @@ def animate_1D(
                         transform=ax.transAxes, ha="right", va="top")
 
     plt.xlim(xlim)
-    plt.ylim(ylim)
+    
+    if ylim is not None:  # Correctly handle ylim
+           plt.ylim(ylim)
 
     index = 0
 

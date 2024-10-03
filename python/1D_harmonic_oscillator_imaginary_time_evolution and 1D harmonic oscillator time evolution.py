@@ -17,24 +17,24 @@ n = 2048*2
 S = {
     "name": "Q0",
     "mode": "two tunnel+-",
-    "total time": 5 * femtoseconds,
-    "store steps": 20,
+    "total time": 2 * femtoseconds,
+    "store steps": 600,
     "σ": 0.7 * Å,
     "v0": 60,  # T momentum
     "V0": 2,  # barrier voltage
     "initial offset": 0,
     "N": n,
-    "dt": 0.25,
+    "dt": 0.025,
     "x0": 0,  # barrier x
     "x1": 3,
     "x2": 12,
     "extent": 20 * Å,  # 150, 30
     "extentN": -75 * Å,
     "extentP": +85 * Å,
-    "Number of States": 28,
+    "Number of States": 18,
     "beta":  -4, # -2 = Violet noise, 1 x differentiated white noise
     "imaginary time evolution": True,
-    "animation duration": 31,  # seconds
+    "animation duration": 30,  # seconds
     "save animation": True,
     "fps": 30,
     "path data": "./data/",
@@ -97,11 +97,11 @@ def 𝜓0_gaussian_wavepacket_1D(X, σ, v0, x0):
     return Z 
     
     
-V = V(X) 
 
 fmin = 0 
 S["beta"] = 1.4
 V =  norm(powerlaw_psd_gaussian(S["beta"], len(X), fmin).imag, dx)
+
 
 Vmin = np.amin(V)
 Vmax = np.amax(V)
@@ -121,7 +121,7 @@ if (S["imaginary time evolution"]):
     Uk = np.exp(-0.5*(dt/(const["m"]*const["hbar"]))*p2)
 
 else:
-    Ur = np.exp(-0.5j*(dt/const["hbar"])*V())
+    Ur = np.exp(-0.5j*(dt/const["hbar"])*V)
     Uk = np.exp(-0.5j*(dt/(const["m"]*const["hbar"]))*p2)
 
 
@@ -134,7 +134,7 @@ print("Nt_per_store_step", Nt_per_store_step)
 
 fmin = 0 
 S["beta"] = -4
-psi_0 =  powerlaw_psd_gaussian(S["beta"], len(X), fmin)
+psi_0 =  norm(powerlaw_psd_gaussian(S["beta"], len(X), fmin), dx)
 
 #psi_0 = norm(prng.uniform(0, 1, len(X)) + 1j * prng.uniform(0, 1, len(X)), dx) 
 #psi_0 = norm(np.random.normal(0, 1, len(X)) + 1j * np.random.normal(0, 1, len(X)), dx)
@@ -223,7 +223,7 @@ index = -1
 if Vmax-Vmin != 0:
         potential_plot = ax.plot(X/Å, (V + Vmin)/(Vmax-Vmin), label='$V(x)$')
 else:
-        potential_plot = ax.plot(X/Å, V, label='$V(x)$')  
+        potential_plot = ax.plot(X/Å, v, label='$V(x)$')  
 real_plot, = ax.plot(X/Å, np.real(Ψ[index]), label='$Re|\\psi(x)|$')
 imag_plot, = ax.plot(X/Å, np.imag(Ψ[index]), label='$Im|\\psi(x)|$')
 abs_plot, = ax.plot(X/Å, np.abs(Ψ[index]), label='$|\\psi(x)|$')
@@ -241,6 +241,35 @@ plot_spectrum(Ψ[0], 'FFT Ground State')
 
 plt.show()
 
+"""
+# visualize the time dependent simulation
+animate_1D(Ψ = Ψ, X=X, V = V, Vmin = Vmin, Vmax = Vmax, xlim=[-S["extent"]/2/Å, 
+S["extent"]/2/Å], ylim=[-1, 1.1], animation_duration=S["animation duration"], fps=S["fps"], 
+total_time = S["total time"], store_steps = S["store steps"], energies = energies,
+        save_animation=S["save animation"], title=S["title"]+" "+str(S["Number of States"])+" states", 
+        path_save=S["path save"])
+
+"""
+
+Ur = np.exp(-0.5j*(dt/const["hbar"])*V)
+Uk = np.exp(-0.5j*(dt/(const["m"]*const["hbar"]))*p2)
+
+phi = np.array([Ψ[-1]])
+Ψ[0] = Ψ[-1]
+
+S["imaginary time evolution"] = False
+
+nos = S["Number of States"]-1
+if (nos):
+    t0 = time.time()
+    bar = progressbar.ProgressBar(maxval=nos)
+    # raising operators
+    for i in bar(range(nos)):
+        Ψ = Split_Step_NP(Ψ, phi, dx, S["store steps"], Nt_per_store_step, Ur, Uk, S["imaginary time evolution"])
+        phi = np.concatenate([phi, [Ψ[-1]]])
+    print("Took", time.time() - t0)
+    
+S["title"] = "1D harmonic oscillator time evolution"
 
 # visualize the time dependent simulation
 animate_1D(Ψ = Ψ, X=X, V = V, Vmin = Vmin, Vmax = Vmax, xlim=[-S["extent"]/2/Å, 
@@ -248,3 +277,4 @@ S["extent"]/2/Å], ylim=None, animation_duration=S["animation duration"], fps=S[
 total_time = S["total time"], store_steps = S["store steps"], energies = energies,
         save_animation=S["save animation"], title=S["title"]+" "+str(S["Number of States"])+" states", 
         path_save=S["path save"])
+

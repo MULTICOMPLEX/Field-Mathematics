@@ -48,3 +48,4 @@ Discrete Energy Levels
 ![Figure_2](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/21c91873-b92a-4f20-a3a6-66be5fa86d96)
 
 
+[k_in_the_SSFT_Method.pdf](https://github.com/user-attachments/files/17339657/k_in_the_SSFT_Method.pdf)

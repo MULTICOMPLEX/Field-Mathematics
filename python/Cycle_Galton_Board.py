@@ -25,13 +25,13 @@ plt.grid(True)
 
 Nbins = 3000
 
-Ncycles  = 1
+Ncycles  = 10
 
 if (Nbins < 3 * Ncycles):#minimum 3 x Ncycles
 	Nbins = 3 * Ncycles;
     
 INITIAL_NBINS = int(np.ceil(Nbins / Ncycles))
-TRIALS = 500000
+TRIALS = 100000
 
 def simulate_wave_galton_board(trials, initial_n_bins):
     """Simulates a Cycle Galton board with efficient random number generation and bin updating.

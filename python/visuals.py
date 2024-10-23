@@ -35,6 +35,96 @@ mc = np.array([0, 43/256, 54/256, 1])
 newcolors[:150, :] = mc
 newcmp = ListedColormap(newcolors)
 
+def Plot_States(V, Vmax, Vmin, Ψ, psi_0, p2, X, S):
+    
+    fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
+    plt.title('psi_0', color = 'white') 
+
+    ax = fig.gca()
+    set_axis_color(ax)
+    plt.grid(True)
+
+    real_plot, = ax.plot(X/Å, np.real(psi_0), label='$Re|\\psi(0)|$')
+    imag_plot, = ax.plot(X/Å, np.imag(psi_0), label='$Im|\\psi(0)|$')
+    abs_plot, = ax.plot(X/Å, np.abs(psi_0), label='$|\\psi(0)|$')
+    leg = ax.legend(facecolor='#002b36', loc='lower left')
+    for line, text in zip(leg.get_lines(), leg.get_texts()):
+        text.set_color(line.get_color())
+    
+    hbar = 1.054571817e-34    # Reduced Planck constant in J*s
+    m = 9.10938356e-31        # Mass of electron in kg
+    energies = Energies(V, Ψ, p2, hbar, m)
+    if (S["imaginary time evolution"]):
+        print("\nenergy =\n", energies.reshape(-1, 1))
+
+
+    Ψ /= np.amax(np.abs(Ψ))
+
+
+    fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
+    plt.title('Quantum Ground State', color = 'white') 
+
+    ax = fig.gca()
+    set_axis_color(ax)
+    plt.grid(True)
+
+    index = 0
+
+
+    if Vmax-Vmin != 0:
+            potential_plot = ax.plot(X/Å, (V + Vmin)/(Vmax-Vmin), label='$V(x)$')
+    else:
+            potential_plot = ax.plot(X/Å, V, label='$V(x)$')  
+    real_plot, = ax.plot(X/Å, np.real(Ψ[index]), label='$Re|\\psi(x)|$')
+    imag_plot, = ax.plot(X/Å, np.imag(Ψ[index]), label='$Im|\\psi(x)|$')
+    abs_plot, = ax.plot(X/Å, np.abs(Ψ[index]), label='$|\\psi(x)|$')
+
+    ax.set_facecolor('#002b36')
+
+    leg = ax.legend(facecolor='#002b36', loc='lower left')
+    for line, text in zip(leg.get_lines(), leg.get_texts()):
+            text.set_color(line.get_color())
+
+    fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
+    plt.title('Ψ[-1]', color = 'white') 
+
+    ax = fig.gca()
+    set_axis_color(ax)
+    plt.grid(True)
+
+    index = -1
+    if Vmax-Vmin != 0:
+            potential_plot = ax.plot(X/Å, (V + Vmin)/(Vmax-Vmin), label='$V(x)$')
+    else:
+            potential_plot = ax.plot(X/Å, V, label='$V(x)$')  
+    real_plot, = ax.plot(X/Å, np.real(Ψ[index]), label='$Re|\\psi(x)|$')
+    imag_plot, = ax.plot(X/Å, np.imag(Ψ[index]), label='$Im|\\psi(x)|$')
+    abs_plot, = ax.plot(X/Å, np.abs(Ψ[index]), label='$|\\psi(x)|$')
+
+    ax.set_facecolor('#002b36')
+
+    leg = ax.legend(facecolor='#002b36', loc='lower left')
+    for line, text in zip(leg.get_lines(), leg.get_texts()):
+            text.set_color(line.get_color())
+
+    plot_spectrum(Ψ[-1], 'FFT Ψ[-1]')
+
+    plot_spectrum(Ψ[0], 'FFT Ground State')
+
+
+    fig = plt.figure(facecolor='#002b36', figsize=(6, 6))
+    plt.title('Ψ[-1], Madelung transform', color = 'white') 
+
+    ax = fig.gca()
+    set_axis_color(ax)
+    plt.grid(True)
+    r, s = madelung_transform(Ψ[-1])
+    ax.plot(s)
+
+
+    plt.show()
+
+
 def complex_to_rgb(Z: np.ndarray):
     """Convert complex values to their rgb equivalent.
     Parameters

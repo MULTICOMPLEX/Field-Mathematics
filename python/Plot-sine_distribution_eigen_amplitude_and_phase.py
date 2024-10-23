@@ -1,5 +1,6 @@
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 
 def set_axis_color(ax):
     ax.set_facecolor('#002b36')
@@ -57,13 +58,19 @@ def plot_json_data(filepath, x_key, y_key, title=None, xlabel=None, ylabel=None)
         plt.xlabel(xlabel)
     if ylabel:
         plt.ylabel(ylabel)
+    
+    n = 5
+    every_nth = x_values[::n] 
+    grid_points = every_nth
+    ax.grid(color='gray')
+    plt.grid(True)
+    ax = plt.gca()
+    ax.xaxis.set_ticks(grid_points)
 
-    plt.grid(True)  # Add a grid for better readability
 
+f = 'phase_amplitude_values - 3100.json'
 
-f = 'phase_amplitude_values - 3000.json'
-
-plot_json_data(f, 'Trial', 'Amplitude', title='Amplitude vs. Trial', xlabel='Trial', ylabel='Amplitude')
-plot_json_data(f, 'Trial', 'Phase', title="Phase vs. Trial", xlabel="Trial", ylabel="Phase")
+plot_json_data(f, 'Trial', 'Amplitude', title='Amplitude vs. Frequency', xlabel='Frequency', ylabel='Amplitude')
+plot_json_data(f, 'Trial', 'Phase', title='Phase vs. Frequency', xlabel="Frequency", ylabel="Phase")
 
 plt.show()

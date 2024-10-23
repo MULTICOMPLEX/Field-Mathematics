@@ -41,9 +41,13 @@ Updated paper:
 
 ![Figure_2](https://user-images.githubusercontent.com/75379917/171993597-f36b8444-05ec-42f0-bc43-14d2e019fbb3.png)
 
-Discrete Energy Levels
+Discrete Energy and Phase
 
-![Figure_9](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/84a448d1-f086-4bf6-accb-ac6cbae7e261)
+![v2](https://github.com/user-attachments/assets/378a13ca-838e-472d-b312-be8172abb867)
+![v](https://github.com/user-attachments/assets/59e6acb1-8e6d-480b-8e54-5777cd21e0a9)
+
+
+
 
 ![Figure_2](https://github.com/MULTICOMPLEX/Field-Mathematics/assets/75379917/21c91873-b92a-4f20-a3a6-66be5fa86d96)
 

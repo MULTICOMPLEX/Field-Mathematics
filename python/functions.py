@@ -6,7 +6,7 @@ import time
 import progressbar
 from matplotlib import mlab
 from matplotlib.ticker import ScalarFormatter
-from numpy.fft import irfft, rfftfreq, ifft,  fftfreq
+from numpy.fft import irfft, rfftfreq, ifft,  fftfreq, ifft2
 from numba import njit
 import phimagic_prng32
 
@@ -27,6 +27,25 @@ def fft_frequencies_2D(N, dx, hbar):
     p2 = np.fft.fftfreq(N, d = dx) * hbar  * 2*np.pi
     p1, p2 = np.meshgrid(p1, p2)
     return p1**2 + p2**2
+
+# Parameters
+hbar = 1.0     # Reduced Planck's constant
+m1 = 1.0       # Mass of oscillator 1
+m2 = 1.0       # Mass of oscillator 2
+g = 0.1        # Coupling constant
+
+def fft_frequencies_2D_1(N, dx, hbar):
+    # Compute the momentum components
+    p = np.fft.fftfreq(N, d=dx) * hbar * 2 * np.pi
+    p1, p2 = np.meshgrid(p, p, indexing='ij')
+    return p1, p2
+
+def kinetic_energy_2D(N, dx, hbar, m1, m2, g):
+    # Compute the kinetic energy with coupling
+    p1, p2 = fft_frequencies_2D_1(N, dx, hbar)
+    kinetic_energy = (p1**2) / (2 * m1) + (p2**2) / (2 * m2) + g * p1 * p2
+    return kinetic_energy
+
 
 '''
 # laplacian_operator
@@ -245,6 +264,46 @@ def func_approx(x, n):
     y_approx = np.fft.ifft(yf_truncated)
     return y_approx.real
 
+
+
+def powerlaw_psd_gaussian_2d(beta, steps_x, steps_y, fmin):
+    # Validate / normalise fmin
+    if 0 <= fmin <= 0.5:
+        fmin = max(fmin, 1. / min(steps_x, steps_y))  # Low frequency cutoff
+    else:
+        raise ValueError("fmin must be chosen between 0 and 0.5.")
+
+    # Create frequency grids for x and y dimensions
+    freq_x = fftfreq(steps_x)
+    freq_y = fftfreq(steps_y)
+    fx, fy = np.meshgrid(freq_x, freq_y, indexing='ij')
+    f = np.sqrt(fx**2 + fy**2)
+
+    # Build scaling factors for all frequencies
+    s_scale = f.copy()
+    s_scale[s_scale < fmin] = fmin
+    s_scale = (s_scale / np.sqrt(2)) ** (-beta)
+
+    # Generate random components
+    v = np.sqrt(np.pi)
+    rng = np.random.default_rng()
+    sr = rng.uniform(-v, v, size=(steps_x, steps_y))
+    si = rng.uniform(-v, v, size=(steps_x, steps_y))
+
+    sr *= s_scale
+    si *= s_scale
+
+    # Calculate theoretical output standard deviation from scaling
+    sigma = 2 * np.sqrt(np.sum(s_scale**2)) / (steps_x * steps_y)
+
+    # Combine power and phase to Fourier components
+    s = sr + 1j * si
+
+    # Transform to real space and scale to unit variance
+    y = ifft2(s) / sigma
+
+    return y
+
     
 def powerlaw_psd_gaussian(beta, steps, fmin):
    
@@ -257,8 +316,9 @@ def powerlaw_psd_gaussian(beta, steps, fmin):
     f = rfftfreq(steps)
 
     v = np.sqrt(np.pi)
-    sr = prng.uniform(-v, v, size=len(f))  
-    si = prng.uniform(-v, v, size=len(f))
+    rng = np.random.default_rng(current_time_seconds)       #numpy PRNG
+    sr = rng.uniform(-v, v, size=len(f))  
+    si = rng.uniform(-v, v, size=len(f))
       
     # Build scaling factors for all frequencies
     s_scale = f    
@@ -318,6 +378,41 @@ def first_order_diff_noise(num_samples, dx):
 
     psi_0 = norm(sr + si, dx)
     return psi_0
+
+
+
+def madelung_transform(psi):
+    R = np.abs(psi)  # Amplitude
+    S = np.angle(psi) * hbar  # Phase
+    return R, S
+
+def States(Ψ, psi_0, dx, Nt_per_store_step, Ur, Uk, S):
+
+    # Define the ground state wave function
+    title = "Ground_State.npy"
+    t0 = time.time()
+    bar = progressbar.ProgressBar(maxval=1)
+    for _ in bar(range(1)):
+        Ψ = ground_state(psi_0, Ψ, dx, S["store steps"], Nt_per_store_step, Ur, Uk, S["imaginary time evolution"], S["path data"], title, False)
+    print("Took", time.time() - t0)
+
+    #Ψ[0] =  psi_0
+    Ψ[0] = Ψ[-1]
+    phi = np.array([Ψ[0]])
+
+    nos = S["Number of States"]-1
+    if (nos):
+        t0 = time.time()
+        bar = progressbar.ProgressBar(maxval=nos)
+        # raising operators
+        for i in bar(range(nos)):
+            Ψ = Split_Step_NP(Ψ, phi, dx, S["store steps"], Nt_per_store_step, Ur, Uk, S["imaginary time evolution"])
+            phi = np.concatenate([phi, [Ψ[-1]]])
+        print("Took", time.time() - t0)
+        
+    return Ψ
+
+
 
 
 '''    

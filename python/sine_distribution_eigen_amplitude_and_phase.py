@@ -7,6 +7,7 @@ import time
 import phimagic_prng32
 import phimagic_prng64
 import json
+from visuals import *
 
 
 class Timer:
@@ -24,7 +25,9 @@ prng = phimagic_prng32.mxws()
 Nbins = 3100
 Ntrials = 100000000
 N_Integrations = 2
-Ncycles = 100
+Ncycles_begin = 1
+Ncycles_end = 150
+
 
 write_to_file = True
 
@@ -36,8 +39,7 @@ output_file = 'phase_amplitude_values.json'
 
 # List to accumulate results
 results = []
-
-for cycle in range(1, Ncycles + 1):
+for cycle in range(Ncycles_begin, Ncycles_end + 1):
         # Generate signal
         with Timer() as t:
             s1, p1 = prng.sine(enable_seed = 1,  Seed = current_time_seconds + cycle, Ntrials = Ntrials, Ncycles = cycle,  N_Integrations = N_Integrations,  Nbins = Nbins, Icycles = 1)
@@ -67,24 +69,12 @@ if write_to_file:
 print('Completed processing.')
 
 
-
-def set_axis_color(ax):
-    ax.set_facecolor('#002b36')
-    ax.xaxis.label.set_color('white')
-    ax.yaxis.label.set_color('white')
-    ax.tick_params(which = 'major', colors='white')
-    ax.tick_params(which = 'minor', colors='white')
-    ax.spines['left'].set_color('white')
-    ax.spines['bottom'].set_color('white')
-    ax.spines['top'].set_color('white')
-    ax.spines['right'].set_color('white') 
-
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 ax = fig.gca()
 set_axis_color(ax)
 x = np.linspace(0,1,  len(s1)) 
-plt.plot(x, s1, label = str(int((Ntrials * N_Integrations * p1[1] * Ncycles)))+ " Trials") 
-plt.title("Sine Distribution " + str(Ncycles), color = 'white')
+plt.step(x, s1, label = str(int((Ntrials * N_Integrations * p1[1] * Ncycles_end)))+ " Trials") 
+plt.title("Sine Distribution " + str(Ncycles_end), color = 'white')
 plt.xlabel("Time", color = 'white')
 plt.ylabel("Y", color = 'white')
 plt.grid(alpha=0.4)

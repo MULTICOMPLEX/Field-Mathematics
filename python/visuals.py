@@ -11,6 +11,16 @@ from functions import *
 from matplotlib.widgets import Slider
 from matplotlib.widgets import Button
 
+def set_axis_color(ax):
+    ax.set_facecolor('#002b36')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    ax.tick_params(which = 'major', colors='white')
+    ax.tick_params(which = 'minor', colors='white')
+    ax.spines['left'].set_color('white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['top'].set_color('white')
+    ax.spines['right'].set_color('white')
 
 def plot_spectrum(Ψ, title = 'title'):
     fig = plt.figure(facecolor='#002b36', figsize=(10, 6))

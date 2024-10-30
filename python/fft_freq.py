@@ -360,7 +360,7 @@ set_axis_color(ax)
 
 X = np.array((approx1[:int(steps/return_to_beginning)], approx2[:int(steps/return_to_beginning)])).T
 # Build similarity matrix using an RBF kernel
-sigma = 0.10  # Parameter for the Gaussian kernel
+sigma = 0.05  # Parameter for the Gaussian kernel
 similarity_matrix = rbf_kernel(X, gamma=1 / (2 * sigma**2))
 
 # Apply spectral clustering using the similarity matrix

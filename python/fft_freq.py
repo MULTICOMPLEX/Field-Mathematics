@@ -12,14 +12,16 @@ import phimagic_prng64
 import time
 from scipy.io import wavfile
 import pyaudio
+from sklearn.cluster import SpectralClustering
+from sklearn.metrics.pairwise import rbf_kernel
 
 
-steps = 2**20 # number of steps to generate
+steps = 2**11 # number of steps to generate
 return_to_beginning = 1
 beta1 = 2 # the exponent
-beta2 = 1.2# the exponent
+beta2 = 2# the exponent
 fmin = 0.0;
-n = 1024 #plot every n sample
+n = 1 #plot every n sample
 normal_input = 1
 standard_dev = 1
 function_input = 0
@@ -354,6 +356,30 @@ plt.ylabel("Approximation Y= 0:" + str(Nfreq1) + " frequencies")
 
 ax = fig.gca()
 set_axis_color(ax)
+
+X = np.array([approx2[:int(steps/return_to_beginning)],  approx1[:int(steps/return_to_beginning)]]).T
+# Step 2: Build similarity matrix using an RBF kernel
+# (an example similarity measure based on distances between points)
+sigma = 0.10  # Parameter for the Gaussian kernel
+similarity_matrix = rbf_kernel(X, gamma=1 / (2 * sigma**2))
+
+# Step 3: Apply spectral clustering using the similarity matrix
+n_clusters = 8  # We know there are 2 clusters (moons)
+spectral_clustering = SpectralClustering(
+    n_clusters=n_clusters,
+    affinity='precomputed',  # Uses the similarity matrix directly
+    #random_state=42
+)
+labels = spectral_clustering.fit_predict(similarity_matrix)
+
+# Step 4: Visualize the results
+fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
+ax = fig.gca()
+set_axis_color(ax)
+plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis', s=5)
+plt.title("Spectral clustering based on the similarity matrix computed by the RBF kernel.", color = 'white')
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
 
 
 """

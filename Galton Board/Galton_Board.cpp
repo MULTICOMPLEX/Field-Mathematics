@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 
 	std::uint64_t Ntrials = 10000000;
 	//Wave cycles or threads  
-	U Ncycles = 8;
+	U Ncycles = 1;
 	//Number of integrations
 	U N_Integrations = 2;
 	//Initial number of bins

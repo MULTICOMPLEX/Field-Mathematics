@@ -16,7 +16,7 @@ from sklearn.cluster import SpectralClustering
 from sklearn.metrics.pairwise import rbf_kernel
 
 
-steps = 2**11 # number of steps to generate
+steps = 2**12 # number of steps to generate
 return_to_beginning = 1
 beta1 = 2 # the exponent
 beta2 = 2# the exponent
@@ -25,10 +25,11 @@ n = 1 #plot every n sample
 normal_input = 1
 standard_dev = 1
 function_input = 0
+n_clusters = 10
 
 #Number of frequencies for approximation
-Nfreq1 = 37
-Nfreq2 = 10
+Nfreq1 = 300
+Nfreq2 = 25
 
 Nfreq3 = 12
 
@@ -347,7 +348,7 @@ approx2 = func_approx(y2, Nfreq2)
 fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
 plt.title("Random Walk Fourier Function Approximation " + str(steps) + " steps", color = 'white')
 label = "X vs Y"
-plt.plot(approx2[:int(steps/return_to_beginning)],  approx1[:int(steps/return_to_beginning)], label=label)
+plt.plot(approx1[:int(steps/return_to_beginning)], approx2[:int(steps/return_to_beginning)],  label=label)
 
 plt.legend()
 plt.grid(True, alpha = 0.4)
@@ -357,14 +358,13 @@ plt.ylabel("Approximation Y= 0:" + str(Nfreq1) + " frequencies")
 ax = fig.gca()
 set_axis_color(ax)
 
-X = np.array([approx2[:int(steps/return_to_beginning)],  approx1[:int(steps/return_to_beginning)]]).T
-# Step 2: Build similarity matrix using an RBF kernel
-# (an example similarity measure based on distances between points)
+X = np.array((approx1[:int(steps/return_to_beginning)], approx2[:int(steps/return_to_beginning)])).T
+# Build similarity matrix using an RBF kernel
 sigma = 0.10  # Parameter for the Gaussian kernel
 similarity_matrix = rbf_kernel(X, gamma=1 / (2 * sigma**2))
 
-# Step 3: Apply spectral clustering using the similarity matrix
-n_clusters = 8  # We know there are 2 clusters (moons)
+# Apply spectral clustering using the similarity matrix
+
 spectral_clustering = SpectralClustering(
     n_clusters=n_clusters,
     affinity='precomputed',  # Uses the similarity matrix directly

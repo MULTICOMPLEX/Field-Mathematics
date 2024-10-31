@@ -12,11 +12,9 @@ import phimagic_prng64
 import time
 from scipy.io import wavfile
 import pyaudio
-from sklearn.cluster import SpectralClustering
-from sklearn.metrics.pairwise import rbf_kernel
 
 
-steps = 2**12 # number of steps to generate
+steps = 2**11 # number of steps to generate
 return_to_beginning = 1
 beta1 = 2 # the exponent
 beta2 = 2# the exponent
@@ -25,10 +23,11 @@ n = 1 #plot every n sample
 normal_input = 1
 standard_dev = 1
 function_input = 0
-n_clusters = 10
+n_segments = 10
+sigma = 0.04  # Parameter for the Gaussian kernel
 
 #Number of frequencies for approximation
-Nfreq1 = 300
+Nfreq1 = 200
 Nfreq2 = 25
 
 Nfreq3 = 12
@@ -358,29 +357,74 @@ plt.ylabel("Approximation Y= 0:" + str(Nfreq1) + " frequencies")
 ax = fig.gca()
 set_axis_color(ax)
 
-X = np.array((approx1[:int(steps/return_to_beginning)], approx2[:int(steps/return_to_beginning)])).T
-# Build similarity matrix using an RBF kernel
-sigma = 0.05  # Parameter for the Gaussian kernel
-similarity_matrix = rbf_kernel(X, gamma=1 / (2 * sigma**2))
 
-# Apply spectral clustering using the similarity matrix
+def segment_curve(x, y, n_segments):
+    """Segments a curve defined by x and y coordinates into n equal-length segments.
 
-spectral_clustering = SpectralClustering(
-    n_clusters=n_clusters,
-    affinity='precomputed',  # Uses the similarity matrix directly
-    #random_state=42
-)
-labels = spectral_clustering.fit_predict(similarity_matrix)
+    Args:
+        x: A 1D numpy array of x-coordinates.
+        y: A 1D numpy array of y-coordinates.
+        n_segments: The desired number of segments.
 
-# Step 4: Visualize the results
-fig = plt.figure(facecolor='#002b36', figsize=(10, 6))
-ax = fig.gca()
-set_axis_color(ax)
-plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis', s=5)
-plt.title("Spectral clustering based on the similarity matrix computed by the RBF kernel.", color = 'white')
-plt.xlabel("Feature 1")
-plt.ylabel("Feature 2")
+    Returns:
+        A list of (x, y) tuples, where each tuple represents a segment. 
+        If the curve cannot be divided equally, the last segment might be shorter.
+    """
 
+    # Calculate the cumulative distance along the curve
+    distances = np.cumsum(np.sqrt(np.diff(x)**2 + np.diff(y)**2))
+    distances = np.insert(distances, 0, 0)  # prepend a 0 for the starting point
+
+    # Calculate the target distance for each segment
+    total_distance = distances[-1]
+    target_distance = total_distance / n_segments
+
+
+    segments = []
+    start_index = 0
+    for i in range(1, n_segments):
+        # Find the index closest to the target distance for the current segment
+        end_index = np.argmin(np.abs(distances - i * target_distance))  
+
+        # Extract the segment
+        x_segment = x[start_index:end_index+1]  #+1 to include the end point
+        y_segment = y[start_index:end_index+1]
+        segments.append((x_segment, y_segment))
+
+        start_index = end_index
+
+
+    # Add the last segment 
+    x_segment = x[start_index:]
+    y_segment = y[start_index:]
+    segments.append((x_segment, y_segment))
+
+    return segments
+
+
+x = approx1[:int(steps/return_to_beginning)]
+y = approx2[:int(steps/return_to_beginning)]
+
+n_segments = n_segments# Number of segments
+segments = segment_curve(x, y, n_segments)
+
+
+
+# Plot the segmented curve:
+plt.figure(figsize=(10,8))
+for i, (x_seg, y_seg) in enumerate(segments):
+    plt.plot(x_seg, y_seg, label=f"Segment {i+1}", marker='o', markersize=3)
+
+# Plot the start point (green)
+plt.plot(x[0], y[0], marker='o', markersize=8, color=start_color, label='Start')
+# Plot the end point (red)
+plt.plot(x[-1], y[-1], marker='o', markersize=8, color=end_color, label='End')
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title(f"Random Walk Segmented into {n_segments} Pieces")
+plt.legend()
+plt.grid(True)
 
 """
 # Sort by y-coordinate

@@ -162,7 +162,6 @@ plt.show()
 
 
 Ψ = np.zeros((n, *([steps] * 2)))
-v = np.sqrt(np.pi) / 4
 
 
 t0 = time.time()

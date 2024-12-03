@@ -7,13 +7,15 @@ import colour  # Install with: pip install colour-science
 import time
 import porespy as ps
 import phimagic_prng32
+from PIL import Image
+
 
 
 # Seed the random number generator
 rng = np.random.default_rng(int(time.time())) 
 
 # Create an instance of the custom PRNG
-prng = phimagic_prng32.mxws() 
+prng = phimagic_prng32.mxws(int(time.time())) 
 
 def generate_fresnel_hologram(object_field, z, wavelength, pixel_size, N):
     """
@@ -79,7 +81,7 @@ def reconstruct_image(hologram, z, wavelength, pixel_size, N):
     Reconstructed_field_f = Hologram_f * H
 
     # Reconstructed image in spatial domain
-    Reconstructed_image = np.abs(fft.ifft2(fft.ifftshift(Reconstructed_field_f)))**2
+    Reconstructed_image = np.abs(fft.ifft2(fft.ifftshift(Reconstructed_field_f)))
 
     return Reconstructed_image
 
@@ -263,10 +265,48 @@ def add_speckle_phase(field, speckle_size):
     
     return field * np.exp(1j * signal)
     #return field * np.exp(1j * speckle_phase)
+    
 
+def rescale_jpg_to_grayscale_array(image_path, new_width, new_height, normalize=False):
+    """
+    Rescales a JPG image to a grayscale NumPy array.
+
+    Args:
+        image_path: Path to the JPG image file.
+        new_width: Desired width of the rescaled image.
+        new_height: Desired height of the rescaled image.
+        normalize: Whether to normalize pixel values to [0, 1] (default: False).
+
+    Returns:
+        NumPy array representing the rescaled grayscale image, or None if an error occurs.
+    """
+    try:
+        # 1. Load image
+        img = Image.open(image_path)
+
+        # 2. Convert to grayscale
+        grayscale_img = img.convert("L")
+
+        # 3. Resize image
+        resized_img = grayscale_img.resize((new_width, new_height), Image.LANCZOS)
+
+        # 4. Convert to NumPy array
+        img_array = np.array(resized_img)
+
+        # 5. (Optional) Normalize
+        if normalize:
+            img_array = img_array / 255.0
+
+        return img_array  # Return the img_array, not the original img object
+
+    except FileNotFoundError:
+        print(f"Error: Image file not found at {image_path}")
+        return None
+    
+        
 
 # Parameters
-N = 1024  # Number of pixels
+N = 1024*2  # Number of pixels
 # Define the wavelength of the HeNe laser
 wavelength = 0.6328e-6  # Wavelength of HeNe laser (meters)
 wavelength_nm = wavelength * 1e9
@@ -283,8 +323,8 @@ rgb = np.clip(rgb, 0, 1)  # Ensure RGB values are in [0, 1]
 colormap = LinearSegmentedColormap.from_list("Laser", [(0, "black"), (0.5, rgb), (1, "white")])
 
 z = 0.2  # Propagation distance (meters)
-pixel_size = 5e-7  # Pixel size (meters)    10e-6
-speckle_size = N//128 # Control the size of the speckles, smaller values mean larger speckles
+pixel_size = 10e-7  # Pixel size (meters)    10e-6
+speckle_size = 1 # Control the size of the speckles, smaller values mean larger speckles
 
 # Generate Point Source Object
 object_field = np.zeros((N, N))
@@ -296,6 +336,7 @@ pentagram_center = (N // 2, N // 2)
 object_field = create_pentagram(N, pentagram_radius, pentagram_center)
 #object_field = func_approx_2D(object_field, N//3).real
 
+object_field = rescale_jpg_to_grayscale_array('IMG_20241202_154430799.jpg', new_width = N, new_height = N, normalize=True)
 
 # --- Add Speckle Phase ---
 object_field_with_speckle = add_speckle_phase(object_field, speckle_size)
@@ -304,7 +345,7 @@ object_field_with_speckle = add_speckle_phase(object_field, speckle_size)
 hologram = generate_fresnel_hologram(object_field_with_speckle, z, wavelength, pixel_size, N)
 
 # Display the Hologram
-fig = plt.figure(figsize=(18, 5), facecolor='#002b36')
+fig = plt.figure(figsize=(12, 5), facecolor='#002b36')
 plt.tight_layout()
 
 plt.subplot(1, 2, 1)
@@ -321,7 +362,7 @@ reconstructed_image = reconstruct_image(hologram, z, wavelength, pixel_size, N)
 plt.subplot(1, 2, 2)
 ax = fig.gca()
 set_axis_color(ax)
-plt.imshow(reconstructed_image, interpolation='bicubic', cmap=colormap) # Display the colored reconstructed image
+plt.imshow(reconstructed_image, interpolation='bicubic', cmap='gray') # Display the colored reconstructed image
 plt.title('Reconstructed Image', color='white')
 
 

@@ -382,7 +382,7 @@ cbar.set_label('Amplitude', color='white')
 fig = plt.figure(figsize=(15, 8), facecolor='#002b36')
 ax = fig.gca()
 set_axis_color(ax)
-im = plt.imshow(np.abs(hologram), interpolation='bicubic', cmap=colormap) # Use laser_colormap for the amplitude of the hologram
+im = plt.imshow(np.abs(hologram), interpolation='bicubic') # Use laser_colormap for the amplitude of the hologram
 plt.title('Amplitude of Hologram', color='white')
 # Add the colorbar and customize
 cbar = plt.colorbar(im, ax=ax)

@@ -38,7 +38,7 @@ def generate_fresnel_hologram(object_field, z, wavelength, pixel_size, N):
     Fx, Fy = np.meshgrid(fx, fy)
 
     # Fresnel propagator in Fourier domain
-    H = np.exp(1j * 2 * np.pi * z / wavelength * np.sqrt(1 - (wavelength * Fx)**2 - (wavelength * Fy)**2))
+    H = np.exp(1j * 2 * np.pi * z / wavelength * np.lib.scimath.sqrt(1 - (wavelength * Fx)**2 - (wavelength * Fy)**2))
 
     # Object field in Fourier domain
     Object_field_f = fft.fftshift(fft.fft2(object_field))
@@ -72,7 +72,7 @@ def reconstruct_image(hologram, z, wavelength, pixel_size, N):
     Fx, Fy = np.meshgrid(fx, fy)
 
     # Fresnel propagator in Fourier domain (conjugate for reconstruction)
-    H = np.exp(-1j * 2 * np.pi * z / wavelength * np.sqrt(1 - (wavelength * Fx)**2 - (wavelength * Fy)**2))
+    H = np.exp(-1j * 2 * np.pi * z / wavelength * np.lib.scimath.sqrt(1 - (wavelength * Fx)**2 - (wavelength * Fy)**2))
 
     # Hologram in Fourier domain
     Hologram_f = fft.fftshift(fft.fft2(hologram))
@@ -382,7 +382,7 @@ cbar.set_label('Amplitude', color='white')
 fig = plt.figure(figsize=(15, 8), facecolor='#002b36')
 ax = fig.gca()
 set_axis_color(ax)
-im = plt.imshow(np.abs(hologram), interpolation='bicubic') # Use laser_colormap for the amplitude of the hologram
+im = plt.imshow(np.abs(hologram), interpolation='bicubic', cmap=colormap) # Use laser_colormap for the amplitude of the hologram
 plt.title('Amplitude of Hologram', color='white')
 # Add the colorbar and customize
 cbar = plt.colorbar(im, ax=ax)

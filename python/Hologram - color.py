@@ -141,15 +141,9 @@ def powerlaw_psd_gaussian_2D(beta, size, rng, uniform_normal, stdev=1, fmin=0):
 
     return scaled_phase_y
 
-def add_speckle_phase(field, speckle_size):
+def add_speckle_phase(field, speckle_sizespeckle_size, beta, fmin, stdev, uniform_normal):
     """Adds a random phase to a field to simulate speckle."""
     N = field.shape[0]
-   
-    # Parameters
-    beta = 2
-    fmin = 0.0
-    stdev = 4
-    uniform_normal = 1
 
     # Generate the signal
     signal = powerlaw_psd_gaussian_2D(beta, N//speckle_size, rng, uniform_normal, stdev, fmin)
@@ -207,18 +201,24 @@ def rescale_jpg_to_grayscale_array(image_path, new_width, new_height, normalize=
 # Parameters
 N = 1024  # Number of pixels
 wavelength = 0.6328e-6  # Wavelength of HeNe laser (meters)
-z = 0.2
+z = 0.2 # Propagation distance (meters)
 pixel_size = 10e-7  # Pixel size (meters)    10e-6
 speckle_size = 1 # Control the size of the speckles, smaller values mean larger speckles
+
+# Noise Parameters
+beta = 2
+fmin = 0.0
+stdev = 4
+uniform_normal = 1
 
 object_field_r = rescale_jpg_to_grayscale_array('IMG_20241202_154430799.jpg', new_width = N, new_height = N, normalize=True)[0]
 object_field_g = rescale_jpg_to_grayscale_array('IMG_20241202_154430799.jpg', new_width = N, new_height = N, normalize=True)[1]
 object_field_b = rescale_jpg_to_grayscale_array('IMG_20241202_154430799.jpg', new_width = N, new_height = N, normalize=True)[2]
 
 # --- Add Speckle Phase ---
-object_field_with_speckle_r = add_speckle_phase(object_field_r, speckle_size)
-object_field_with_speckle_g = add_speckle_phase(object_field_g, speckle_size)
-object_field_with_speckle_b = add_speckle_phase(object_field_b, speckle_size)
+object_field_with_speckle_r = add_speckle_phase(object_field_r, speckle_size, beta, fmin, stdev, uniform_normal)
+object_field_with_speckle_g = add_speckle_phase(object_field_g, speckle_size, beta, fmin, stdev, uniform_normal)
+object_field_with_speckle_b = add_speckle_phase(object_field_b, speckle_size, beta, fmin, stdev, uniform_normal)
 
 # --- Hologram Generation ---
 hologram_r = generate_fresnel_hologram(object_field_with_speckle_r, z, wavelength, pixel_size, N)

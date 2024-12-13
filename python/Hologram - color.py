@@ -10,7 +10,6 @@ import phimagic_prng32
 from PIL import Image
 
 
-
 # Seed the random number generator
 rng = np.random.default_rng(int(time.time())) 
 
@@ -200,8 +199,10 @@ def rescale_jpg_to_grayscale_array(image_path, new_width, new_height, normalize=
 
 # Parameters
 N = 1024  # Number of pixels
-wavelength = 0.6328e-6  # Wavelength of HeNe laser (meters)
-z = 0.2 # Propagation distance (meters)
+wavelength_r = 0.6328e-6  # Wavelength of red laser (meters)
+wavelength_g = 0.532e-6 # Wavelength of green laser (meters)
+wavelength_b = 0.473e-6 # Wavelength of blue laser (meters)
+z = 0.2  # Propagation distance (meters)
 pixel_size = 10e-7  # Pixel size (meters)    10e-6
 speckle_size = 1 # Control the size of the speckles, smaller values mean larger speckles
 
@@ -221,9 +222,9 @@ object_field_with_speckle_g = add_speckle_phase(object_field_g, speckle_size, be
 object_field_with_speckle_b = add_speckle_phase(object_field_b, speckle_size, beta, fmin, stdev, uniform_normal)
 
 # --- Hologram Generation ---
-hologram_r = generate_fresnel_hologram(object_field_with_speckle_r, z, wavelength, pixel_size, N)
-hologram_g = generate_fresnel_hologram(object_field_with_speckle_g, z, wavelength, pixel_size, N)
-hologram_b = generate_fresnel_hologram(object_field_with_speckle_b, z, wavelength, pixel_size, N)
+hologram_r = generate_fresnel_hologram(object_field_with_speckle_r, z, wavelength_r, pixel_size, N)
+hologram_g = generate_fresnel_hologram(object_field_with_speckle_g, z, wavelength_g, pixel_size, N)
+hologram_b = generate_fresnel_hologram(object_field_with_speckle_b, z, wavelength_b, pixel_size, N)
 
 # Display the Hologram
 fig = plt.figure(figsize=(12, 5), facecolor='#002b36')
@@ -239,9 +240,9 @@ plt.title('Original Image', color='white')
 
 
 # --- Image Reconstruction ---
-reconstructed_image_r = reconstruct_image(hologram_r, z, wavelength, pixel_size, N)
-reconstructed_image_g = reconstruct_image(hologram_g, z, wavelength, pixel_size, N)
-reconstructed_image_b = reconstruct_image(hologram_b, z, wavelength, pixel_size, N)
+reconstructed_image_r = reconstruct_image(hologram_r, z, wavelength_r, pixel_size, N)
+reconstructed_image_g = reconstruct_image(hologram_g, z, wavelength_g, pixel_size, N)
+reconstructed_image_b = reconstruct_image(hologram_b, z, wavelength_b, pixel_size, N)
 
 
 # Stack the arrays along a new axis (axis=2) to create the (height, width, 3) shape

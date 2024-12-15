@@ -196,6 +196,21 @@ def rescale_jpg_to_grayscale_array(image_path, new_width, new_height, normalize=
         return None
     
         
+def mirror_upside_down_image(image_array):
+    """Mirrors and rotates an image array upside down (180 degrees).
+    Args:
+      image_array (np.ndarray): The input image as a NumPy array (grayscale or RGB).
+    Returns:
+      np.ndarray: The transformed image as a NumPy array.
+    """
+    
+    # Create a mirror image (flip horizontally)
+    mirror_image_array = np.fliplr(image_array)
+
+    # Create an upside-down image (flip vertically)
+    upside_down_array = np.flipud(mirror_image_array)
+
+    return upside_down_array
 
 # Parameters
 N = 1024  # Number of pixels
@@ -206,8 +221,11 @@ z = 0.2  # Propagation distance (meters)
 pixel_size = 10e-7  # Pixel size (meters)    10e-6
 speckle_size = 1 # Control the size of the speckles, smaller values mean larger speckles
 
+colormap = 'terrain'
+#colormap = 'seismic'
+
 # Noise Parameters
-beta = 2
+beta = 3
 fmin = 0.0
 stdev = 4
 uniform_normal = 1
@@ -235,7 +253,7 @@ ax = fig.gca()
 set_axis_color(ax)
 img = Image.open('IMG_20241202_154430799.jpg')
 
-plt.imshow(img.resize((N, N), Image.LANCZOS)) # Display the colored reconstructed image
+plt.imshow(img.resize((N, N), Image.LANCZOS), interpolation='bicubic') # Display the colored reconstructed image
 plt.title('Original Image', color='white')
 
 
@@ -260,11 +278,10 @@ reconstructed_image = Image.fromarray(rgb_array)
 plt.subplot(1, 2, 2)
 ax = fig.gca()
 set_axis_color(ax)
-plt.imshow(reconstructed_image) # Display the colored reconstructed image
+#reconstructed_image = mirror_upside_down_image(reconstructed_image)
+plt.imshow(reconstructed_image, interpolation='bicubic') # Display the colored reconstructed image
 plt.title('Reconstructed Image', color='white')
 
-
-colormap = 'seismic'
 
 fig = plt.figure(figsize=(12, 5), facecolor='#002b36')
 plt.tight_layout()
@@ -273,7 +290,7 @@ plt.subplot(1, 2, 1)
 ax = fig.gca()
 set_axis_color(ax)
 
-im = plt.imshow(np.angle(hologram_r), cmap=colormap) # Display the colored reconstructed image
+im = plt.imshow(np.angle(hologram_r), interpolation='bicubic', cmap=colormap) # Display the colored reconstructed image
 plt.title('Phase of Hologram (red)', color='white')
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
@@ -282,12 +299,12 @@ cbar.set_label('Amplitude', color='white')
 plt.subplot(1, 2, 2)
 ax = fig.gca()
 set_axis_color(ax)
-im = plt.imshow(np.abs(hologram_r), cmap=colormap) # Display the colored reconstructed image
+im = plt.imshow(np.abs(hologram_r), interpolation='bicubic', cmap=colormap) # Display the colored reconstructed image
 plt.title('Amplitude of Hologram (red)', color='white')
 # Add the colorbar and customize
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
-cbar.set_label('Amplitude (red)', color='white')
+cbar.set_label('Amplitude', color='white')
 
 ###
 
@@ -298,7 +315,7 @@ plt.subplot(1, 2, 1)
 ax = fig.gca()
 set_axis_color(ax)
 
-im = plt.imshow(np.angle(hologram_g), cmap=colormap) # Display the colored reconstructed image
+im = plt.imshow(np.angle(hologram_g), interpolation='bicubic', cmap=colormap) # Display the colored reconstructed image
 plt.title('Phase of Hologram (green)', color='white')
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
@@ -307,12 +324,12 @@ cbar.set_label('Amplitude', color='white')
 plt.subplot(1, 2, 2)
 ax = fig.gca()
 set_axis_color(ax)
-im = plt.imshow(np.abs(hologram_g), cmap=colormap) # Display the colored reconstructed image
+im = plt.imshow(np.abs(hologram_g), interpolation='bicubic', cmap=colormap) # Display the colored reconstructed image
 plt.title('Amplitude of Hologram (green)', color='white')
 # Add the colorbar and customize
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
-cbar.set_label('Amplitude (green)', color='white')
+cbar.set_label('Amplitude', color='white')
 
 
 ###
@@ -324,21 +341,21 @@ plt.subplot(1, 2, 1)
 ax = fig.gca()
 set_axis_color(ax)
 
-im = plt.imshow(np.angle(hologram_b), cmap=colormap) # Display the colored reconstructed image
+im = plt.imshow(np.angle(hologram_b), interpolation='bicubic', cmap=colormap) # Display the colored reconstructed image
 plt.title('Phase of Hologram (blue)', color='white')
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
-cbar.set_label('Amplitude (blue)', color='white')
+cbar.set_label('Amplitude', color='white')
 
 plt.subplot(1, 2, 2)
 ax = fig.gca()
 set_axis_color(ax)
-im = plt.imshow(np.abs(hologram_b), cmap=colormap) # Display the colored reconstructed image
+im = plt.imshow(np.abs(hologram_b), interpolation='bicubic', cmap=colormap) # Display the colored reconstructed image
 plt.title('Amplitude of Hologram (blue)', color='white')
 # Add the colorbar and customize
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
-cbar.set_label('Amplitude (blue)', color='white')
+cbar.set_label('Amplitude', color='white')
 
 
 plt.show()

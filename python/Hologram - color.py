@@ -294,7 +294,7 @@ im = plt.imshow(np.angle(hologram_r), interpolation='bicubic', cmap=colormap) # 
 plt.title('Phase of Hologram (red)', color='white')
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
-cbar.set_label('Amplitude', color='white')
+cbar.set_label('Phase', color='white')
 
 plt.subplot(1, 2, 2)
 ax = fig.gca()
@@ -319,7 +319,7 @@ im = plt.imshow(np.angle(hologram_g), interpolation='bicubic', cmap=colormap) # 
 plt.title('Phase of Hologram (green)', color='white')
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
-cbar.set_label('Amplitude', color='white')
+cbar.set_label('Phase', color='white')
 
 plt.subplot(1, 2, 2)
 ax = fig.gca()
@@ -345,7 +345,7 @@ im = plt.imshow(np.angle(hologram_b), interpolation='bicubic', cmap=colormap) # 
 plt.title('Phase of Hologram (blue)', color='white')
 cbar = plt.colorbar(im, ax=ax)
 cbar.ax.tick_params(colors='white')
-cbar.set_label('Amplitude', color='white')
+cbar.set_label('Phase', color='white')
 
 plt.subplot(1, 2, 2)
 ax = fig.gca()

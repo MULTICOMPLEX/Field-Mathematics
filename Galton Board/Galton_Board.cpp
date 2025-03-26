@@ -17,11 +17,11 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 10000000;
+	std::uint64_t Ntrials = 100000000;
 	//Wave cycles or threads  
-	U Ncycles = 1;
+	U Ncycles = 3;
 	//Number of integrations
-	U N_Integrations = 2;
+	U N_Integrations = 4;
 	//Initial number of bins
 	U Nbins = 3000;
 	//U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
@@ -330,7 +330,7 @@ int main(int argc, char** argv)
 			str += std::to_string(Ncycles);
 			plot.text(text_x_offset, -8, str, "blue", 11);
 
-			str = "Board size=";
+			str = "NBins/Cycle=";
 			str += std::to_string(Y_buf.size() / Ncycles);
 
 			if (Initial_Board_size > Board_size) str = str + ", shrunken to ";

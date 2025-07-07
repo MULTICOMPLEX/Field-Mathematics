@@ -481,7 +481,7 @@ public:
 
 			cycle[std::modulus()(random_walk * rn_range >> 32, Initial_Board_size)]++;
 
-		}
+		} 
 
 		auto k = std::ranges::minmax_element(cycle);
 		auto Amplitude = std::uint64_t(round(*k.max - *k.min));

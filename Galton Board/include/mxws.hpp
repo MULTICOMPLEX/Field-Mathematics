@@ -486,7 +486,13 @@ public:
 		auto k = std::ranges::minmax_element(cycle);
 		auto Amplitude = std::uint64_t(round(*k.max - *k.min));
 
-		L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude / 2.0));
+		//L DC = *std::ranges::min_element(cycle) + std::uint64_t(round(Amplitude / 2.0));
+
+		auto sum = std::accumulate(cycle.begin(), cycle.end(), 0ull); // or 0.0 if floating point
+		auto mean = static_cast<double>(sum) / cycle.size();          // use static_cast for precision
+
+		L DC = std::uint64_t(std::round(mean));  // or `double DC = mean;` if L is floating point
+
 
 		std::vector<L> vec = { rn_range , Board_size , Amplitude , DC };
 

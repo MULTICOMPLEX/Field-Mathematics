@@ -468,7 +468,7 @@ public:
 
 		I Board_size;
 		I rn_mag;
-
+		 
 		Board_size = I(round(std::log(Initial_Board_size * 6) * std::sqrt(std::numbers::pi)));
 		rn_mag = I(round(Initial_Board_size / std::sqrt(log2(Initial_Board_size))));
 

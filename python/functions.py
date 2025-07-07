@@ -7,7 +7,6 @@ import progressbar
 from matplotlib import mlab
 from matplotlib.ticker import ScalarFormatter
 from numpy.fft import irfft, rfftfreq, ifft,  fftfreq, ifft2
-#from numba import njit
 import phimagic_prng32
 
 
@@ -79,7 +78,6 @@ def normalize(T):
 # P = sum_i |psi_i><psi_i|
 # method for projecting a vector onto a given subspace.
 # orthogonal projection
-
 
 def apply_projection(tmp, psi_list, dx):
     """

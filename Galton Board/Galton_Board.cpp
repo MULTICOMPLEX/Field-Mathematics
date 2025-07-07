@@ -17,13 +17,13 @@ int main(int argc, char** argv)
 
 	/***************SETTINGS*****************/
 
-	std::uint64_t Ntrials = 10000000;
+	std::uint64_t Ntrials = 100000000;
 	//Wave cycles or threads  
-	U Ncycles = 10;
+	U Ncycles = 1;
 	//Number of integrations
-	U N_Integrations = 2;
+	U N_Integrations = 4;
 	//Initial number of bins
-	U Nbins = 3100;
+	U Nbins = 2000;
 	//U Nbins = Ncycles * FP_digits(std::numbers::pi, 2); //3, 31, 314, 3142, 31416 
 	if (Nbins < 3 * Ncycles)//minimum 3 x Ncycles
 		Nbins = 3 * Ncycles;
@@ -330,7 +330,7 @@ int main(int argc, char** argv)
 			str += std::to_string(Ncycles);
 			plot.text(text_x_offset, -8, str, "blue", 11);
 
-			str = "Board size=";
+			str = "NBins/Cycle=";
 			str += std::to_string(Y_buf.size() / Ncycles);
 
 			if (Initial_Board_size > Board_size) str = str + ", shrunken to ";
@@ -447,7 +447,7 @@ int main(int argc, char** argv)
 			X.clear();
 			Y.clear();
 
-			//Peak - to - Peak Values, Ntrials = 1000000000, Nbins = 3000
+			//Peak - to - Peak Values, Ntrials = 1000000000 * cycles, Nbins = 3000, cycles 0-70 
 			Y = { 0,
 				 112668,  204726,  310488,  367831,  414387,  557552,  608150,  656886,  846702,  869743,
 				 931300,  950429, 1041416, 1033746, 1102301, 1426354, 1485941, 1515106, 1560377, 1491921,

@@ -16,8 +16,8 @@ import pyaudio
 
 steps = 2**20 # number of steps to generate
 return_to_beginning = 1
-beta1 = 1 # the exponent
-beta2 = 1.2# the exponent
+beta1 = -2 # the exponent
+beta2 = 2# the exponent
 fmin = 0.0;
 n = 1024 #plot every n sample
 normal_input = 1
@@ -43,7 +43,7 @@ def powerlaw_psd_gaussian(beta, steps, fmin, f, sr, si):
     ix   = np.sum(s_scale < fmin)   # Index of the cutoff
     if ix and ix < len(s_scale):
         s_scale[:ix] = s_scale[ix]
-    s_scale = s_scale**(-beta/2.)
+    s_scale = (s_scale/2)**(-beta)
       
     sr *= s_scale
     si *= s_scale   
@@ -348,6 +348,7 @@ set_axis_color(ax)
 # Sampling rate (steps per second)
 sampling_rate = 44100
 
+"""
 # Open an audio stream using PyAudio
 p = pyaudio.PyAudio()
 stream = p.open(format=pyaudio.paFloat32,
@@ -365,6 +366,18 @@ stream.write(stereo_data.astype(np.float32).tobytes())
 stream.stop_stream()
 stream.close()
 p.terminate()
+"""
+import ffmpeg
+
+# Calculate the duration of the audio
+num_samples = len(y1)  # Length of y1 or y2 (both should have the same length)
+duration = num_samples / sampling_rate  # Duration in seconds
+
+# Combine audio and image into MP4 using FFmpeg
+input_audio = ffmpeg.input('sound.wav')
+input_image = ffmpeg.input('Figure_5.png', loop=1, t=duration)
+output = ffmpeg.output(input_image, input_audio, 'output.mp4', vcodec='libx264', acodec='libopus', strict='experimental')
+ffmpeg.run(output)
 
 
 

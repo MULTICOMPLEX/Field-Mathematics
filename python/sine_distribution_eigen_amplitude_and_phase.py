@@ -23,7 +23,12 @@ class Timer:
 prng = phimagic_prng32.mxws()
 
 Nbins = 3100
+Ntrials = 10000000
 N_Integrations = 2
+Ncycles_begin = 1 #int(Nbins / 3) 
+Ncycles_end = 15 #int(Nbins / 3)
+print('Ncycles_begin',Ncycles_begin)
+print('Ncycles_end',Ncycles_end)
 
 
 write_to_file = True
@@ -66,7 +71,7 @@ for cycle in range(Ncycles_begin, Ncycles_end + 1):
         # Perform FFT
         N = len(s1)
         yf = np.fft.fft(s1)
-
+        
         # print cycle length
         print("array length", N)
 

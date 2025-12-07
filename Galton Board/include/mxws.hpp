@@ -224,7 +224,7 @@ public:
 		for (auto i = 0; i < size; ++i) {
 			ptr[i] = (*this)(low, high);
 		}
-
+		 
 		return result;
 	}
 

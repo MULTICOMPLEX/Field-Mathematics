@@ -1,4 +1,3 @@
-
 #ifndef __MXWS_HPP__
 #define __MXWS_HPP__
 
@@ -61,7 +60,9 @@ public:
 	std::integral<T>
 		void inline seed(const T& k)
 	{
-		w = k ^ 0x1010101010101010;
+		std::uint64_t tmp = std::uint64_t(k) ^ 0x1010101010101010ULL;
+		if (tmp == 0) tmp = 0x9e3779b97f4a7c15ULL; // fallback non‑zero
+		w = tmp;
 		x = 1;
 	}
 

@@ -51,6 +51,7 @@ public:
 		void inline seed(const T& k)
 	{
 		w1 = k ^ 0x1010101010101010;
+		if (w1 == 0) w1 = 0x9e3779b97f4a7c15ULL; // fallback non‑zero
 		w2 = w1 + 1;
 		x1 = 0x1010101010101010, x2 = 1;
 	}
@@ -60,9 +61,8 @@ public:
 	std::integral<T>
 		void inline seed(const T& k)
 	{
-		std::uint64_t tmp = std::uint64_t(k) ^ 0x1010101010101010ULL;
-		if (tmp == 0) tmp = 0x9e3779b97f4a7c15ULL; // fallback non‑zero
-		w = tmp;
+		w = std::uint64_t(k) ^ 0x1010101010101010ULL;
+		if (w == 0) w = 0x9e3779b97f4a7c15ULL; // fallback non‑zero
 		x = 1;
 	}
 
@@ -117,6 +117,7 @@ public:
 	void init(const T& seed)
 	{
 		w = seed ^ 0x1010101010101010;
+		if (w == 0) w = 0x9e3779b97f4a7c15ULL; // fallback non‑zero
 		x = 1;
 		w1 = w;
 		w2 = w1 + 1;
